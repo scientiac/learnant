@@ -8,7 +8,7 @@
 
 - **Overall status:** Trial expiration command and Super Admin reactivation verified
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments finalization
-- **Last verified commit:** 3c265b0 Record progress checkpoint
+- **Last verified commit:** 897d9a8 Add trial expiration and reactivation
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 67 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/` and anonymous tenant-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -102,7 +102,7 @@ Expected actions:
 - **Files changed:** `core/models.py`, `core/permissions.py`, `core/views.py`, `config/urls.py`, `core/migrations/0007_tenant_expired_at.py`, `core/management/commands/expire_trials.py`, `core/templates/core/dashboard.html`, `core/templates/core/tenant_list.html`, `core/test_trials.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver trial smoke script; `git diff --check`.
 - **Test results:** Migration created and applied; check passed with 0 issues; 67 tests passed; demo data seeded locally; runserver trial smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 897d9a8 Add trial expiration and reactivation.
 
 Update this section after completing the first task.
 
@@ -137,7 +137,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/models.py`, `core/permissions.py`, `core/views.py`, `config/urls.py`, `core/migrations/0007_tenant_expired_at.py`, `core/management/commands/expire_trials.py`, `core/templates/core/dashboard.html`, `core/templates/core/tenant_list.html`, `core/test_trials.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver trial smoke script; `git diff --check`.
 - **Actual results:** Migration created and applied; check passed with 0 issues; 67 tests passed; demo data seeded locally; runserver trial smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 897d9a8 Add trial expiration and reactivation.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments finalization.
 - **Remaining issues:** PostgreSQL unavailable in PATH; Phase 4 update/delete/revocation acceptance still needs final pass; Phase 2/3 need final authorization/isolation review before ticking.
 - **Next single task:** Add assignment revocation and minimal course/lesson update/delete permissions.
