@@ -247,3 +247,29 @@ class BulkStudentOnboardingForm(forms.Form):
         if errors:
             raise ValidationError(errors)
         return students
+
+
+class CourseAssistantPreviewForm(forms.Form):
+    learner_role = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Junior analyst'}),
+    )
+    current_level = forms.ChoiceField(
+        choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'), ('advanced', 'Advanced')],
+        widget=forms.Select(attrs={'class': 'form-input'}),
+    )
+    goal = forms.CharField(
+        max_length=240,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Build and present a data dashboard'}),
+    )
+    hours_per_week = forms.DecimalField(
+        min_value=0.5,
+        max_value=80,
+        decimal_places=1,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'min': '0.5', 'max': '80', 'step': '0.5'}),
+    )
+    duration_weeks = forms.IntegerField(
+        min_value=1,
+        max_value=52,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'min': 1, 'max': 52}),
+    )

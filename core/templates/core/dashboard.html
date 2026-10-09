@@ -169,6 +169,7 @@
     {% if user.role == 'tenant_admin' %}
       <a href="{% url 'organization-settings' %}" class="btn btn-outline">Organization settings</a>
       <a href="{% url 'bulk-student-add' %}" class="btn btn-outline">Enroll students</a>
+      <a href="{% url 'course-assistant-preview' %}" class="btn btn-outline">AI Course Assistant Preview</a>
     {% endif %}
     <a href="{% url 'profile-settings' %}" class="btn btn-outline">Profile settings</a>
   </div>

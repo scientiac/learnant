@@ -11,6 +11,7 @@ from .forms import (
     CourseAssignmentForm,
     BulkStudentOnboardingForm,
     CourseForm,
+    CourseAssistantPreviewForm,
     LessonForm,
     ProfileSettingsForm,
     TenantSettingsForm,
@@ -133,6 +134,47 @@ def dashboard(request):
             context['assigned_course'] = assigned_courses.order_by('title').first()
 
     return render(request, 'core/dashboard.html', context)
+
+
+@login_required
+def course_assistant_preview(request):
+    if not is_tenant_admin(request.user):
+        return HttpResponseForbidden('Only tenant admins can view the course assistant preview.')
+
+    preview = None
+    if request.method == 'POST':
+        form = CourseAssistantPreviewForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            duration = data['duration_weeks']
+            module_titles = [
+                'Foundations and baseline',
+                'Core concepts',
+                'Guided practice',
+                'Applied project and review',
+            ][:min(duration, 4)]
+            module_count = len(module_titles)
+            modules = []
+            for index, title in enumerate(module_titles):
+                start_week = (index * duration) // module_count + 1
+                end_week = ((index + 1) * duration) // module_count
+                modules.append(
+                    {
+                        'title': title,
+                        'start_week': start_week,
+                        'end_week': end_week,
+                        'estimated_hours': data['hours_per_week'] * (end_week - start_week + 1),
+                    }
+                )
+            preview = {
+                'inputs': data,
+                'current_level_label': dict(form.fields['current_level'].choices)[data['current_level']],
+                'modules': modules,
+            }
+    else:
+        form = CourseAssistantPreviewForm()
+
+    return render(request, 'core/course_assistant_preview.html', {'form': form, 'preview': preview})
 
 
 @login_required

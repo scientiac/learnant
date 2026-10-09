@@ -105,7 +105,9 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 ## 5. Testing & Verification
 
-Run the full automated test suite (112 tests):
+The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
+
+Run the full automated test suite (116 tests):
 
 ```bash
 python manage.py test

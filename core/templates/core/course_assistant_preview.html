@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Course Assistant Preview · Learnant{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <h1 class="text-2xl font-semibold">AI Course Assistant Preview</h1>
+  <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">
+    Preview the planned inputs and example outline. This is static sample output—not AI-generated, saved, or added to your courses.
+  </p>
+
+  <form method="post" class="card mt-6 grid gap-4 p-6 sm:grid-cols-2">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="{% if field.name == 'goal' %}sm:col-span-2{% endif %}">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="alert-error mt-2">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <div class="sm:col-span-2">
+      <button class="btn btn-primary" type="submit">Preview sample outline</button>
+    </div>
+  </form>
+
+  {% if preview %}
+    <section class="card mt-8 p-6" aria-live="polite">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="text-lg font-semibold">Example course outline</h2>
+        <span class="badge badge-role">Static preview · not saved</span>
+      </div>
+      <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <div><dt class="font-medium">Learner role</dt><dd>{{ preview.inputs.learner_role }}</dd></div>
+        <div><dt class="font-medium">Current level</dt><dd>{{ preview.current_level_label }}</dd></div>
+        <div><dt class="font-medium">Goal</dt><dd>{{ preview.inputs.goal }}</dd></div>
+        <div><dt class="font-medium">Study plan</dt><dd>{{ preview.inputs.hours_per_week }} hours/week for {{ preview.inputs.duration_weeks }} weeks</dd></div>
+      </dl>
+      <ol class="mt-6 space-y-3">
+        {% for module in preview.modules %}
+          <li class="border-t py-3" style="border-color: hsl(var(--border));">
+            <h3 class="font-medium">{{ forloop.counter }}. {{ module.title }}</h3>
+            <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
+              Weeks {{ module.start_week }}–{{ module.end_week }} · approximately {{ module.estimated_hours }} study hours
+            </p>
+          </li>
+        {% endfor %}
+      </ol>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
