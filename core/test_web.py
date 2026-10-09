@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.management import call_command
 from django.urls import reverse
 
-from .models import Tenant, User
+from .models import Course, CourseAssignment, Lesson, Tenant, User
 
 
 class WebFlowTests(TestCase):
@@ -60,6 +60,43 @@ class WebFlowTests(TestCase):
         self.assertContains(response, 'Demo Institute')
         self.assertContains(response, 'Tenant User')
         self.assertContains(response, 'Open courses')
+        self.assertContains(response, 'Your learning path')
+        self.assertContains(response, 'No course has been assigned yet')
+
+    def test_tenant_admin_dashboard_shows_actionable_setup_checklist(self):
+        tenant_admin = User.objects.create_user(
+            username='manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
+        )
+        self.client.login(username='manager', password='test')
+
+        new_colony_response = self.client.get(reverse('dashboard'))
+        self.assertContains(new_colony_response, 'Set up your colony')
+        self.assertContains(new_colony_response, 'Create your first course')
+        self.assertContains(new_colony_response, reverse('course-create'))
+
+        course = Course.objects.create(tenant=self.tenant, title='First Course', creator=tenant_admin)
+        course_response = self.client.get(reverse('dashboard'))
+        self.assertContains(course_response, 'Add your first lesson')
+        self.assertContains(course_response, reverse('lesson-create', args=[course.id]))
+
+        Lesson.objects.create(course=course, title='First Lesson', content='Read this', order=1)
+        completed_response = self.client.get(reverse('dashboard'))
+        self.assertContains(completed_response, reverse('bulk-student-add'))
+        self.assertContains(completed_response, 'Onboard your first learner')
+
+    def test_assigned_learner_dashboard_links_to_assigned_syllabus(self):
+        tenant_admin = User.objects.create_user(
+            username='manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
+        )
+        course = Course.objects.create(tenant=self.tenant, title='Assigned Course', creator=tenant_admin)
+        CourseAssignment.objects.create(tenant=self.tenant, course=course, learner=self.learner)
+        self.client.login(username='learner', password='password123')
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertContains(response, 'Your learning path')
+        self.assertContains(response, 'Start Assigned Course')
+        self.assertContains(response, reverse('lesson-list', args=[course.id]))
 
     def test_super_viewer_dashboard_is_read_only(self):
         self.client.login(username='viewer', password='password123')

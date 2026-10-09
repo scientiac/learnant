@@ -105,7 +105,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 ## 5. Testing & Verification
 
-Run the full automated test suite (110 tests):
+Run the full automated test suite (112 tests):
 
 ```bash
 python manage.py test

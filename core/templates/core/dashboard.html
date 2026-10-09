@@ -119,6 +119,48 @@
   </div>
   {% endif %}
 
+  {% if onboarding_steps %}
+    <section class="card mb-6 p-5" aria-labelledby="onboarding-title">
+      <div class="mb-4">
+        <h2 id="onboarding-title" class="text-lg font-semibold">Set up your colony</h2>
+        <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">A short checklist to get your learning workspace ready.</p>
+      </div>
+      <ol class="space-y-3">
+        {% for step in onboarding_steps %}
+          <li class="flex items-center justify-between gap-4 border-t py-3" style="border-color: hsl(var(--border));">
+            <div class="flex items-center gap-3">
+              {% if step.complete %}
+                <span class="badge badge-active" aria-label="Complete">✓</span>
+              {% else %}
+                <span class="badge badge-role font-mono">{{ forloop.counter }}</span>
+              {% endif %}
+              <span class="text-sm">{{ step.label }}</span>
+            </div>
+            <a class="btn btn-outline btn-sm" href="{{ step.url }}">{{ step.action }}</a>
+          </li>
+        {% endfor %}
+      </ol>
+    </section>
+  {% endif %}
+
+  {% if user.role == 'tenant_user' %}
+    <section class="card mb-6 p-5" aria-labelledby="learner-welcome-title">
+      <h2 id="learner-welcome-title" class="text-lg font-semibold">Your learning path</h2>
+      {% if assigned_course %}
+        <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">
+          You have {{ assigned_course_count }} assigned course{{ assigned_course_count|pluralize }}. Continue with your syllabus:
+        </p>
+        <a class="btn btn-primary mt-4" href="{% url 'lesson-list' assigned_course.id %}">
+          <i data-lucide="book-open" class="h-4 w-4"></i>
+          Start {{ assigned_course.title }}
+        </a>
+      {% else %}
+        <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">No course has been assigned yet. Your institute admin can add you to a course.</p>
+        <a class="btn btn-outline mt-4" href="{% url 'course-list' %}">View my courses</a>
+      {% endif %}
+    </section>
+  {% endif %}
+
   <div class="flex flex-wrap gap-3">
     <a href="{% url 'course-list' %}" class="btn btn-primary">
       <i data-lucide="book-open" class="h-4 w-4"></i>

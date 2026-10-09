@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Core MVP plus public landing, settings, and bulk learner onboarding verified (110 tests passing, Django check 0 issues).
+- **Overall Status:** Core MVP plus public entry, tenant settings, bulk onboarding, and role-aware guidance verified (112 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (110 tests, 0 failures)
+  - [x] Full automated test suite passing (112 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -72,8 +72,8 @@
 - [x] Add About link to both public and authenticated navigation headers.
 
 ### Group 5: Role-Aware Onboarding Setup Guidance
-- [ ] Interactive onboarding checklist banner for Tenant Admins on the dashboard (*"1. Name your institute → 2. Create course → 3. Add lessons → 4. Onboard students"*).
-- [ ] Welcoming course overview card for learners guiding them directly into their syllabus.
+- [x] Interactive onboarding checklist banner for Tenant Admins on the dashboard (*"1. Name your institute → 2. Create course → 3. Add lessons → 4. Onboard students"*).
+- [x] Welcoming course overview card for learners guiding them directly into their syllabus.
 
 ### Group 6: AI-Powered Course Creation (Design-Only Preview)
 - [ ] UI entry point / modal for Tenant Admins to input learner role, current level, goal, hours/week, and duration to see sample structured course output.

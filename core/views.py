@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
 
 from .forms import (
@@ -73,12 +74,63 @@ def dashboard(request):
         'can_reactivate_tenant': can_reactivate_tenant(user),
         'tenant_count': None,
         'tenant_user_count': None,
+        'onboarding_steps': [],
+        'assigned_course': None,
+        'assigned_course_count': 0,
     }
 
     if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
         context['tenant_count'] = Tenant.objects.count()
     elif user.tenant_id:
         context['tenant_user_count'] = User.objects.filter(tenant=user.tenant).count()
+        if is_tenant_admin(user) and can_mutate_tenant_data(user):
+            tenant_courses = Course.objects.filter(tenant=user.tenant).order_by('created_at', 'id')
+            first_course = tenant_courses.first()
+            learner_count = User.objects.filter(
+                tenant=user.tenant,
+                role=User.Role.TENANT_USER,
+            ).count()
+            first_course_has_lessons = bool(
+                first_course and first_course.lessons.exists()
+            )
+            context['onboarding_steps'] = [
+                {
+                    'label': 'Name your institute',
+                    'complete': True,
+                    'url': reverse('organization-settings'),
+                    'action': 'Review settings',
+                },
+                {
+                    'label': 'Create your first course',
+                    'complete': first_course is not None,
+                    'url': reverse('course-update', args=[first_course.id])
+                    if first_course
+                    else reverse('course-create'),
+                    'action': 'View course' if first_course else 'Create course',
+                },
+                {
+                    'label': 'Add your first lesson',
+                    'complete': first_course_has_lessons,
+                    'url': reverse('lesson-list', args=[first_course.id])
+                    if first_course_has_lessons
+                    else reverse('lesson-create', args=[first_course.id])
+                    if first_course
+                    else reverse('course-create'),
+                    'action': 'View lessons' if first_course_has_lessons else 'Add lesson'
+                    if first_course
+                    else 'Create a course first',
+                },
+                {
+                    'label': 'Onboard your first learner',
+                    'complete': learner_count > 0,
+                    'url': reverse('bulk-student-add'),
+                    'action': 'Manage learners' if learner_count else 'Enroll students',
+                },
+            ]
+        elif is_tenant_user(user):
+            assigned_courses = visible_courses_for_user(user)
+            context['assigned_course_count'] = assigned_courses.count()
+            context['assigned_course'] = assigned_courses.order_by('title').first()
 
     return render(request, 'core/dashboard.html', context)
 
