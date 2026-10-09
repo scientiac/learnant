@@ -9,7 +9,7 @@
       <p class="text-slate-600">Courses visible to your role and tenant.</p>
     </div>
     {% if can_create_courses %}
-      <span class="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">Course creation coming next</span>
+      <a class="rounded-md bg-slate-950 px-3 py-2 text-sm text-white hover:bg-slate-800" href="{% url 'course-create' %}">New course</a>
     {% endif %}
   </div>
 

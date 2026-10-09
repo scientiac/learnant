@@ -109,3 +109,88 @@ class CourseListViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.course.title)
         self.assertContains(response, self.other_course.title)
+
+
+class CourseCreateViewTests(TestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(name='Tenant A')
+        self.other_tenant = Tenant.objects.create(name='Tenant B')
+        self.tenant_admin = User.objects.create_user(
+            username='tenant-admin',
+            password='test',
+            role=User.Role.TENANT_ADMIN,
+            tenant=self.tenant,
+        )
+        self.learner = User.objects.create_user(
+            username='learner',
+            password='test',
+            role=User.Role.TENANT_USER,
+            tenant=self.tenant,
+        )
+        self.viewer = User.objects.create_user(
+            username='viewer',
+            password='test',
+            role=User.Role.SUPER_VIEWER,
+        )
+
+    def test_course_create_requires_login(self):
+        response = self.client.get(reverse('course-create'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response['Location'])
+
+    def test_active_tenant_admin_can_create_course(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('course-create'),
+            {'title': 'New Course', 'description': 'Created in Tenant A'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        course = Course.objects.get(title='New Course')
+        self.assertEqual(course.tenant, self.tenant)
+        self.assertEqual(course.creator, self.tenant_admin)
+
+    def test_posted_tenant_id_is_ignored(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        self.client.post(
+            reverse('course-create'),
+            {
+                'title': 'Tenant Spoof Attempt',
+                'description': 'Should stay in authenticated tenant',
+                'tenant': self.other_tenant.id,
+                'creator': self.viewer.id,
+            },
+        )
+
+        course = Course.objects.get(title='Tenant Spoof Attempt')
+        self.assertEqual(course.tenant, self.tenant)
+        self.assertEqual(course.creator, self.tenant_admin)
+
+    def test_learner_cannot_create_course(self):
+        self.client.login(username='learner', password='test')
+
+        response = self.client.post(reverse('course-create'), {'title': 'Nope'})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Course.objects.filter(title='Nope').exists())
+
+    def test_super_viewer_cannot_create_course(self):
+        self.client.login(username='viewer', password='test')
+
+        response = self.client.post(reverse('course-create'), {'title': 'Read Only'})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Course.objects.filter(title='Read Only').exists())
+
+    def test_expired_tenant_admin_cannot_create_course(self):
+        self.tenant.status = Tenant.Status.EXPIRED
+        self.tenant.save()
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(reverse('course-create'), {'title': 'Expired Course'})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Course.objects.filter(title='Expired Course').exists())

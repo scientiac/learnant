@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Tenant-scoped course list verified locally with Tailwind/HTMX UI baseline
+- **Overall status:** Tenant-admin course creation verified with server-side tenant scoping and expired-tenant write blocking
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** 918abd0 Add course list and Tailwind HTMX UI
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 28 tests
-- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, anonymous dashboard redirect, and anonymous course-list redirect
+- **Last verified commit:** a997101 Record course list checkpoint
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 34 tests
+- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, anonymous course-list redirect, and anonymous course-create redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Add tenant-admin course creation form with active-trial write enforcement and cross-tenant tests.
+- **Next task:** Add Lesson model and tenant-admin lesson list/create flow scoped through courses.
 
 ## 2. Project Decisions
 
@@ -73,30 +73,29 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 
 ## 6. Current Task
 
-**Task:** Add Tailwind/HTMX UI baseline and tenant-scoped course list.
+**Task:** Tenant-admin course creation with active-tenant write enforcement.
 
 Expected actions:
-- Update implementation plan to use Tailwind CSS and HTMX for the frontend UI baseline.
-- Avoid adding package dependencies for UI tooling at this stage; use CDN links.
-- Add the smallest Course model.
-- Add protected course list scoped by role and tenant.
-- Run migrations, checks, tests, demo seed, and runserver smoke check.
+- Add a tenant-admin-only course creation form.
+- Derive tenant and creator from the authenticated user on the server.
+- Ignore any client-supplied tenant or creator fields.
+- Block course creation when the tenant is expired/read-only.
+- Run checks, tests, demo seed, and runserver smoke check.
 
 **Acceptance criteria:**
-- Plan and docs mention Tailwind/HTMX UI approach.
-- Course model is migrated.
-- Tenant Admin sees only own tenant courses.
-- Tenant User does not see unassigned courses yet.
-- Super Viewer can read all courses.
+- Active Tenant Admin can create courses in their own tenant.
+- Posted tenant/creator manipulation cannot change ownership.
+- Tenant User and Super Viewer cannot create courses.
+- Expired Tenant Admin cannot create courses.
 - Tests and runserver smoke check pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Switched templates to Tailwind/HTMX CDN baseline and added tenant-scoped Course model/list page with isolation tests.
-- **Files changed:** `PLANS.md`, `DOCUMENT.sh`, `README.md`, `config/urls.py`, `core/admin.py`, `core/models.py`, `core/views.py`, `core/migrations/0003_course.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_courses.py`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course web smoke script; `git diff --check`.
-- **Test results:** Migration created and applied; check passed with 0 issues; 28 tests passed; demo data seeded locally; runserver course web smoke passed; whitespace diff check passed.
-- **Commit:** 918abd0 Add course list and Tailwind HTMX UI.
+- **Task:** Added tenant-admin course creation form with server-derived tenant/creator and expired-tenant write blocking.
+- **Files changed:** `core/forms.py`, `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/course_form.html`, `core/test_courses.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course-create smoke script; `git diff --check`.
+- **Test results:** Check passed with 0 issues; 34 tests passed; demo data seeded locally; runserver course-create smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -128,11 +127,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Added Tailwind/HTMX UI baseline and tenant-scoped course list.
-- **Files changed:** `PLANS.md`, `DOCUMENT.sh`, `README.md`, `config/urls.py`, `core/admin.py`, `core/models.py`, `core/views.py`, `core/migrations/0003_course.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_courses.py`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course web smoke script; `git diff --check`.
-- **Actual results:** Migration created and applied; check passed with 0 issues; 28 tests passed; demo data seeded locally; runserver course web smoke passed; whitespace diff check passed.
-- **Commit:** 918abd0 Add course list and Tailwind HTMX UI.
+- **Task completed:** Added tenant-admin course creation with active-tenant write enforcement.
+- **Files changed:** `core/forms.py`, `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/course_form.html`, `core/test_courses.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course-create smoke script; `git diff --check`.
+- **Actual results:** Check passed with 0 issues; 34 tests passed; demo data seeded locally; runserver course-create smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
-- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; course creation/lesson/assignment/progress flows not implemented yet.
-- **Next single task:** Add tenant-admin course creation form with active-trial write enforcement and cross-tenant tests.
+- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; lesson/assignment/progress flows not implemented yet.
+- **Next single task:** Add Lesson model and tenant-admin lesson list/create flow scoped through courses.
