@@ -8,10 +8,23 @@ Small Django application for a secure multi-tenant learning platform.
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python manage.py migrate
+.venv/bin/python manage.py seed_demo
 .venv/bin/python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000/` for the health check.
+Visit `http://127.0.0.1:8000/` and log in with a demo user.
+
+Demo users created by `seed_demo`:
+
+| Username | Role | Password |
+| --- | --- | --- |
+| `superadmin` | Super Admin | `password123` |
+| `admin` | Admin | `password123` |
+| `viewer` | Super Viewer | `password123` |
+| `tenantadmin` | Tenant Admin | `password123` |
+| `learner` | Tenant User | `password123` |
+
+The health check is available at `http://127.0.0.1:8000/health/`.
 
 ## Configuration
 

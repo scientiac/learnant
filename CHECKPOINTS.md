@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Phase 2 reusable authorization helpers verified; ready for protected views/endpoints
+- **Overall status:** Phase 2 login flow and initial dashboard verified locally
 - **Current phase:** Phase 2 — Authentication and Authorization
-- **Last verified commit:** c9211f0 Initial Django tenant platform setup
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 16 tests
-- **Application starts locally:** Verified with runserver smoke check returning `{"status": "ok"}`
+- **Last verified commit:** b3eb4d0 Record initial checkpoint commit
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 22 tests
+- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, and anonymous dashboard redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Add minimal login/logout flow and protect a role-aware dashboard or API smoke endpoint.
+- **Next task:** Start Phase 3/4 with the smallest tenant-scoped course model and protected course list.
 
 ## 2. Project Decisions
 
@@ -73,29 +73,30 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 
 ## 6. Current Task
 
-**Task:** Phase 2 reusable permission helpers.
+**Task:** Phase 2 login/logout flow and initial dashboard.
 
 Expected actions:
-- Encode reusable role checks.
-- Encode platform read/manage/reactivation distinctions.
-- Encode expired-tenant read-only behavior.
-- Add focused tests before wiring helpers into views/endpoints.
-- Run checks and tests.
+- Add login/logout URLs and templates.
+- Protect dashboard behind authentication.
+- Show role-aware dashboard content.
+- Add a demo-data command for local browser testing.
+- Run checks, tests, and a runserver web smoke check.
 
 **Acceptance criteria:**
-- Super Viewer is read-only at the platform helper level.
-- Admin can manage platform records through the documented subset helper but cannot reactivate tenants.
-- Only Super Admin can reactivate tenants.
-- Expired tenant users can read existing authorized tenant data but cannot mutate tenant data.
-- Focused permission tests pass.
+- Anonymous users are redirected from the dashboard to login.
+- Login page renders in the browser.
+- Authenticated tenant users see tenant dashboard content.
+- Super Viewer sees platform read-only dashboard content.
+- Demo users can be seeded idempotently.
+- Tests and runserver smoke check pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Added reusable authorization helpers for platform roles, tenant reads/mutations, reactivation, and expired-tenant read-only policy.
-- **Files changed:** `core/permissions.py`, `core/test_permissions.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `git diff --check`.
-- **Test results:** Check passed with 0 issues; 16 tests passed; whitespace diff check passed.
-- **Commit:** Not available; workspace is not a Git repository.
+- **Task:** Added login/logout flow, protected dashboard, role-aware dashboard content, and idempotent demo seeding command.
+- **Files changed:** `config/settings.py`, `config/urls.py`, `core/views.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver web smoke script; `git diff --check`.
+- **Test results:** Check passed with 0 issues; 22 tests passed; demo data seeded locally; runserver web smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -127,11 +128,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Implemented and tested reusable Phase 2 authorization helpers.
-- **Files changed:** `core/permissions.py`, `core/test_permissions.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `git diff --check`.
-- **Actual results:** Check passed with 0 issues; 16 tests passed; whitespace diff check passed.
-- **Commit:** c9211f0 Initial Django tenant platform setup.
+- **Task completed:** Added browser-visible login/logout flow, role-aware dashboard, and demo-data seeding command.
+- **Files changed:** `config/settings.py`, `config/urls.py`, `core/views.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver web smoke script; `git diff --check`.
+- **Actual results:** Check passed with 0 issues; 22 tests passed; demo data seeded locally; runserver web smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 - **Current phase:** Phase 2 — Authentication and Authorization.
-- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; authorization helpers are not wired into views/endpoints yet.
-- **Next single task:** Add minimal login/logout flow and protect a role-aware dashboard or API smoke endpoint.
+- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; course/assignment/progress models not implemented yet.
+- **Next single task:** Start Phase 3/4 with the smallest tenant-scoped course model and protected course list.

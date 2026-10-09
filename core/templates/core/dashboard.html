@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Tenant Learning{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h3">Dashboard</h1>
+          <p class="text-muted mb-4">Welcome, {{ user.get_full_name|default:user.username }}.</p>
+
+          {% if can_read_platform %}
+            <h2 class="h5">Platform overview</h2>
+            <p>You can view platform information.</p>
+            <ul>
+              <li>Total tenants: {{ tenant_count }}</li>
+              <li>Platform management: {% if can_manage_platform %}enabled{% else %}read-only{% endif %}</li>
+              <li>Tenant reactivation: {% if can_reactivate_tenant %}enabled{% else %}not allowed{% endif %}</li>
+            </ul>
+          {% elif user.tenant %}
+            <h2 class="h5">{{ user.tenant.name }}</h2>
+            <p>Tenant status: <strong>{{ user.tenant.get_status_display }}</strong></p>
+            {% if user.tenant.status == 'expired' %}
+              <div class="alert alert-warning">
+                This tenant is expired. Existing authorized data is read-only.
+              </div>
+            {% endif %}
+            <ul>
+              <li>Users in your tenant: {{ tenant_user_count }}</li>
+              <li>Role: {{ user.get_role_display }}</li>
+            </ul>
+          {% else %}
+            <div class="alert alert-danger">Your account has no valid tenant assignment.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
