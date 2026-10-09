@@ -8,7 +8,7 @@
 
 - **Overall status:** Tenant-admin course creation verified with server-side tenant scoping and expired-tenant write blocking
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** a997101 Record course list checkpoint
+- **Last verified commit:** 064589e Add tenant course creation
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 34 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, anonymous course-list redirect, and anonymous course-create redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -95,7 +95,7 @@ Expected actions:
 - **Files changed:** `core/forms.py`, `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/course_form.html`, `core/test_courses.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course-create smoke script; `git diff --check`.
 - **Test results:** Check passed with 0 issues; 34 tests passed; demo data seeded locally; runserver course-create smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 064589e Add tenant course creation.
 
 Update this section after completing the first task.
 
@@ -131,7 +131,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/forms.py`, `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/course_form.html`, `core/test_courses.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course-create smoke script; `git diff --check`.
 - **Actual results:** Check passed with 0 issues; 34 tests passed; demo data seeded locally; runserver course-create smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 064589e Add tenant course creation.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; lesson/assignment/progress flows not implemented yet.
 - **Next single task:** Add Lesson model and tenant-admin lesson list/create flow scoped through courses.
