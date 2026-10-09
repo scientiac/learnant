@@ -124,7 +124,7 @@
 - [x] Deployment guide based on `https://railway.com/deploy/django-w-postgres`.
 - [ ] PostgreSQL service connectivity could not be exercised locally; verify against the live Railway service at deployment.
 
-### Priority 9: Take-Home Submission Gaps (excluding human AI design and Priority 8)
+### Priority 9: Remaining Take-Home Submission Items
 - [x] Add platform-side tenant creation for Admin/Super Admin with an initial Tenant Admin.
 - [x] Add Tenant Admin-scoped learner roster edit and activate/deactivate management.
 - [x] Add deployment-time Super Admin bootstrap with forced password change.
@@ -133,4 +133,3 @@
 - [x] Reconcile architecture/permissions docs and test counts with current implementation.
 - [ ] Record the original self-deadline if known; it cannot be reconstructed from the repository.
 - [ ] Human developer completes `docs/ai-course-design.md`; do not generate its content.
-- [x] Priority 8 Railway deployment configuration is implemented; live PostgreSQL connectivity remains deployment-time verification.
