@@ -1,5 +1,7 @@
 from datetime import timedelta
 import re
+import uuid
+from pathlib import PurePath
 from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
@@ -100,6 +102,7 @@ class User(AbstractUser):
     }
 
     role = models.CharField(max_length=30, choices=Role.choices, default=Role.TENANT_USER)
+    must_change_password = models.BooleanField(default=True)
     tenant = models.ForeignKey(
         Tenant,
         null=True,
@@ -142,6 +145,8 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         if self.is_superuser and self.tenant_id is None and self.role == self.Role.TENANT_USER:
             self.role = self.Role.SUPER_ADMIN
+        if self.role != self.Role.TENANT_USER:
+            self.must_change_password = False
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -183,6 +188,7 @@ class Course(models.Model):
 class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
     title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, max_length=500)
     content = models.TextField()
     video_url = models.URLField(max_length=500, blank=True)
     order = models.PositiveIntegerField(default=1)
@@ -281,6 +287,52 @@ class Lesson(models.Model):
 
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+def lesson_asset_upload_to(instance, filename):
+    extension = PurePath(filename).suffix.lower()
+    return f'lesson-assets/{instance.public_id.hex}{extension}'
+
+
+class LessonAsset(models.Model):
+    class Kind(models.TextChoices):
+        IMAGE = 'image', 'Image'
+        VIDEO = 'video', 'Video'
+
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='assets')
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    file = models.FileField(upload_to=lesson_asset_upload_to)
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    mime_type = models.CharField(max_length=50)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at', 'id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['lesson'],
+                condition=Q(kind='video'),
+                name='one_video_asset_per_lesson',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.kind} for {self.lesson}'
+
+    def markdown_embed(self):
+        url = f'/lesson-assets/{self.public_id}/'
+        if self.kind == self.Kind.IMAGE:
+            return f'![{PurePath(self.file.name).stem}]({url})'
+        return f'<video controls preload="metadata"><source src="{url}" type="{self.mime_type}"></video>'
+
+    def clean(self):
+        super().clean()
+        from .media import LESSON_UPLOAD_TYPES
+
+        if self.file:
+            expected = LESSON_UPLOAD_TYPES.get(PurePath(self.file.name).suffix.lower())
+            if not expected or expected != (self.kind, self.mime_type):
+                raise ValidationError('Uploaded media type does not match its permitted file extension.')
 
 
 class CourseAssignment(models.Model):

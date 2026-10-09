@@ -25,6 +25,7 @@ class LessonViewTests(TestCase):
             password='test',
             role=User.Role.TENANT_USER,
             tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(
             username='viewer',

@@ -26,6 +26,9 @@ class Command(BaseCommand):
                 user.role = role
                 user.tenant = user_tenant
             user.set_password('password123')
+            # Demo credentials are intentionally ready to use, unlike temporary
+            # passwords generated for enrolled learners.
+            user.must_change_password = False
             user.save()
 
         tenant_admin = User.objects.get(username='tenant_admin')

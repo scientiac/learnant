@@ -11,7 +11,8 @@ class CourseAssistantPreviewTests(TestCase):
             username='manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(
             username='viewer', password='test', role=User.Role.SUPER_VIEWER

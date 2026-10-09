@@ -15,6 +15,10 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/media/'
 
 
 # Quick-start development settings - unsuitable for production
@@ -55,6 +59,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.RequirePasswordChangeMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

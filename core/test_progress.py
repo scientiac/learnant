@@ -12,7 +12,8 @@ class LessonProgressModelTests(TestCase):
             username='tenant-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.course = Course.objects.create(tenant=self.tenant, title='Course A', creator=self.admin)
         self.other_course = Course.objects.create(tenant=self.tenant, title='Course B', creator=self.admin)
@@ -42,10 +43,12 @@ class LessonProgressViewTests(TestCase):
             username='other-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.other_tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.other_learner = User.objects.create_user(
-            username='other-learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='other-learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.course = Course.objects.create(tenant=self.tenant, title='Course A', creator=self.admin)
         self.other_course = Course.objects.create(

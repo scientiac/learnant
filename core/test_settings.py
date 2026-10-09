@@ -15,7 +15,8 @@ class OrganizationSettingsTests(TestCase):
             username='other-manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.other_tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
 
     def test_anonymous_user_cannot_open_organization_settings(self):
@@ -80,7 +81,8 @@ class ProfileSettingsTests(TestCase):
         self.tenant = Tenant.objects.create(name='Institute A')
         self.other_tenant = Tenant.objects.create(name='Institute B')
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.platform_user = User.objects.create_user(
             username='viewer', password='test', role=User.Role.SUPER_VIEWER

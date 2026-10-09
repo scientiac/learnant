@@ -20,6 +20,7 @@ class CourseModelTests(TestCase):
             password='test',
             role=User.Role.TENANT_USER,
             tenant=self.tenant,
+            must_change_password=False,
         )
 
     def test_course_creator_must_match_tenant(self):
@@ -60,6 +61,7 @@ class CourseListViewTests(TestCase):
             password='test',
             role=User.Role.TENANT_USER,
             tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(
             username='viewer',
@@ -126,6 +128,7 @@ class CourseCreateViewTests(TestCase):
             password='test',
             role=User.Role.TENANT_USER,
             tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(
             username='viewer',
@@ -207,7 +210,8 @@ class CourseMutationViewTests(TestCase):
             username='other-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.other_tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(username='viewer', password='test', role=User.Role.SUPER_VIEWER)
         self.course = Course.objects.create(tenant=self.tenant, title='Course A', creator=self.tenant_admin)

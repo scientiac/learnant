@@ -23,13 +23,16 @@ class PlatformRoleTenantManagementTests(TestCase):
             username='manager-b', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant_b
         )
         self.learner = User.objects.create_user(
-            username='learner-a', password='test', role=User.Role.TENANT_USER, tenant=self.tenant_a
+            username='learner-a', password='test', role=User.Role.TENANT_USER, tenant=self.tenant_a,
+            must_change_password=False,
         )
         self.other_learner = User.objects.create_user(
-            username='learner-b', password='test', role=User.Role.TENANT_USER, tenant=self.tenant_b
+            username='learner-b', password='test', role=User.Role.TENANT_USER, tenant=self.tenant_b,
+            must_change_password=False,
         )
         self.second_other_learner = User.objects.create_user(
-            username='learner-b2', password='test', role=User.Role.TENANT_USER, tenant=self.tenant_b
+            username='learner-b2', password='test', role=User.Role.TENANT_USER, tenant=self.tenant_b,
+            must_change_password=False,
         )
         self.course_a = Course.objects.create(
             tenant=self.tenant_a, title='Course A', creator=self.tenant_admin

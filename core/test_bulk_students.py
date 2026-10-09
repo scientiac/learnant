@@ -12,10 +12,12 @@ class BulkStudentOnboardingTests(TestCase):
             username='manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
         )
         self.other_learner = User.objects.create_user(
-            username='existing_student', password='test', role=User.Role.TENANT_USER, tenant=self.other_tenant
+            username='existing_student', password='test', role=User.Role.TENANT_USER,
+            tenant=self.other_tenant, must_change_password=False,
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(username='viewer', password='test', role=User.Role.SUPER_VIEWER)
 
@@ -44,6 +46,7 @@ class BulkStudentOnboardingTests(TestCase):
         for learner in (first, second):
             self.assertEqual(learner.tenant, self.tenant)
             self.assertEqual(learner.role, User.Role.TENANT_USER)
+            self.assertTrue(learner.must_change_password)
             self.assertTrue(learner.check_password(
                 next(row['password'] for row in response.context['created_students'] if row['username'] == learner.username)
             ))

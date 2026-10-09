@@ -13,6 +13,7 @@ class WebFlowTests(TestCase):
             password='password123',
             role=User.Role.TENANT_USER,
             tenant=self.tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(
             username='viewer',
@@ -134,6 +135,7 @@ class WebFlowTests(TestCase):
 
         self.assertTrue(self.client.login(username='learner', password='password123'))
         self.assertTrue(User.objects.filter(username='superadmin').exists())
+        self.assertFalse(User.objects.get(username='learner').must_change_password)
         self.client.logout()
         for username in ('tenant_admin', 'institute_admin'):
             with self.subTest(username=username):

@@ -15,6 +15,7 @@
       <div>
         <p class="font-mono text-xs uppercase tracking-wider" style="color: hsl(var(--muted-foreground));">Lesson {{ lesson.order }} · {{ course.title }}</p>
         <h1 class="mt-2 text-2xl font-semibold tracking-tight">{{ lesson.title }}</h1>
+        {% if lesson.description %}<p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">{{ lesson.description }}</p>{% endif %}
       </div>
       {% if assignment %}
         {% if progress and progress.is_complete %}
@@ -31,7 +32,7 @@
           <iframe class="h-full w-full" src="{{ video_player.src }}" title="Lesson video: {{ lesson.title }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation" allow="accelerometer; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>
         {% else %}
           <video class="h-full w-full" controls preload="metadata">
-            <source src="{{ video_player.src }}">
+            <source src="{{ video_player.src }}"{% if video_player.mime_type %} type="{{ video_player.mime_type }}"{% endif %}>
             Your browser does not support embedded video.
           </video>
         {% endif %}

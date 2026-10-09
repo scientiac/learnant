@@ -13,10 +13,12 @@ class CourseAssignmentModelTests(TestCase):
             username='tenant-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.other_learner = User.objects.create_user(
-            username='other-learner', password='test', role=User.Role.TENANT_USER, tenant=self.other_tenant
+            username='other-learner', password='test', role=User.Role.TENANT_USER, tenant=self.other_tenant,
+            must_change_password=False,
         )
         self.course = Course.objects.create(tenant=self.tenant, title='Course A', creator=self.tenant_admin)
 
@@ -44,10 +46,12 @@ class CourseAssignmentViewTests(TestCase):
             username='other-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.other_tenant
         )
         self.learner = User.objects.create_user(
-            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant,
+            must_change_password=False,
         )
         self.other_learner = User.objects.create_user(
-            username='other-learner', password='test', role=User.Role.TENANT_USER, tenant=self.other_tenant
+            username='other-learner', password='test', role=User.Role.TENANT_USER, tenant=self.other_tenant,
+            must_change_password=False,
         )
         self.viewer = User.objects.create_user(
             username='viewer', password='test', role=User.Role.SUPER_VIEWER

@@ -1,10 +1,11 @@
 import secrets
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordChangeView
 from django.db import transaction
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import FileResponse, Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.db.models import Max
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
@@ -19,7 +20,8 @@ from .forms import (
     TenantSettingsForm,
     TenantSignupForm,
 )
-from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
+from .media import classify_lesson_upload
+from .models import Course, CourseAssignment, Lesson, LessonAsset, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
     can_manage_tenant,
@@ -70,6 +72,18 @@ def signup(request):
         '14-day trial — no card needed',
     ]
     return render(request, 'registration/signup.html', {'form': form, 'features': features})
+
+
+class RequiredPasswordChangeView(PasswordChangeView):
+    template_name = 'registration/password_change.html'
+    success_url = reverse_lazy('dashboard')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.request.user
+        user.must_change_password = False
+        user.save(update_fields=['must_change_password'])
+        return response
 
 @login_required
 def dashboard(request):
@@ -147,6 +161,38 @@ def dashboard(request):
                 context['assigned_lesson'] = context['assigned_course'].lessons.order_by('order', 'id').first()
 
     return render(request, 'core/dashboard.html', context)
+
+
+def save_lesson_uploads(lesson, uploads, remove_video=False):
+    if not uploads and not remove_video:
+        return
+
+    created_assets = []
+    try:
+        if remove_video:
+            for asset in lesson.assets.filter(kind=LessonAsset.Kind.VIDEO):
+                lesson.content = lesson.content.replace(asset.markdown_embed(), '').strip()
+                asset.delete()
+
+        embeds = []
+        for upload in uploads:
+            kind, mime_type = classify_lesson_upload(upload)
+            asset = LessonAsset(lesson=lesson, kind=kind, mime_type=mime_type)
+            asset.file.save(upload.name, upload, save=False)
+            created_assets.append(asset)
+            asset.full_clean()
+            asset.save()
+            embeds.append(asset.markdown_embed())
+
+        if embeds:
+            markdown = '\n\n'.join(embeds)
+            lesson.content = f'{lesson.content.rstrip()}\n\n{markdown}' if lesson.content.strip() else markdown
+        lesson.save(update_fields=['content'])
+    except Exception:
+        for asset in created_assets:
+            if asset.file:
+                asset.file.storage.delete(asset.file.name)
+        raise
 
 
 @login_required
@@ -334,6 +380,7 @@ def bulk_student_add(request, tenant_id=None):
                         email=student_data['email'],
                         password=initial_password,
                         role=User.Role.TENANT_USER,
+                        must_change_password=True,
                         tenant=tenant,
                     )
                     created_students.append(
@@ -495,11 +542,17 @@ def lesson_create(request, course_id):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = LessonForm(request.POST)
+        form = LessonForm(request.POST, request.FILES)
         if form.is_valid():
             lesson = form.save(commit=False)
             lesson.course = course
-            lesson.save()
+            with transaction.atomic():
+                lesson.save()
+                save_lesson_uploads(
+                    lesson,
+                    form.cleaned_data['media_files'],
+                    form.cleaned_data['remove_video'],
+                )
             return redirect('lesson-list', course_id=course.id)
     else:
         next_order = (
@@ -507,7 +560,29 @@ def lesson_create(request, course_id):
         ) + 1
         form = LessonForm(initial={'order': next_order})
 
-    return render(request, 'core/lesson_form.html', {'course': course, 'form': form})
+    return render(
+        request,
+        'core/lesson_form.html',
+        {'course': course, 'form': form, 'has_uploaded_video': False},
+    )
+
+
+@login_required
+@never_cache
+def lesson_asset(request, asset_id):
+    asset = get_object_or_404(
+        LessonAsset.objects.select_related('lesson__course'),
+        public_id=asset_id,
+    )
+    if not visible_courses_for_user(request.user).filter(id=asset.lesson.course_id).exists():
+        raise Http404
+    try:
+        file_handle = asset.file.open('rb')
+    except (OSError, ValueError):
+        raise Http404
+    response = FileResponse(file_handle, content_type=asset.mime_type)
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
 
 
 @login_required
@@ -520,16 +595,31 @@ def lesson_update(request, course_id, lesson_id):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = LessonForm(request.POST, instance=lesson)
+        form = LessonForm(request.POST, request.FILES, instance=lesson)
         if form.is_valid():
             updated_lesson = form.save(commit=False)
             updated_lesson.course = course
-            updated_lesson.save()
+            with transaction.atomic():
+                updated_lesson.save()
+                save_lesson_uploads(
+                    updated_lesson,
+                    form.cleaned_data['media_files'],
+                    form.cleaned_data['remove_video'],
+                )
             return redirect('lesson-list', course_id=course.id)
     else:
         form = LessonForm(instance=lesson)
 
-    return render(request, 'core/lesson_form.html', {'course': course, 'lesson': lesson, 'form': form})
+    return render(
+        request,
+        'core/lesson_form.html',
+        {
+            'course': course,
+            'lesson': lesson,
+            'form': form,
+            'has_uploaded_video': lesson.assets.filter(kind=LessonAsset.Kind.VIDEO).exists(),
+        },
+    )
 
 
 @login_required

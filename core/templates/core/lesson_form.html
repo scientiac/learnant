@@ -21,7 +21,7 @@
 
     <div class="separator mb-5"></div>
 
-    <form method="post" class="space-y-4" id="lesson-form">
+    <form method="post" enctype="multipart/form-data" class="space-y-4" id="lesson-form">
       {% csrf_token %}
 
       {% if form.non_field_errors %}
@@ -39,6 +39,12 @@
       </div>
 
       <div>
+        <label class="form-label" for="{{ form.description.id_for_label }}">Lesson description</label>
+        {{ form.description }}
+        {% if form.description.errors %}<p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.description.errors|join:", " }}</p>{% endif %}
+      </div>
+
+      <div>
         <label class="form-label" for="{{ form.order.id_for_label }}">
           Syllabus order <span style="color: hsl(var(--destructive));">*</span>
         </label>
@@ -51,8 +57,9 @@
 
       <div>
         <label class="form-label" for="{{ form.content.id_for_label }}">
-          Lesson content (Markdown supported) <span style="color: hsl(var(--destructive));">*</span>
+          Lesson content (Markdown) <span style="color: hsl(var(--destructive));">*</span>
         </label>
+        <p class="mb-1 text-xs" style="color: hsl(var(--muted-foreground));">Supports GFM, images, and LaTeX. Uploaded media is inserted into the Markdown content.</p>
         {{ form.content }}
         {% if form.content.errors %}
           <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.content.errors|join:", " }}</p>
@@ -60,13 +67,17 @@
       </div>
 
       <div>
-        <label class="form-label" for="{{ form.video_url.id_for_label }}">Optional video URL</label>
-        {{ form.video_url }}
-        <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">One HTTPS YouTube/Vimeo link or direct MP4, WebM, or Ogg file.</p>
-        {% if form.video_url.errors %}
-          <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.video_url.errors|join:", " }}</p>
+        <label class="form-label" for="{{ form.media_files.id_for_label }}">Upload images or video</label>
+        {{ form.media_files }}
+        <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">PNG, JPEG, GIF, WebP, MP4, WebM, or Ogg. Up to 10 files; one video maximum.</p>
+        {% if form.media_files.errors %}
+          <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.media_files.errors|join:", " }}</p>
         {% endif %}
       </div>
+
+      {% if has_uploaded_video %}
+        <label class="flex items-center gap-2 text-sm">{{ form.remove_video }} {{ form.remove_video.label }}</label>
+      {% endif %}
 
       <div class="flex items-center gap-3 pt-3">
         <button class="btn btn-primary" type="submit" id="save-lesson-btn">

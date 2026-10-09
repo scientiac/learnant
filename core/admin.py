@@ -32,6 +32,7 @@ class LessonAdmin(admin.ModelAdmin):
     list_display = ('title', 'course', 'order', 'created_at')
     list_filter = ('course__tenant', 'course')
     search_fields = ('title', 'content', 'course__title')
+    fields = ('course', 'title', 'description', 'content', 'order')
 
 
 @admin.register(CourseAssignment)

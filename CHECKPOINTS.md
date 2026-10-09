@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Lesson sequencing, study view, rich content, media validation, and role-aware onboarding verified (142 tests passing, Django check 0 issues).
+- **Overall Status:** Lesson descriptions and protected in-Markdown media uploads verified (152 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (142 tests, 0 failures)
+  - [x] Full automated test suite passing (152 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -98,11 +98,11 @@
 ### Priority 3: Dedicated Lesson Study View & Rich Content (GFM + LaTeX + Video)
 - [x] Dedicated individual lesson study page (`/courses/<course_id>/lessons/<lesson_id>/`) with syllabus navigation.
 - [x] Rich document support: GitHub-Flavored Markdown (GFM) with images and LaTeX math equations (KaTeX).
-- [x] Attach one validated HTTPS video URL per lesson (YouTube/Vimeo embed or direct media player).
+- [x] Upload images and one video per lesson; add them directly into Markdown content and serve them through tenant-authorized media URLs.
 
 ### Priority 4: Student First-Login Password Reset
-- [ ] Add `must_change_password` flag to User model (default `True` for new learners).
-- [ ] Redirect newly onboarded students to set a secure password upon their first login.
+- [x] Add `must_change_password` flag to User model (default `True` for new learners; existing/demo accounts preserved).
+- [x] Redirect provisioned learners to set a secure password before accessing the application; permit password change or logout.
 
 ### Priority 5: Flexible Subscription & Expiration Control (Super Admin)
 - [ ] Super Admin ability to switch tenant between `trial` and `subscribed` status.
