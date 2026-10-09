@@ -8,7 +8,7 @@
 
 - **Overall status:** Lesson progress flow verified with learner ownership checks and expired-tenant read-only enforcement
 - **Current phase:** Phase 6 — Trial Expiration and Reactivation
-- **Last verified commit:** fa08037 Clarify checkpoint phase tracking
+- **Last verified commit:** a9ed512 Add learner lesson progress
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 61 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous progress-list redirect, and anonymous lesson-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -101,7 +101,7 @@ Expected actions:
 - **Files changed:** `core/models.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0006_lessonprogress.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/progress_list.html`, `core/test_progress.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver progress smoke script; `git diff --check`.
 - **Test results:** Migration created and applied; check passed with 0 issues; 61 tests passed; demo data seeded locally; runserver progress smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** a9ed512 Add learner lesson progress.
 
 Update this section after completing the first task.
 
@@ -137,7 +137,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/models.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0006_lessonprogress.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/progress_list.html`, `core/test_progress.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver progress smoke script; `git diff --check`.
 - **Actual results:** Migration created and applied; check passed with 0 issues; 61 tests passed; demo data seeded locally; runserver progress smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** a9ed512 Add learner lesson progress.
 - **Current phase:** Phase 6 — Trial Expiration and Reactivation.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; Phase 4 update/delete/revocation acceptance still needs final pass.
 - **Next single task:** Add idempotent trial-expiration command and request-time expiry enforcement/reactivation policy.
