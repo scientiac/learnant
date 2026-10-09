@@ -8,7 +8,7 @@
 
 - **Overall status:** Phase 7 minimal usable workflows verified
 - **Current phase:** Phase 8 — Verification and security review
-- **Last verified commit:** abf770d Verify authorization and tenant isolation phases
+- **Last verified commit:** f55ef21 Add minimal demo workflow polish
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 86 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, and protected workflow redirects
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -101,7 +101,7 @@ Expected actions:
 - **Files changed:** `core/templates/base.html`, `core/templates/core/dashboard.html`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver Phase 7 smoke script.
 - **Test results:** Check passed with 0 issues; 86 tests passed; demo data seeded locally; runserver Phase 7 smoke passed.
-- **Commit:** Pending.
+- **Commit:** f55ef21 Add minimal demo workflow polish.
 
 Update this section after completing the first task.
 
@@ -136,7 +136,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/templates/base.html`, `core/templates/core/dashboard.html`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver Phase 7 smoke script.
 - **Actual results:** Check passed with 0 issues; 86 tests passed; demo data seeded locally; runserver Phase 7 smoke passed.
-- **Commit:** Pending.
+- **Commit:** f55ef21 Add minimal demo workflow polish.
 - **Current phase:** Phase 8 — Verification and security review.
 - **Remaining issues:** PostgreSQL unavailable in PATH; Phase 8/9 remain.
 - **Next single task:** Run Phase 8 verification/security review and add any regression tests for findings.
