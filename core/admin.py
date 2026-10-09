@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Tenant, User
+from .models import Course, Tenant, User
 
 
 @admin.register(Tenant)
@@ -18,3 +18,10 @@ class CustomUserAdmin(UserAdmin):
     )
     list_display = ('username', 'email', 'role', 'tenant', 'is_staff', 'is_active')
     list_filter = UserAdmin.list_filter + ('role',)
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('title', 'tenant', 'creator', 'created_at')
+    list_filter = ('tenant',)
+    search_fields = ('title', 'description', 'tenant__name')

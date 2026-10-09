@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Phase 2 login flow and initial dashboard verified locally
-- **Current phase:** Phase 2 — Authentication and Authorization
-- **Last verified commit:** 41f0bbb Add login flow and dashboard
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 22 tests
-- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, and anonymous dashboard redirect
+- **Overall status:** Tenant-scoped course list verified locally with Tailwind/HTMX UI baseline
+- **Current phase:** Phase 4 — Courses, Lessons, and Assignments
+- **Last verified commit:** 44d43c2 Record login dashboard checkpoint
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 28 tests
+- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, anonymous dashboard redirect, and anonymous course-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Start Phase 3/4 with the smallest tenant-scoped course model and protected course list.
+- **Next task:** Add tenant-admin course creation form with active-trial write enforcement and cross-tenant tests.
 
 ## 2. Project Decisions
 
@@ -20,7 +20,7 @@
 - **Backend:** Django.
 - **API:** Django REST Framework where useful.
 - **Database:** PostgreSQL for the completed application.
-- **UI:** Django templates and Bootstrap; Django Admin for appropriately restricted internal administration.
+- **UI:** Django templates with Tailwind CSS and HTMX via CDN for a clean minimal interface; Django Admin for appropriately restricted internal administration.
 - **Authentication:** Django authentication with a custom user model defined before the first migrations.
 - **Tenant approach:** Shared database with tenant ownership on tenant-owned records; backend queries and permissions enforce isolation.
 - **Trial:** Suggested 14-day trial, with request-time enforcement and an idempotent scheduled management command.
@@ -73,30 +73,30 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 
 ## 6. Current Task
 
-**Task:** Phase 2 login/logout flow and initial dashboard.
+**Task:** Add Tailwind/HTMX UI baseline and tenant-scoped course list.
 
 Expected actions:
-- Add login/logout URLs and templates.
-- Protect dashboard behind authentication.
-- Show role-aware dashboard content.
-- Add a demo-data command for local browser testing.
-- Run checks, tests, and a runserver web smoke check.
+- Update implementation plan to use Tailwind CSS and HTMX for the frontend UI baseline.
+- Avoid adding package dependencies for UI tooling at this stage; use CDN links.
+- Add the smallest Course model.
+- Add protected course list scoped by role and tenant.
+- Run migrations, checks, tests, demo seed, and runserver smoke check.
 
 **Acceptance criteria:**
-- Anonymous users are redirected from the dashboard to login.
-- Login page renders in the browser.
-- Authenticated tenant users see tenant dashboard content.
-- Super Viewer sees platform read-only dashboard content.
-- Demo users can be seeded idempotently.
+- Plan and docs mention Tailwind/HTMX UI approach.
+- Course model is migrated.
+- Tenant Admin sees only own tenant courses.
+- Tenant User does not see unassigned courses yet.
+- Super Viewer can read all courses.
 - Tests and runserver smoke check pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Added login/logout flow, protected dashboard, role-aware dashboard content, and idempotent demo seeding command.
-- **Files changed:** `config/settings.py`, `config/urls.py`, `core/views.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver web smoke script; `git diff --check`.
-- **Test results:** Check passed with 0 issues; 22 tests passed; demo data seeded locally; runserver web smoke passed; whitespace diff check passed.
-- **Commit:** 41f0bbb Add login flow and dashboard.
+- **Task:** Switched templates to Tailwind/HTMX CDN baseline and added tenant-scoped Course model/list page with isolation tests.
+- **Files changed:** `PLANS.md`, `DOCUMENT.sh`, `README.md`, `config/urls.py`, `core/admin.py`, `core/models.py`, `core/views.py`, `core/migrations/0003_course.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_courses.py`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course web smoke script; `git diff --check`.
+- **Test results:** Migration created and applied; check passed with 0 issues; 28 tests passed; demo data seeded locally; runserver course web smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -128,11 +128,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Added browser-visible login/logout flow, role-aware dashboard, and demo-data seeding command.
-- **Files changed:** `config/settings.py`, `config/urls.py`, `core/views.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver web smoke script; `git diff --check`.
-- **Actual results:** Check passed with 0 issues; 22 tests passed; demo data seeded locally; runserver web smoke passed; whitespace diff check passed.
-- **Commit:** 41f0bbb Add login flow and dashboard.
-- **Current phase:** Phase 2 — Authentication and Authorization.
-- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; course/assignment/progress models not implemented yet.
-- **Next single task:** Start Phase 3/4 with the smallest tenant-scoped course model and protected course list.
+- **Task completed:** Added Tailwind/HTMX UI baseline and tenant-scoped course list.
+- **Files changed:** `PLANS.md`, `DOCUMENT.sh`, `README.md`, `config/urls.py`, `core/admin.py`, `core/models.py`, `core/views.py`, `core/migrations/0003_course.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_courses.py`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course web smoke script; `git diff --check`.
+- **Actual results:** Migration created and applied; check passed with 0 issues; 28 tests passed; demo data seeded locally; runserver course web smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
+- **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
+- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; course creation/lesson/assignment/progress flows not implemented yet.
+- **Next single task:** Add tenant-admin course creation form with active-trial write enforcement and cross-tenant tests.

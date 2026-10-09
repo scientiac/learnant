@@ -115,3 +115,37 @@ class User(AbstractUser):
             self.role = self.Role.SUPER_ADMIN
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class Course(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='courses')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='created_courses',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['title']
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'title'], name='unique_course_title_per_tenant'),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        super().clean()
+        if self.creator_id and self.creator.role in User.TENANT_ROLES:
+            if self.creator.tenant_id != self.tenant_id:
+                raise ValidationError('Course creator must belong to the same tenant as the course.')
+        if self.creator_id and self.creator.role == User.Role.TENANT_USER:
+            raise ValidationError('Learners cannot create courses.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

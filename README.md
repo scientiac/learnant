@@ -14,6 +14,8 @@ python3 -m venv .venv
 
 Visit `http://127.0.0.1:8000/` and log in with a demo user.
 
+The UI uses Django templates with Tailwind CSS and HTMX loaded from CDNs for a minimal interface. The current working pages are the login page, dashboard, and course list.
+
 Demo users created by `seed_demo`:
 
 | Username | Role | Password |
@@ -25,6 +27,8 @@ Demo users created by `seed_demo`:
 | `learner` | Tenant User | `password123` |
 
 The health check is available at `http://127.0.0.1:8000/health/`.
+
+After running `seed_demo`, log in as `tenantadmin` and open `http://127.0.0.1:8000/courses/` to see the sample course list.
 
 ## Configuration
 

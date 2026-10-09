@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from core.models import Tenant, User
+from core.models import Course, Tenant, User
 
 
 class Command(BaseCommand):
@@ -26,5 +26,15 @@ class Command(BaseCommand):
                 user.tenant = user_tenant
             user.set_password('password123')
             user.save()
+
+        tenant_admin = User.objects.get(username='tenantadmin')
+        Course.objects.get_or_create(
+            tenant=tenant,
+            title='Getting Started',
+            defaults={
+                'description': 'A sample course for the demo institute.',
+                'creator': tenant_admin,
+            },
+        )
 
         self.stdout.write(self.style.SUCCESS('Demo data ready. Password for all demo users: password123'))

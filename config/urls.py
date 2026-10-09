@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from core.views import dashboard, health_check
+from core.views import course_list, dashboard, health_check
 
 urlpatterns = [
     path('', dashboard, name='dashboard'),
+    path('courses/', course_list, name='course-list'),
     path('health/', health_check, name='health-check'),
     path(
         'login/',

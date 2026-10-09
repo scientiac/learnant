@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Courses · Tenant Learning{% endblock %}
+
+{% block content %}
+  <div class="mb-6 flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold">Courses</h1>
+      <p class="text-slate-600">Courses visible to your role and tenant.</p>
+    </div>
+    {% if can_create_courses %}
+      <span class="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">Course creation coming next</span>
+    {% endif %}
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    {% if courses %}
+      <ul class="divide-y divide-slate-200">
+        {% for course in courses %}
+          <li class="p-5">
+            <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 class="font-medium text-slate-950">{{ course.title }}</h2>
+                <p class="mt-1 text-sm text-slate-600">{{ course.description|default:"No description yet." }}</p>
+              </div>
+              <div class="text-sm text-slate-500 sm:text-right">
+                <div>{{ course.tenant.name }}</div>
+                <div>Created by {{ course.creator.username }}</div>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="p-6 text-slate-600">No courses are available for your account yet.</div>
+    {% endif %}
+  </div>
+{% endblock %}

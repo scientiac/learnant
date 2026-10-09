@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from .models import Tenant, User
+from .models import Course, Tenant, User
 from .permissions import can_manage_platform, can_read_platform, can_reactivate_tenant
 
 
@@ -27,3 +27,27 @@ def dashboard(request):
         context['tenant_user_count'] = User.objects.filter(tenant=user.tenant).count()
 
     return render(request, 'core/dashboard.html', context)
+
+
+@login_required
+def course_list(request):
+    user = request.user
+    courses = Course.objects.select_related('tenant', 'creator')
+
+    if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
+        visible_courses = courses
+    elif user.role == User.Role.TENANT_ADMIN and user.tenant_id:
+        visible_courses = courses.filter(tenant=user.tenant)
+    else:
+        visible_courses = Course.objects.none()
+
+    return render(
+        request,
+        'core/course_list.html',
+        {
+            'courses': visible_courses,
+            'can_create_courses': user.role == User.Role.TENANT_ADMIN
+            and user.tenant
+            and user.tenant.status == Tenant.Status.ACTIVE,
+        },
+    )

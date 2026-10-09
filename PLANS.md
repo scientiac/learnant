@@ -30,7 +30,7 @@ AI-powered course generation is **design/documentation only**. Do not implement 
 - Django REST Framework where API endpoints are useful
 - PostgreSQL for the completed application
 - Django authentication and a custom user model
-- Django templates and Bootstrap for a simple interface
+- Django templates with HTMX and Tailwind CSS for a clean, minimal interface
 - Django Admin for internal administration, with appropriate access restrictions
 - Django migrations for schema changes
 - Django's test framework (and other test tools only if justified)

@@ -40,3 +40,7 @@ python3 -m venv .venv
 .venv/bin/python -m pip install Django djangorestframework "psycopg[binary]"
 
 # Exact resolved Python dependencies were written to requirements.txt.
+
+# Frontend UI decision added later:
+# - HTMX and Tailwind CSS are used through CDN links in Django templates for now.
+# - No npm package or Python dependency was installed for HTMX/Tailwind at this stage.
