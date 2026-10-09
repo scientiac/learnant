@@ -28,7 +28,9 @@ Build a production-grade, secure, maintainable multi-tenant Learning Platform. E
 - **Light & Dark Mode:** Native CSS variables (`--background`, `--foreground`, `--card`, `--primary`, `--secondary`, `--muted`, `--border`, `--input`, `--ring`, `--destructive`) with `.dark` class toggle persisted in `localStorage` and system theme fallback.
 
 ### Navigation & UX Rules
-- **Top Bar About Button & Clean Auth Actions:** Rather than leaving the top bar empty or displaying a redundant "Log in" link on the login page itself, the top navigation includes a prominent, properly styled **About** button (`.btn.btn-secondary.btn-sm` with a Lucide info icon and neutral border). When on other pages, the primary "Sign in" button accompanies it; when on the login page itself, the redundant sign-in link is automatically suppressed so the top bar remains clean, balanced, and functional.
+- **Top Bar & Footer About Placement:** 
+  - **Public / Unauthenticated:** The top navigation features a prominent, properly styled **About** button (`.btn.btn-secondary.btn-sm` with a Lucide info icon and neutral border). When on other pages, the primary "Sign in" button accompanies it; on the login page itself, the redundant sign-in link is automatically suppressed so the top bar remains clean and balanced.
+  - **Authenticated:** Logged-in users already know the platform and have work to do, so the top bar keeps focus strictly on colony workspace navigation, role badge, and logout. About is subtly available via a small monospace text link in the footer (`about`).
 - **Contextual Self-Signup CTA:** Rather than a distracting top-level "Sign Up" button, auth pages provide an explicit contextual box: *"Are you an institute or training academy? Sign up your organization colony here →"*.
 - **Reusable Component Tokens (in `core/templates/base.html`):**
   - **Buttons:** `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-destructive`, `.btn-ghost`, `.btn-outline`, `.btn-sm`

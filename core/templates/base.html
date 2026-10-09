@@ -266,10 +266,6 @@
             </button>
 
             {% if user.is_authenticated %}
-              <a class="btn btn-ghost btn-sm" href="{% url 'about' %}">
-                <i data-lucide="info" class="h-3.5 w-3.5"></i>
-                About
-              </a>
               <div class="hidden items-center gap-2 sm:flex">
                 <span class="badge badge-role">{{ user.get_role_display }}</span>
                 <span class="text-xs font-mono" style="color: hsl(var(--muted-foreground));">@{{ user.username }}</span>
@@ -308,8 +304,10 @@
           <span>·</span>
           <span>Colony-scale multi-tenant learning architecture</span>
         </div>
-        <div class="font-mono text-[11px]">
-          zero-trust isolation
+        <div class="flex items-center gap-3 font-mono text-[11px]">
+          <a href="{% url 'about' %}" class="underline underline-offset-4 hover:text-[hsl(var(--foreground))] transition-colors">about</a>
+          <span>·</span>
+          <span>zero-trust isolation</span>
         </div>
       </div>
     </footer>
