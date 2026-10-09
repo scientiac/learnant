@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Core MVP plus public landing, signup, organization settings, and profile settings verified (102 tests passing, Django check 0 issues).
+- **Overall Status:** Core MVP plus public landing, settings, and bulk learner onboarding verified (110 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (102 tests, 0 failures)
+  - [x] Full automated test suite passing (110 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -64,8 +64,8 @@
 - [x] User Profile Settings page (`/settings/profile/`) for all authenticated users to view/update display name and email.
 
 ### Group 3: Bulk Student Onboarding
-- [ ] Bulk student onboarding interface (`/students/bulk-add/`) allowing Tenant Admins to onboard learners in bulk via multi-line text (usernames/emails).
-- [ ] Automatically assign newly created learners to `role = TENANT_USER` and `tenant = request.user.tenant`.
+- [x] Bulk student onboarding interface (`/students/bulk-add/`) allowing Tenant Admins to onboard learners in bulk via multi-line text (usernames/emails).
+- [x] Automatically assign newly created learners to `role = TENANT_USER` and `tenant = request.user.tenant`.
 
 ### Group 4: Hosted About & Usage Documentation Screen
 - [x] In-app `/about/` page detailing platform architecture, 5-tier role guide, trial lifecycle rules, and reviewer credentials.

@@ -1,9 +1,14 @@
+import secrets
+
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
 
 from .forms import (
     CourseAssignmentForm,
+    BulkStudentOnboardingForm,
     CourseForm,
     LessonForm,
     ProfileSettingsForm,
@@ -150,6 +155,42 @@ def profile_settings(request):
     else:
         form = ProfileSettingsForm(instance=user)
     return render(request, 'core/profile_settings.html', {'form': form})
+
+
+@login_required
+@never_cache
+def bulk_student_add(request):
+    user = request.user
+    if not is_tenant_admin(user) or not user.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can onboard students.')
+    if not can_mutate_tenant_data(user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    created_students = []
+    if request.method == 'POST':
+        form = BulkStudentOnboardingForm(request.POST, tenant=user.tenant)
+        if form.is_valid():
+            with transaction.atomic():
+                for student_data in form.cleaned_data['students']:
+                    initial_password = secrets.token_urlsafe(12)
+                    student = User.objects.create_user(
+                        username=student_data['username'],
+                        email=student_data['email'],
+                        password=initial_password,
+                        role=User.Role.TENANT_USER,
+                        tenant=user.tenant,
+                    )
+                    created_students.append(
+                        {'username': student.username, 'email': student.email, 'password': initial_password}
+                    )
+    else:
+        form = BulkStudentOnboardingForm(tenant=user.tenant)
+
+    return render(
+        request,
+        'core/bulk_student_add.html',
+        {'form': form, 'created_students': created_students},
+    )
 
 
 @login_required

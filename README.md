@@ -17,6 +17,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Modern UI:** shadcn/ui-inspired responsive interface built with Django templates, Tailwind CSS, and Inter typography.
 - **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
 - **Organization & Profile Settings:** Active Tenant Admins can update their own organization name/brand color; signed-in users can update their own display name and email.
+- **Bulk Student Onboarding:** Tenant Admins can create up to 100 tenant-bound learner accounts in one submission.
 
 ---
 
@@ -53,7 +54,8 @@ All demo accounts are created with password: `password123`.
 | `superadmin` | Super Admin | Platform | View all tenants/courses; reactivate expired trials. |
 | `admin` | Admin | Platform | View and create platform tenants. |
 | `viewer` | Super Viewer | Platform | Read-only visibility across platform data. |
-| `tenantadmin` | Tenant Admin | Tenant | Create/edit courses & lessons, assign learners, view progress. |
+| `tenant_admin` | Tenant Admin | Demo Institute | Create/edit courses & lessons, enroll learners, view progress. |
+| `institute_admin` | Tenant Admin (compatibility login) | Demo Institute | Same demo role and scope as `tenant_admin`. |
 | `learner` | Tenant User | Tenant | View assigned courses, read lessons, mark completion. |
 
 The system health check is available at `http://127.0.0.1:8000/health/`.
@@ -68,7 +70,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 3. Upon submission, the organization is created on an active 14-day trial, the user is created as Tenant Admin, and logged into the dashboard immediately.
 
 ### Workflow B: Managing Courses & Assignments (Tenant Admin)
-1. Log in as `tenantadmin`.
+1. Log in as `tenant_admin` (or `institute_admin`).
 2. Visit **Courses** (`/courses/`).
 3. Click **New course** to create a course.
 4. Click **Lessons** to add or edit ordered lessons.
@@ -91,14 +93,19 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 4. Click **Reactivate** next to an expired tenant to restore active status with a new 14-day trial window.
 
 ### Workflow E: Organization & Profile Settings
-1. As an active `tenantadmin`, use **Organization** to update the institute name and brand color.
+1. As an active `tenant_admin`, use **Organization** to update the institute name and brand color.
 2. Any signed-in user can open **Profile** to update their own first name, last name, and email. Role and tenant membership are not editable there.
+
+### Workflow F: Bulk Student Onboarding
+1. Log in as `tenant_admin` (or `institute_admin`) and open **Enroll students** (`/students/bulk-add/`).
+2. Enter up to 100 usernames or email addresses, one per line.
+3. Newly created learner usernames and randomly generated initial passwords are shown once after submission; share them with learners securely.
 
 ---
 
 ## 5. Testing & Verification
 
-Run the full automated test suite (102 tests):
+Run the full automated test suite (110 tests):
 
 ```bash
 python manage.py test

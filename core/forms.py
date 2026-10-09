@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.utils.text import slugify
 
 from .models import Course, CourseAssignment, Lesson, Tenant, User
 
@@ -169,3 +171,79 @@ class ProfileSettingsForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'family-name'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
         }
+
+
+class BulkStudentOnboardingForm(forms.Form):
+    students = forms.CharField(
+        label='Student usernames or email addresses',
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-input',
+                'rows': 8,
+                'placeholder': 'alex\nstudent@example.org',
+            }
+        ),
+    )
+
+    def __init__(self, *args, tenant, **kwargs):
+        self.tenant = tenant
+        super().__init__(*args, **kwargs)
+
+    def clean_students(self):
+        lines = [line.strip() for line in self.cleaned_data['students'].splitlines() if line.strip()]
+        if not lines:
+            raise ValidationError('Enter at least one username or email address.')
+        if len(lines) > 100:
+            raise ValidationError('You can onboard at most 100 students at a time.')
+
+        normalized_inputs = set()
+        usernames = set()
+        emails = set()
+        students = []
+        errors = []
+
+        for line_number, value in enumerate(lines, start=1):
+            normalized = value.casefold()
+            if normalized in normalized_inputs:
+                errors.append(f'Line {line_number}: duplicate entry "{value}".')
+                continue
+            normalized_inputs.add(normalized)
+
+            if '@' in value:
+                try:
+                    validate_email(value)
+                except ValidationError:
+                    errors.append(f'Line {line_number}: "{value}" is not a valid email address.')
+                    continue
+                email_key = value.casefold()
+                if email_key in emails or User.objects.filter(email__iexact=value).exists():
+                    errors.append(f'Line {line_number}: email "{value}" is already in use.')
+                    continue
+
+                base_username = (slugify(value.split('@', 1)[0]) or 'learner')[:140]
+                username = base_username
+                suffix = 1
+                while username.casefold() in usernames or User.objects.filter(username__iexact=username).exists():
+                    suffix += 1
+                    username = f'{base_username[:140 - len(str(suffix))]}{suffix}'
+                emails.add(email_key)
+                usernames.add(username.casefold())
+                students.append({'username': username, 'email': value})
+            else:
+                if len(value) > 150:
+                    errors.append(f'Line {line_number}: usernames must be 150 characters or fewer.')
+                    continue
+                try:
+                    User._meta.get_field('username').run_validators(value)
+                except ValidationError:
+                    errors.append(f'Line {line_number}: "{value}" is not a valid username.')
+                    continue
+                if normalized in usernames or User.objects.filter(username__iexact=value).exists():
+                    errors.append(f'Line {line_number}: username "{value}" is already in use.')
+                    continue
+                usernames.add(normalized)
+                students.append({'username': value, 'email': ''})
+
+        if errors:
+            raise ValidationError(errors)
+        return students

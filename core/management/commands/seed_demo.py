@@ -12,7 +12,8 @@ class Command(BaseCommand):
             ('superadmin', User.Role.SUPER_ADMIN, None),
             ('admin', User.Role.ADMIN, None),
             ('viewer', User.Role.SUPER_VIEWER, None),
-            ('tenantadmin', User.Role.TENANT_ADMIN, tenant),
+            ('tenant_admin', User.Role.TENANT_ADMIN, tenant),
+            ('institute_admin', User.Role.TENANT_ADMIN, tenant),
             ('learner', User.Role.TENANT_USER, tenant),
         ]
 
@@ -27,7 +28,7 @@ class Command(BaseCommand):
             user.set_password('password123')
             user.save()
 
-        tenant_admin = User.objects.get(username='tenantadmin')
+        tenant_admin = User.objects.get(username='tenant_admin')
         course, _ = Course.objects.get_or_create(
             tenant=tenant,
             title='Getting Started',

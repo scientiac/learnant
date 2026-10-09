@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Bulk student onboarding · Learnant{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-2xl">
+  <h1 class="text-2xl font-semibold">Onboard colony members</h1>
+  <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Enter up to 100 usernames or email addresses, one per line. New learners are automatically bound to your organization.</p>
+
+  {% if created_students %}
+    <section class="alert-info mt-6" aria-live="polite">
+      <h2 class="font-semibold">{{ created_students|length }} learner account{{ created_students|length|pluralize }} created</h2>
+      <p class="mt-1 text-sm">Share these initial passwords securely. They are shown only in this response.</p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="table">
+          <thead><tr><th>Username</th><th>Email</th><th>Initial password</th></tr></thead>
+          <tbody>
+            {% for student in created_students %}
+              <tr><td>{{ student.username }}</td><td>{{ student.email|default:'—' }}</td><td class="font-mono">{{ student.password }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% endif %}
+
+  <form method="post" class="card mt-6 space-y-4 p-6">
+    {% csrf_token %}
+    <div>
+      <label class="form-label" for="{{ form.students.id_for_label }}">{{ form.students.label }}</label>
+      {{ form.students }}
+      {% for error in form.students.errors %}<p class="alert-error mt-2">{{ error }}</p>{% endfor %}
+    </div>
+    <button class="btn btn-primary" type="submit">Create learner accounts</button>
+  </form>
+</div>
+{% endblock %}

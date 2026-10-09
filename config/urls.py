@@ -20,6 +20,7 @@ from django.urls import path
 
 from core.views import (
     about,
+    bulk_student_add,
     assignment_create,
     assignment_delete,
     assignment_list,
@@ -67,6 +68,7 @@ urlpatterns = [
     path('tenants/<int:tenant_id>/reactivate/', tenant_reactivate, name='tenant-reactivate'),
     path('settings/organization/', organization_settings, name='organization-settings'),
     path('settings/profile/', profile_settings, name='profile-settings'),
+    path('students/bulk-add/', bulk_student_add, name='bulk-student-add'),
     path(
         'courses/<int:course_id>/lessons/<int:lesson_id>/complete/',
         lesson_mark_complete,

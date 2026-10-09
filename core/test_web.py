@@ -82,6 +82,14 @@ class WebFlowTests(TestCase):
 
         self.assertTrue(self.client.login(username='learner', password='password123'))
         self.assertTrue(User.objects.filter(username='superadmin').exists())
+        self.client.logout()
+        for username in ('tenant_admin', 'institute_admin'):
+            with self.subTest(username=username):
+                self.assertTrue(self.client.login(username=username, password='password123'))
+                user = User.objects.get(username=username)
+                self.assertEqual(user.role, User.Role.TENANT_ADMIN)
+                self.assertEqual(user.tenant.name, 'Demo Institute')
+                self.client.logout()
 
     def test_signup_page_loads(self):
         response = self.client.get(reverse('signup'))
