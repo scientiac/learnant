@@ -42,6 +42,12 @@ python3 -m venv .venv
 
 # Exact resolved Python dependencies were written to requirements.txt.
 
+# Railway deployment runtime dependencies added for Django/PostgreSQL hosting:
+# - dj-database-url 3.1.2: DATABASE_URL parsing for PostgreSQL deployments.
+# - gunicorn 26.2.0: production WSGI server.
+# - whitenoise 6.12.0: static assets served by the Django app.
+.venv/bin/python -m pip install dj-database-url whitenoise gunicorn
+
 # Frontend UI decision added later:
 # - HTMX and Tailwind CSS are used through CDN links in Django templates for now.
 # - No npm package or Python dependency was installed for HTMX/Tailwind at this stage.

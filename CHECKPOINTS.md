@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Deployment Super Admin bootstrap, platform account/tenant provisioning, learner management, and documentation corrections verified (187 tests passing, Django check 0 issues).
+- **Overall Status:** Railway deployment configuration and environment handling verified (190 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (187 tests, 0 failures)
+  - [x] Full automated test suite passing (190 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -119,9 +119,10 @@
 - [x] Support enrolling learners with or without immediate same-tenant course assignments.
 
 ### Priority 8: Railway Deployment Configuration (PostgreSQL + Django)
-- [ ] Production configuration for Railway (`Procfile`, `railway.toml`, `whitenoise`, `dj-database-url`, `gunicorn`).
-- [ ] Environment variable specifications (`DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`).
-- [ ] Deployment guide based on `https://railway.com/deploy/django-w-postgres`.
+- [x] Production configuration for Railway (`Procfile`, `railway.toml`, `whitenoise`, `dj-database-url`, `gunicorn`).
+- [x] Environment variable specifications (`DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`).
+- [x] Deployment guide based on `https://railway.com/deploy/django-w-postgres`.
+- [ ] PostgreSQL service connectivity could not be exercised locally; verify against the live Railway service at deployment.
 
 ### Priority 9: Take-Home Submission Gaps (excluding human AI design and Priority 8)
 - [x] Add platform-side tenant creation for Admin/Super Admin with an initial Tenant Admin.
@@ -132,4 +133,4 @@
 - [x] Reconcile architecture/permissions docs and test counts with current implementation.
 - [ ] Record the original self-deadline if known; it cannot be reconstructed from the repository.
 - [ ] Human developer completes `docs/ai-course-design.md`; do not generate its content.
-- [ ] Priority 8 Railway deployment remains intentionally deferred.
+- [x] Priority 8 Railway deployment configuration is implemented; live PostgreSQL connectivity remains deployment-time verification.

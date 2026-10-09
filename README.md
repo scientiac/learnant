@@ -138,7 +138,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (187 tests):
+Run the full automated test suite (190 tests):
 
 ```bash
 python manage.py test
@@ -167,8 +167,25 @@ Detailed documentation is available in the `docs/` directory:
 
 ## 7. Configuration & Database
 
-- **Database:** PostgreSQL is the production target. Local development defaults to SQLite if `POSTGRES_DB` is not specified in the environment.
-- **Environment Variables:** Copy `.env.example` to `.env` to configure PostgreSQL credentials and `SECRET_KEY`.
+- **Database:** PostgreSQL is the production target. Local development defaults to SQLite unless `DATABASE_URL` or `POSTGRES_DB` is set.
+- **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. Django does not auto-load `.env`; export its values in your local shell or configure them in the deployment host.
+- Production requires a strong `SECRET_KEY`, database URL, and host list. SMTP defaults to the standard backend when `DEBUG=false`; configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_USE_TLS` if the app begins sending email.
+- **Static Files:** Railway runs `collectstatic` during build and WhiteNoise serves the collected assets. `Procfile` and `railway.toml` define the WSGI start command, migration step, and health check.
+- **Uploaded Media:** User/organization images and lesson media live under `MEDIA_ROOT` (default `uploads/`). Railway's filesystem is ephemeral, so mount a persistent volume and set `MEDIA_ROOT` to its mount path to retain uploads across deploys.
+
+### Railway deployment
+
+The repository includes a `Procfile` and `railway.toml` for the Railway Django + PostgreSQL pattern. Connect a Railway PostgreSQL service so Railway provides `DATABASE_URL`, then set:
+
+- `SECRET_KEY`: generated secret (never the development placeholder)
+- `DEBUG=false`
+- `ALLOWED_HOSTS`: comma-separated Railway/custom hostnames
+- `CSRF_TRUSTED_ORIGINS`: comma-separated HTTPS origins
+- `MEDIA_ROOT=/data/uploads` and a persistent volume mounted at `/data` if uploads must survive deployments
+
+`railway.toml` collects static assets with WhiteNoise during build, applies migrations at startup, runs Gunicorn, and uses `/health/` as its health check. Bootstrap the first Super Admin through deployment secrets and `python manage.py bootstrap_superadmin` after the database is available.
+
+Deployment reference: [Railway Django + PostgreSQL](https://railway.com/deploy/django-w-postgres).
 
 ---
 
