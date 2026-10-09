@@ -14,10 +14,12 @@
     {% if can_create_tenants %}<a class="btn btn-primary" href="{% url 'platform-tenant-create' %}">Create tenant</a>{% endif %}
     {% if can_reactivate_tenants %}<a class="btn btn-outline" href="{% url 'platform-account-create' %}">Provision platform account</a>{% endif %}
   </div>
+</div>
 
 {% if tenants %}
   <div class="card overflow-hidden">
-    <table class="table">
+    <div class="overflow-x-auto">
+    <table class="table min-w-[900px]">
       <thead>
         <tr>
           <th>Colony Name</th>
@@ -60,7 +62,7 @@
               {{ tenant.created_at|date:"Y-m-d" }}
             </td>
             <td class="text-right">
-              <div class="flex justify-end gap-2">
+              <div class="flex flex-wrap justify-end gap-1.5">
                 <a class="btn btn-outline btn-sm" href="{% url 'tenant-course-list' tenant.id %}">Courses</a>
                 {% if can_manage_tenant_content and tenant.id in mutable_tenant_ids %}
                   <a class="btn btn-outline btn-sm" href="{% url 'platform-tenant-users' tenant.id %}">Members</a>
@@ -68,7 +70,7 @@
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-bulk-student-add' tenant.id %}">Enroll</a>
                 {% endif %}
                 {% if can_reactivate_tenants %}
-                  <a class="btn btn-outline btn-sm" href="{% url 'tenant-subscription-settings' tenant.id %}">Subscription</a>
+                  <a class="btn btn-outline btn-sm" href="{% url 'tenant-subscription-settings' tenant.id %}">Plan</a>
                 {% endif %}
                 {% if tenant.status == 'expired' %}
                   {% if can_reactivate_tenants %}
@@ -87,6 +89,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
 {% else %}
   <div class="card p-10 text-center">
