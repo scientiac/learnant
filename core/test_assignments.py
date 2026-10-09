@@ -34,6 +34,13 @@ class CourseAssignmentModelTests(TestCase):
         with self.assertRaises(ValidationError):
             assignment.full_clean()
 
+    def test_assignment_rejects_deactivated_learner(self):
+        self.learner.is_active = False
+        assignment = CourseAssignment(tenant=self.tenant, course=self.course, learner=self.learner)
+
+        with self.assertRaises(ValidationError):
+            assignment.full_clean()
+
 
 class CourseAssignmentViewTests(TestCase):
     def setUp(self):

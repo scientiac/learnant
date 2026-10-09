@@ -166,11 +166,13 @@ class WebFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Create your organization colony')
         self.assertContains(response, 'Learners join through their institute')
+        self.assertContains(response, 'Admin email')
 
     def test_signup_creates_tenant_and_admin(self):
         response = self.client.post(reverse('signup'), {
             'org_name': 'New Test Institute',
             'username': 'newadmin',
+            'email': 'newadmin@example.test',
             'password1': 'Str0ng!Pass99',
             'password2': 'Str0ng!Pass99',
         })
@@ -181,12 +183,14 @@ class WebFlowTests(TestCase):
         user = User.objects.get(username='newadmin')
         self.assertEqual(user.role, User.Role.TENANT_ADMIN)
         self.assertEqual(user.tenant.name, 'New Test Institute')
+        self.assertEqual(user.email, 'newadmin@example.test')
 
     def test_signup_rejects_duplicate_org_name(self):
         Tenant.objects.create(name='Existing Org')
         response = self.client.post(reverse('signup'), {
             'org_name': 'Existing Org',
             'username': 'someone',
+            'email': 'someone@example.test',
             'password1': 'Str0ng!Pass99',
             'password2': 'Str0ng!Pass99',
         })
@@ -198,6 +202,7 @@ class WebFlowTests(TestCase):
         response = self.client.post(reverse('signup'), {
             'org_name': 'Mismatch Org',
             'username': 'mismatchuser',
+            'email': 'mismatch@example.test',
             'password1': 'Str0ng!Pass99',
             'password2': 'WrongPass99!',
         })

@@ -10,7 +10,10 @@
       All tenant organisations registered across the Learnant platform.
     </p>
   </div>
-</div>
+  <div class="flex gap-2">
+    {% if can_create_tenants %}<a class="btn btn-primary" href="{% url 'platform-tenant-create' %}">Create tenant</a>{% endif %}
+    {% if can_reactivate_tenants %}<a class="btn btn-outline" href="{% url 'platform-account-create' %}">Provision platform account</a>{% endif %}
+  </div>
 
 {% if tenants %}
   <div class="card overflow-hidden">
@@ -60,6 +63,7 @@
               <div class="flex justify-end gap-2">
                 <a class="btn btn-outline btn-sm" href="{% url 'tenant-course-list' tenant.id %}">Courses</a>
                 {% if can_manage_tenant_content and tenant.id in mutable_tenant_ids %}
+                  <a class="btn btn-outline btn-sm" href="{% url 'platform-tenant-users' tenant.id %}">Members</a>
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-organization-settings' tenant.id %}">Organization</a>
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-bulk-student-add' tenant.id %}">Enroll</a>
                 {% endif %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Provision platform account · Learnant{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-xl">
+  <h1 class="text-2xl font-semibold">Provision a platform account</h1>
+  <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Create one Admin or Super Viewer. Super Admin privileges are only provisioned through the deployment bootstrap command.</p>
+  {% if created_account %}
+    <section class="alert-info mt-6" aria-live="polite">
+      <h2 class="font-semibold">Account created: {{ created_account.user.username }}</h2>
+      <p class="mt-1">Temporary password: <code class="font-mono">{{ created_account.password }}</code></p>
+      <p class="mt-1 text-sm">Share securely. The account must change this password before continuing.</p>
+    </section>
+  {% endif %}
+  <form method="post" class="card mt-6 space-y-4 p-6">
+    {% csrf_token %}
+    {% for field in form %}
+      <div>
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="alert-error mt-2">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Create platform account</button>
+  </form>
+</div>
+{% endblock %}

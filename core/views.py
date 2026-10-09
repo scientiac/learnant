@@ -16,11 +16,13 @@ from .forms import (
     CourseForm,
     CourseAssistantPreviewForm,
     LessonForm,
+    PlatformAccountProvisionForm,
     ProfileSettingsForm,
     StudentCsvImportForm,
     TenantSubscriptionForm,
     TenantSettingsForm,
     TenantSignupForm,
+    TenantUserManagementForm,
 )
 from .media import classify_lesson_upload, image_mime_type
 from .csv_enrollment import blank_enrollment_csv, import_student_csv
@@ -76,6 +78,105 @@ def signup(request):
         '14-day trial — no card needed',
     ]
     return render(request, 'registration/signup.html', {'form': form, 'features': features})
+
+
+@login_required
+def platform_tenant_create(request):
+    if not can_manage_platform(request.user):
+        return HttpResponseForbidden('Only platform admins can create organizations.')
+    if request.method == 'POST':
+        form = TenantSignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('tenant-list')
+    else:
+        form = TenantSignupForm()
+    return render(request, 'core/platform_tenant_create.html', {'form': form})
+
+
+@login_required
+@never_cache
+def platform_account_create(request):
+    if not can_reactivate_tenant(request.user):
+        return HttpResponseForbidden('Only Super Admin can provision platform accounts.')
+    created_account = None
+    if request.method == 'POST':
+        form = PlatformAccountProvisionForm(request.POST)
+        if form.is_valid():
+            temporary_password = secrets.token_urlsafe(18)
+            account = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                email=form.cleaned_data['email'],
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+                role=form.cleaned_data['role'],
+                tenant=None,
+                password=temporary_password,
+                must_change_password=True,
+            )
+            created_account = {'user': account, 'password': temporary_password}
+    else:
+        form = PlatformAccountProvisionForm()
+    return render(
+        request,
+        'core/platform_account_create.html',
+        {'form': form, 'created_account': created_account},
+    )
+
+
+def tenant_selected_for_user(user, tenant_id=None):
+    if tenant_id is not None:
+        if not is_platform_admin(user):
+            return None
+        tenant = get_object_or_404(Tenant, id=tenant_id)
+    elif is_tenant_admin(user) and user.tenant_id:
+        tenant = user.tenant
+    else:
+        return None
+    return tenant if can_manage_tenant(user, tenant) else None
+
+
+@login_required
+def tenant_user_list(request, tenant_id=None):
+    tenant = tenant_selected_for_user(request.user, tenant_id)
+    if tenant is None:
+        return HttpResponseForbidden('You cannot view learners for this organization.')
+    learners = User.objects.filter(tenant=tenant, role=User.Role.TENANT_USER).order_by('username')
+    return render(
+        request,
+        'core/tenant_user_list.html',
+        {
+            'tenant': tenant,
+            'learners': learners,
+            'can_edit_users': can_mutate_tenant_data(request.user, tenant),
+        },
+    )
+
+
+@login_required
+def tenant_user_update(request, user_id, tenant_id=None):
+    tenant = tenant_selected_for_user(request.user, tenant_id)
+    if tenant is None:
+        return HttpResponseForbidden('You cannot manage learners for this organization.')
+    if not can_mutate_tenant_data(request.user, tenant):
+        return HttpResponseForbidden('This tenant is read-only.')
+    learner = get_object_or_404(
+        User, id=user_id, tenant=tenant, role=User.Role.TENANT_USER
+    )
+    if request.method == 'POST':
+        form = TenantUserManagementForm(request.POST, instance=learner)
+        if form.is_valid():
+            form.save()
+            if tenant_id:
+                return redirect('platform-tenant-users', tenant_id=tenant.id)
+            return redirect('tenant-user-list')
+    else:
+        form = TenantUserManagementForm(instance=learner)
+    return render(
+        request,
+        'core/tenant_user_form.html',
+        {'tenant': tenant, 'learner': learner, 'form': form},
+    )
 
 
 class RequiredPasswordChangeView(PasswordChangeView):
@@ -296,6 +397,7 @@ def tenant_list(request):
         {
             'tenants': tenants,
             'can_reactivate_tenants': can_reactivate_tenant(request.user),
+            'can_create_tenants': can_manage_platform(request.user),
             'can_manage_tenant_content': is_platform_admin(request.user),
             'mutable_tenant_ids': mutable_tenant_ids,
         },

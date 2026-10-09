@@ -22,6 +22,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Bulk Student Onboarding:** Tenant Admins can create up to 100 tenant-bound learner accounts in one submission.
 - **Spreadsheet Enrollment:** Tenant Admins can download a CSV template and import up to 500 learners with row-level validation, duplicate skipping, and optional same-tenant course assignments.
 - **Temporary Learner Credentials:** Bulk-enrolled learners must replace their generated initial password before using the platform; seeded demo accounts remain ready to use.
+- **Platform Account Security:** Deployment bootstrap provisions the first Super Admin from environment credentials; Super Admin-provisioned Admin/Super Viewer accounts receive one-time passwords and must reset them at first login.
 - **Focused Lesson Study:** Assigned learners get a dedicated lesson page with syllabus navigation, sanitized GFM Markdown, KaTeX math, and protected inline image/video uploads inserted into lesson content.
 
 ---
@@ -65,9 +66,22 @@ All demo accounts are created with password: `password123`.
 
 The system health check is available at `http://127.0.0.1:8000/health/`.
 
+### Deployment Super Admin bootstrap
+
+Set `LEARNANT_SUPERADMIN_USERNAME`, `LEARNANT_SUPERADMIN_EMAIL`, and `LEARNANT_SUPERADMIN_PASSWORD` in the deployment secret environment, then run `.venv/bin/python manage.py bootstrap_superadmin` after migrations. The command is idempotent, never prints the password, and creates an account that must change its password before proceeding. Do not put real values in `.env.example` or source control.
+
 ---
 
 ## 4. Demo Workflows
+
+### Workflow 0: Bootstrap the deployment Super Admin
+After applying migrations, provide the bootstrap credentials through your deployment's secret environment variables and run once:
+
+```bash
+python manage.py bootstrap_superadmin
+```
+
+The new Super Admin must change the temporary password on first login. The command is idempotent and does not print passwords. Do not commit real credentials.
 
 ### Workflow A: Self-Signup as a New Institute
 1. Navigate to `http://127.0.0.1:8000/signup/`.
@@ -99,8 +113,11 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 ### Workflow G: Platform Tenant Administration
 1. Log in as `admin` or `superadmin` and open **Tenants**.
-2. Select **Courses**, **Organization**, or **Enroll** on an active institute to administer that tenant's learning workspace.
-3. Super Admin can additionally reactivate expired institutes. Super Viewer can open tenant courses but has no management actions.
+2. Create a tenant with its initial Tenant Admin, or select **Courses**, **Members**, **Organization**, or **Enroll** on an active institute to administer its workspace.
+3. Super Admin can additionally reactivate expired institutes and provision Admin/Super Viewer platform accounts.
+4. Provisioned platform accounts must replace their temporary password before accessing platform pages. Super Viewer can open tenant courses but has no management actions.
+
+Tenant Admins can edit learner names, emails, and active status from **Members**. Deactivation preserves assignments and progress records.
 
 ### Workflow E: Organization & Profile Settings
 1. As an active `tenant_admin`, use **Organization** to update the institute name, brand color, contact details, and logo.
@@ -113,13 +130,15 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 For CSV enrollment, download the template from the same page and fill in `username`, `email`, `first_name`, and `last_name`. Leave `courses` blank for no assignments, or enter same-organization course titles separated by semicolons.
 
+Tenant Admins can manage learner names, emails, and active status from **Members**. Deactivation preserves assignments and progress records.
+
 ---
 
 ## 5. Testing & Verification
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (172 tests):
+Run the full automated test suite (187 tests):
 
 ```bash
 python manage.py test
@@ -156,5 +175,5 @@ Detailed documentation is available in the `docs/` directory:
 ## 8. Time & Self-Deadline
 
 - **Estimated Time:** 16 hours
-- **Actual Time Taken:** ~12 hours
-- **Self-Deadline:** Completed within designated window.
+- **Actual Time Taken:** ~12 hours (developer-recorded estimate)
+- **Self-Deadline:** The original date/time was not recorded in the repository and cannot be reconstructed retrospectively; submitter should add it if known.

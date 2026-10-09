@@ -5,7 +5,7 @@ from pathlib import PurePath
 from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserManager
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
@@ -20,6 +20,14 @@ def tenant_logo_upload_to(instance, filename):
 
 def user_avatar_upload_to(instance, filename):
     return f'profile-avatars/{uuid.uuid4().hex}{PurePath(filename).suffix.lower()}'
+
+
+class UserManager(DjangoUserManager):
+    def create_user(self, username, email=None, password=None, **extra_fields):
+        role = extra_fields.get('role', User.Role.TENANT_USER)
+        if role != User.Role.TENANT_USER and 'must_change_password' not in extra_fields:
+            extra_fields['must_change_password'] = False
+        return super().create_user(username, email, password, **extra_fields)
 
 
 class Tenant(models.Model):
@@ -149,6 +157,7 @@ class User(AbstractUser):
         on_delete=models.PROTECT,
         related_name='users',
     )
+    objects = UserManager()
 
     class Meta:
         constraints = [
@@ -184,8 +193,6 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         if self.is_superuser and self.tenant_id is None and self.role == self.Role.TENANT_USER:
             self.role = self.Role.SUPER_ADMIN
-        if self.role != self.Role.TENANT_USER:
-            self.must_change_password = False
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -399,6 +406,8 @@ class CourseAssignment(models.Model):
         if self.learner_id:
             if self.learner.role != User.Role.TENANT_USER:
                 raise ValidationError('Only tenant users can be assigned to courses.')
+            if not self.learner.is_active:
+                raise ValidationError('Inactive learners cannot be assigned to courses.')
             if self.tenant_id and self.learner.tenant_id != self.tenant_id:
                 raise ValidationError('Assigned learner must belong to the assignment tenant.')
 

@@ -86,6 +86,16 @@
             {% endif %}
           </div>
 
+          <div>
+            <label class="form-label" for="{{ form.email.id_for_label }}">
+              Admin email <span style="color: hsl(var(--destructive));">*</span>
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.email.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
               <label class="form-label" for="{{ form.first_name.id_for_label }}">First name</label>

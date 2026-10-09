@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Colony members · {{ tenant.name }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold">Colony members</h1>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Learners in {{ tenant.name }}.</p>
+  </div>
+  {% if can_edit_users %}<a class="btn btn-primary" href="{% if request.resolver_match.kwargs.tenant_id %}{% url 'tenant-bulk-student-add' tenant.id %}{% else %}{% url 'bulk-student-add' %}{% endif %}">Enroll learners</a>{% endif %}
+</div>
+
+<div class="card overflow-hidden">
+  <table class="table">
+    <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Status</th>{% if can_edit_users %}<th>Actions</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for learner in learners %}
+        <tr>
+          <td class="font-mono">{{ learner.username }}</td>
+          <td>{{ learner.get_full_name|default:'—' }}</td>
+          <td>{{ learner.email|default:'—' }}</td>
+          <td>{% if learner.is_active %}Active{% else %}Deactivated{% endif %}</td>
+          {% if can_edit_users %}
+            <td><a class="btn btn-outline btn-sm" href="{% if request.resolver_match.kwargs.tenant_id %}{% url 'platform-tenant-user-update' tenant.id learner.id %}{% else %}{% url 'tenant-user-update' learner.id %}{% endif %}">Edit</a></td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No learners have been enrolled yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

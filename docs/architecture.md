@@ -41,13 +41,15 @@ The system defines 5 roles across two distinct scopes (Platform vs. Tenant):
 
 | Scope | Role | Permissions |
 |---|---|---|
-| **Platform** | **Super Admin** | Full platform management: view all tenants, courses, and users; reactivate expired trials. |
-| **Platform** | **Admin** | Platform management subset: view and create tenants; cannot reactivate expired trials. |
+| **Platform** | **Super Admin** | Bootstrap-provisioned highest role: create tenants, manage tenant learning/user records, provision Admin/Super Viewer, subscription controls, and trial reactivation. |
+| **Platform** | **Admin** | Create tenants and administer tenant learning/user records across active tenants; cannot provision platform roles, delete tenants, or reactivate trials. |
 | **Platform** | **Super Viewer** | Platform-wide read-only visibility: view tenant list, courses, and progress across the platform without write/edit access. |
 | **Tenant** | **Tenant Admin** | Institute manager: create and manage courses, lessons, assignments, and view learner progress inside their own tenant. |
 | **Tenant** | **Tenant User** | Learner: view assigned courses, study lessons, and record progress/completion on their own assignments. |
 
 All authorization rules are enforced in views and models on the server, independent of UI representation.
+
+The first Super Admin is created with `python manage.py bootstrap_superadmin` using deployment environment secrets. The command is idempotent; provisioned Super Admins, Admins, and Super Viewers must change their temporary password before using the platform. Tenant Admins can edit/deactivate only learner accounts in their own tenant. Deactivation preserves assignments and progress.
 
 ---
 
@@ -67,16 +69,16 @@ All authorization rules are enforced in views and models on the server, independ
 - `trial_ends_at` defaults to `trial_starts_at + 14 days` (configurable via `DEFAULT_TRIAL_DAYS`).
 
 ### 2. Request-Time Boundary Check
-- During every mutating operation (`can_mutate_tenant_data(user)`), the system checks:
+- During every mutating operation (`can_mutate_tenant_data(user, tenant)`), the system checks the authenticated tenant or explicitly authorized platform target:
   ```python
-  user.tenant.status == Tenant.Status.ACTIVE and not user.tenant.is_trial_expired()
+  tenant.status == Tenant.Status.ACTIVE and not tenant.is_trial_expired()
   ```
-  where `is_trial_expired()` verifies `now >= trial_ends_at`.
+  where `is_trial_expired()` verifies `now >= trial_ends_at` only for Trial subscriptions; Subscribed tenants do not expire through the trial command.
 - Even if a background expiration task has not yet run, expired tenants are immediately restricted upon hitting the exact expiration timestamp.
 
 ### 3. Background Expiration Command (`expire_trials`)
 - Idempotent Django management command: `python manage.py expire_trials`.
-- Finds active tenants whose `trial_ends_at <= timezone.now()`, sets `status = Tenant.Status.EXPIRED`, and records `expired_at`.
+- Finds active Trial tenants whose `trial_ends_at <= timezone.now()`, sets `status = Tenant.Status.EXPIRED`, and records `expired_at`.
 - Running repeatedly produces zero adverse side effects.
 
 ### 4. Data Preservation
@@ -100,7 +102,7 @@ All authorization rules are enforced in views and models on the server, independ
 
 ## 6. Testing Strategy
 
-- **Test Suite:** 91 automated test cases spanning:
+- **Test Suite:** 187 automated test cases spanning:
   - Role-based permissions (`test_permissions.py`)
   - Cross-tenant data isolation and ID manipulation (`test_phase_auth_isolation.py`)
   - Course and lesson CRUD boundaries (`test_courses.py`, `test_lessons.py`)
@@ -108,6 +110,7 @@ All authorization rules are enforced in views and models on the server, independ
   - Learner progress tracking and cross-user isolation (`test_progress.py`)
   - Trial expiration boundaries and idempotency (`test_trials.py`)
   - Web flows, signup, and authentication redirects (`test_web.py`)
+  - Deployment bootstrap, platform account provisioning, tenant learner management, CSV enrollment, and first-login password reset
 
 ---
 

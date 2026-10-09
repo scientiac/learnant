@@ -252,6 +252,7 @@
                 <a class="nav-link {% block nav_courses %}{% endblock %}" href="{% url 'course-list' %}">Courses</a>
                 {% if user.role == 'tenant_admin' %}
                   <a class="nav-link" href="{% url 'organization-settings' %}">Organization</a>
+                  <a class="nav-link" href="{% url 'tenant-user-list' %}">Members</a>
                   <a class="nav-link" href="{% url 'bulk-student-add' %}">Enroll students</a>
                 {% endif %}
                 {% if user.role == 'super_admin' or user.role == 'admin' or user.role == 'super_viewer' %}

@@ -189,6 +189,11 @@ class TenantSignupForm(forms.Form):
         label='Username',
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'jane_admin', 'autocomplete': 'username'}),
     )
+    email = forms.EmailField(
+        max_length=254,
+        label='Admin email',
+        widget=forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'jane@example.org', 'autocomplete': 'email'}),
+    )
     first_name = forms.CharField(
         max_length=150,
         label='First name',
@@ -220,9 +225,15 @@ class TenantSignupForm(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data['username']
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username__iexact=username).exists():
             raise ValidationError('This username is already taken.')
         return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError('This email is already in use.')
+        return email
 
     def clean_password1(self):
         password = self.cleaned_data.get('password1')
@@ -246,10 +257,12 @@ class TenantSignupForm(forms.Form):
             tenant = Tenant.objects.create(name=self.cleaned_data['org_name'])
             user = User.objects.create_user(
                 username=self.cleaned_data['username'],
+                email=self.cleaned_data['email'],
                 password=self.cleaned_data['password1'],
                 first_name=self.cleaned_data.get('first_name', ''),
                 last_name=self.cleaned_data.get('last_name', ''),
                 role=User.Role.TENANT_ADMIN,
+                must_change_password=False,
                 tenant=tenant,
             )
         return user
@@ -382,6 +395,41 @@ class ProfileSettingsForm(forms.ModelForm):
         if isinstance(avatar, UploadedFile):
             validate_image_upload(avatar)
         return avatar
+
+
+class TenantUserManagementForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'is_active']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-input'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-input'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+        }
+
+
+class PlatformAccountProvisionForm(forms.Form):
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    email = forms.EmailField(max_length=254, widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    first_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    last_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    role = forms.ChoiceField(
+        choices=[(User.Role.ADMIN, 'Admin'), (User.Role.SUPER_VIEWER, 'Super Viewer')],
+        widget=forms.Select(attrs={'class': 'form-input'}),
+    )
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError('This username is already in use.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError('This email is already in use.')
+        return email
 
 
 class BulkStudentOnboardingForm(forms.Form):
