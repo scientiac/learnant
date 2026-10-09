@@ -51,6 +51,21 @@ class WebFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Log in')
 
+    def test_authenticated_header_account_menu_links_profile_and_post_logout(self):
+        self.client.login(username='learner', password='password123')
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertContains(response, '<summary', html=False)
+        self.assertContains(response, '@learner')
+        self.assertContains(response, reverse('profile-settings'))
+        self.assertContains(response, f'action="{reverse("logout")}"')
+        self.assertNotContains(response, '>Profile</a>')
+        self.assertLess(response.content.index(b'>Courses</a>'), response.content.index(b'@learner'))
+        self.assertContains(response, 'btn btn-outline mb-1 w-full justify-start')
+        self.assertContains(response, 'btn btn-outline w-full justify-start')
+        self.assertContains(response, 'var(--destructive)')
+
     def test_learner_can_login_and_view_tenant_dashboard(self):
         logged_in = self.client.login(username='learner', password='password123')
 

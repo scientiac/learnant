@@ -254,7 +254,6 @@
                   <a class="nav-link" href="{% url 'organization-settings' %}">Organization</a>
                   <a class="nav-link" href="{% url 'bulk-student-add' %}">Enroll students</a>
                 {% endif %}
-                <a class="nav-link" href="{% url 'profile-settings' %}">Profile</a>
                 {% if user.role == 'super_admin' or user.role == 'admin' or user.role == 'super_viewer' %}
                   <a class="nav-link {% block nav_tenants %}{% endblock %}" href="{% url 'tenant-list' %}">Colonies</a>
                 {% endif %}
@@ -271,17 +270,23 @@
             </button>
 
             {% if user.is_authenticated %}
-              <div class="hidden items-center gap-2 sm:flex">
-                {% if user.avatar %}
-                  <img src="{% url 'user-avatar' user.id %}" alt="{{ user.username }} profile image" class="h-7 w-7 border object-cover" style="border-color: hsl(var(--border));">
-                {% endif %}
-                <span class="badge badge-role">{{ user.get_role_display }}</span>
-                <span class="text-xs font-mono" style="color: hsl(var(--muted-foreground));">@{{ user.username }}</span>
-              </div>
-              <form method="post" action="{% url 'logout' %}" class="inline">
-                {% csrf_token %}
-                <button class="btn btn-outline btn-sm" type="submit">Log out</button>
-              </form>
+              <details class="relative">
+                <summary class="btn btn-ghost btn-sm list-none cursor-pointer gap-2" aria-label="Account menu for {{ user.username }}">
+                  {% if user.avatar %}
+                    <img src="{% url 'user-avatar' user.id %}" alt="" class="h-6 w-6 border object-cover" style="border-color: hsl(var(--border));">
+                  {% endif %}
+                  <span class="font-mono">@{{ user.username }}</span>
+                  <span class="badge badge-role hidden sm:inline-flex">{{ user.get_role_display }}</span>
+                  <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+                </summary>
+                <div class="absolute right-0 top-full z-50 mt-2 w-52 border p-1 shadow-lg" style="border-color: hsl(var(--border)); background: hsl(var(--background));">
+                  <a role="menuitem" class="btn btn-outline mb-1 w-full justify-start" href="{% url 'profile-settings' %}">Profile settings</a>
+                  <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button role="menuitem" class="btn btn-outline w-full justify-start" style="color: hsl(var(--destructive));" type="submit">Log out</button>
+                  </form>
+                </div>
+              </details>
             {% else %}
               <a class="btn btn-secondary btn-sm" href="{% url 'about' %}" style="border: 1px solid hsl(var(--border));">
                 <i data-lucide="info" class="h-3.5 w-3.5"></i>
