@@ -18,6 +18,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
 - **Organization & Profile Settings:** Active Tenant Admins can update their own organization name/brand color; signed-in users can update their own display name and email.
 - **Bulk Student Onboarding:** Tenant Admins can create up to 100 tenant-bound learner accounts in one submission.
+- **Focused Lesson Study:** Assigned learners get a dedicated lesson page with syllabus navigation, sanitized GFM Markdown, KaTeX math, and validated video embeds/direct media.
 
 ---
 
@@ -112,7 +113,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (135 tests):
+Run the full automated test suite (142 tests):
 
 ```bash
 python manage.py test

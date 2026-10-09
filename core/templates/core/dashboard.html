@@ -146,9 +146,9 @@
         <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">
           You have {{ assigned_course_count }} assigned course{{ assigned_course_count|pluralize }}. Continue with your syllabus:
         </p>
-        <a class="btn btn-primary mt-4" href="{% url 'lesson-list' assigned_course.id %}">
+        <a class="btn btn-primary mt-4" href="{% if assigned_lesson %}{% url 'lesson-detail' assigned_course.id assigned_lesson.id %}{% else %}{% url 'lesson-list' assigned_course.id %}{% endif %}">
           <i data-lucide="book-open" class="h-4 w-4"></i>
-          Start {{ assigned_course.title }}
+          {% if assigned_lesson %}Start {{ assigned_lesson.title }}{% else %}View {{ assigned_course.title }} syllabus{% endif %}
         </a>
       {% else %}
         <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">No course has been assigned yet. Your institute admin can add you to a course.</p>

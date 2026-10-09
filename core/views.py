@@ -83,6 +83,7 @@ def dashboard(request):
         'onboarding_steps': [],
         'assigned_course': None,
         'assigned_course_count': 0,
+        'assigned_lesson': None,
     }
 
     if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
@@ -142,6 +143,8 @@ def dashboard(request):
             assigned_courses = visible_courses_for_user(user)
             context['assigned_course_count'] = assigned_courses.count()
             context['assigned_course'] = assigned_courses.order_by('title').first()
+            if context['assigned_course']:
+                context['assigned_lesson'] = context['assigned_course'].lessons.order_by('order', 'id').first()
 
     return render(request, 'core/dashboard.html', context)
 
@@ -453,6 +456,37 @@ def lesson_list(request, course_id):
 
 
 @login_required
+def lesson_detail(request, course_id, lesson_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
+    lessons = list(Lesson.objects.filter(course=course).order_by('order', 'id'))
+    lesson_index = next(index for index, row in enumerate(lessons) if row.id == lesson.id)
+
+    assignment = None
+    progress = None
+    if is_tenant_user(request.user):
+        assignment = get_object_or_404(CourseAssignment, course=course, learner=request.user)
+        progress = LessonProgress.objects.filter(assignment=assignment, lesson=lesson).first()
+
+    return render(
+        request,
+        'core/lesson_detail.html',
+        {
+            'course': course,
+            'lesson': lesson,
+            'previous_lesson': lessons[lesson_index - 1] if lesson_index > 0 else None,
+            'next_lesson': lessons[lesson_index + 1] if lesson_index + 1 < len(lessons) else None,
+            'syllabus': lessons,
+            'assignment': assignment,
+            'progress': progress,
+            'can_update_progress': bool(assignment and can_mutate_tenant_data(request.user)),
+            'can_manage_lesson': can_manage_tenant(request.user, course.tenant),
+            'video_player': lesson.video_player,
+        },
+    )
+
+
+@login_required
 def lesson_create(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     if not can_manage_tenant(request.user, course.tenant):
@@ -636,7 +670,7 @@ def lesson_mark_complete(request, course_id, lesson_id):
     progress, _ = LessonProgress.objects.get_or_create(assignment=assignment, lesson=lesson)
     progress.is_complete = True
     progress.save()
-    return redirect('lesson-list', course_id=course.id)
+    return redirect('lesson-detail', course_id=course.id, lesson_id=lesson.id)
 
 
 @login_required

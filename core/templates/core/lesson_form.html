@@ -15,7 +15,7 @@
     <div class="mb-5">
       <h1 class="text-lg font-semibold tracking-tight">{% if lesson %}Edit lesson{% else %}Add new lesson{% endif %}</h1>
       <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
-        {% if lesson %}Update lesson content and order in the syllabus.{% else %}Expand your course syllabus with structured content.{% endif %}
+        {% if lesson %}Update lesson content, video, and order in the syllabus.{% else %}Expand your course syllabus with structured content.{% endif %}
       </p>
     </div>
 
@@ -51,11 +51,20 @@
 
       <div>
         <label class="form-label" for="{{ form.content.id_for_label }}">
-          Lesson content <span style="color: hsl(var(--destructive));">*</span>
+          Lesson content (Markdown supported) <span style="color: hsl(var(--destructive));">*</span>
         </label>
         {{ form.content }}
         {% if form.content.errors %}
           <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.content.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="form-label" for="{{ form.video_url.id_for_label }}">Optional video URL</label>
+        {{ form.video_url }}
+        <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">One HTTPS YouTube/Vimeo link or direct MP4, WebM, or Ogg file.</p>
+        {% if form.video_url.errors %}
+          <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.video_url.errors|join:", " }}</p>
         {% endif %}
       </div>
 

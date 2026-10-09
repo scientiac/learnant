@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} · {{ course.title }} · Learnant{% endblock %}
+{% block nav_courses %}active{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'lesson-list' course.id %}" class="inline-flex items-center gap-1.5 text-sm" style="color: hsl(var(--muted-foreground));">
+    <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i> {{ course.title }} syllabus
+  </a>
+</div>
+
+<div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
+  <article class="card min-w-0 p-5 sm:p-8">
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b pb-4" style="border-color: hsl(var(--border));">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-wider" style="color: hsl(var(--muted-foreground));">Lesson {{ lesson.order }} · {{ course.title }}</p>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight">{{ lesson.title }}</h1>
+      </div>
+      {% if assignment %}
+        {% if progress and progress.is_complete %}
+          <span class="badge badge-active">Completed</span>
+        {% else %}
+          <span class="badge badge-role">In progress</span>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    {% if video_player %}
+      <div class="mb-6 aspect-video overflow-hidden border" style="border-color: hsl(var(--border));">
+        {% if video_player.kind == 'embed' %}
+          <iframe class="h-full w-full" src="{{ video_player.src }}" title="Lesson video: {{ lesson.title }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation" allow="accelerometer; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>
+        {% else %}
+          <video class="h-full w-full" controls preload="metadata">
+            <source src="{{ video_player.src }}">
+            Your browser does not support embedded video.
+          </video>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div id="lesson-content" class="lesson-markdown"><pre class="whitespace-pre-wrap">{{ lesson.content }}</pre></div>
+    <div id="lesson-markdown-source" class="hidden">{{ lesson.content }}</div>
+    <noscript><pre class="mt-5 whitespace-pre-wrap">{{ lesson.content }}</pre></noscript>
+
+    {% if can_update_progress and not progress or can_update_progress and progress and not progress.is_complete %}
+      <form method="post" action="{% url 'lesson-mark-complete' course.id lesson.id %}" class="mt-8 border-t pt-5" style="border-color: hsl(var(--border));">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit"><i data-lucide="check-circle" class="h-4 w-4"></i> Mark complete</button>
+      </form>
+    {% elif progress and progress.is_complete and progress.completed_at %}
+      <p class="mt-6 border-t pt-4 text-sm" style="border-color: hsl(var(--border)); color: hsl(var(--muted-foreground));">Completed {{ progress.completed_at|date:"N j, Y g:i A" }}</p>
+    {% endif %}
+
+    <nav class="mt-8 flex justify-between gap-4 border-t pt-5" aria-label="Lesson navigation" style="border-color: hsl(var(--border));">
+      {% if previous_lesson %}
+        <a class="btn btn-outline btn-sm" href="{% url 'lesson-detail' course.id previous_lesson.id %}">← {{ previous_lesson.title }}</a>
+      {% else %}<span></span>{% endif %}
+      {% if next_lesson %}
+        <a class="btn btn-outline btn-sm" href="{% url 'lesson-detail' course.id next_lesson.id %}">{{ next_lesson.title }} →</a>
+      {% endif %}
+    </nav>
+  </article>
+
+  <aside class="card p-4" aria-label="Course syllabus">
+    <h2 class="mb-3 font-semibold">Course syllabus</h2>
+    <ol class="space-y-1">
+      {% for syllabus_lesson in syllabus %}
+        <li>
+          <a class="nav-link {% if syllabus_lesson.id == lesson.id %}active{% endif %} flex gap-2" href="{% url 'lesson-detail' course.id syllabus_lesson.id %}" {% if syllabus_lesson.id == lesson.id %}aria-current="page"{% endif %}>
+            <span class="font-mono">{{ syllabus_lesson.order }}.</span>
+            <span>{{ syllabus_lesson.title }}</span>
+          </a>
+        </li>
+      {% empty %}
+        <li class="text-sm" style="color: hsl(var(--muted-foreground));">No lessons in this syllabus.</li>
+      {% endfor %}
+    </ol>
+    {% if can_manage_lesson %}
+      <a class="btn btn-outline btn-sm mt-4 w-full" href="{% url 'lesson-update' course.id lesson.id %}">Edit lesson</a>
+    {% endif %}
+  </aside>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+  .lesson-markdown { line-height: 1.75; overflow-wrap: anywhere; }
+  .lesson-markdown h1,.lesson-markdown h2,.lesson-markdown h3 { font-weight: 600; margin: 1.5em 0 .5em; }
+  .lesson-markdown h1 { font-size: 1.6rem; }
+  .lesson-markdown h2 { font-size: 1.3rem; }
+  .lesson-markdown h3 { font-size: 1.1rem; }
+  .lesson-markdown p,.lesson-markdown ul,.lesson-markdown ol { margin: .9em 0; }
+  .lesson-markdown ul,.lesson-markdown ol { padding-left: 1.5rem; }
+  .lesson-markdown ul { list-style: disc; }
+  .lesson-markdown ol { list-style: decimal; }
+  .lesson-markdown pre,.lesson-markdown code { font-family: ui-monospace, monospace; }
+  .lesson-markdown pre,.lesson-markdown blockquote,.lesson-markdown table { border: 1px solid hsl(var(--border)); }
+  .lesson-markdown pre { overflow-x: auto; padding: 1rem; background: hsl(var(--muted)); }
+  .lesson-markdown blockquote { border-width: 0 0 0 3px; padding-left: 1rem; color: hsl(var(--muted-foreground)); }
+  .lesson-markdown table { border-collapse: collapse; width: 100%; }
+  .lesson-markdown th,.lesson-markdown td { border: 1px solid hsl(var(--border)); padding: .45rem .65rem; }
+  .lesson-markdown img { max-width: 100%; height: auto; }
+  .lesson-markdown a { text-decoration: underline; text-underline-offset: 3px; }
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const source = document.getElementById('lesson-markdown-source');
+    const target = document.getElementById('lesson-content');
+    if (!source || !target || !window.marked || !window.DOMPurify) return;
+    const html = window.marked.parse(source.textContent, { gfm: true, breaks: false });
+    target.innerHTML = window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+    if (window.renderMathInElement) {
+      window.renderMathInElement(target, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '\\[', right: '\\]', display: true },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false
+      });
+    }
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
+{% endblock %}

@@ -101,14 +101,17 @@ class WebFlowTests(TestCase):
             username='manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
         )
         course = Course.objects.create(tenant=self.tenant, title='Assigned Course', creator=tenant_admin)
+        lesson = Lesson.objects.create(
+            course=course, title='First Study Lesson', content='Welcome!', order=1
+        )
         CourseAssignment.objects.create(tenant=self.tenant, course=course, learner=self.learner)
         self.client.login(username='learner', password='password123')
 
         response = self.client.get(reverse('dashboard'))
 
         self.assertContains(response, 'Your learning path')
-        self.assertContains(response, 'Start Assigned Course')
-        self.assertContains(response, reverse('lesson-list', args=[course.id]))
+        self.assertContains(response, 'Start First Study Lesson')
+        self.assertContains(response, reverse('lesson-detail', args=[course.id, lesson.id]))
 
     def test_super_viewer_dashboard_is_read_only(self):
         self.client.login(username='viewer', password='password123')

@@ -1,4 +1,6 @@
 from datetime import timedelta
+import re
+from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -182,6 +184,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
     title = models.CharField(max_length=255)
     content = models.TextField()
+    video_url = models.URLField(max_length=500, blank=True)
     order = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -195,6 +198,65 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        super().clean()
+        if not self.video_url:
+            return
+        parsed = urlsplit(self.video_url)
+        host = (parsed.hostname or '').lower()
+        if parsed.scheme != 'https' or not host:
+            raise ValidationError({'video_url': 'Video URLs must use HTTPS.'})
+        if host in {'youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'}:
+            video_id = self._youtube_video_id(parsed)
+            if not video_id:
+                raise ValidationError({'video_url': 'Enter a valid YouTube video URL.'})
+            return
+        if host in {'vimeo.com', 'www.vimeo.com', 'player.vimeo.com'}:
+            if not self._vimeo_video_id(parsed):
+                raise ValidationError({'video_url': 'Enter a valid Vimeo video URL.'})
+            return
+        if parsed.path.lower().endswith(('.mp4', '.webm', '.ogg')):
+            return
+        raise ValidationError(
+            {'video_url': 'Use a YouTube/Vimeo link or a direct MP4, WebM, or Ogg video URL.'}
+        )
+
+    @staticmethod
+    def _youtube_video_id(parsed):
+        host = (parsed.hostname or '').lower()
+        if host == 'youtu.be':
+            video_id = parsed.path.strip('/').split('/')[0]
+        elif parsed.path.startswith(('/embed/', '/shorts/')):
+            parts = parsed.path.strip('/').split('/')
+            video_id = parts[1] if len(parts) > 1 else ''
+        else:
+            video_id = parse_qs(parsed.query).get('v', [''])[0]
+        return video_id if re.fullmatch(r'[A-Za-z0-9_-]{6,20}', video_id) else None
+
+    @staticmethod
+    def _vimeo_video_id(parsed):
+        match = re.fullmatch(r'(?:video/)?(\d+)', parsed.path.strip('/'))
+        return match.group(1) if match else None
+
+    @property
+    def video_player(self):
+        """Return a validated player descriptor suitable for an iframe/video tag."""
+        if not self.video_url:
+            return None
+        parsed = urlsplit(self.video_url)
+        host = (parsed.hostname or '').lower()
+        if host in {'youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'}:
+            video_id = self._youtube_video_id(parsed)
+            if video_id:
+                return {'kind': 'embed', 'src': f'https://www.youtube-nocookie.com/embed/{video_id}'}
+        elif host in {'vimeo.com', 'www.vimeo.com', 'player.vimeo.com'}:
+            video_id = self._vimeo_video_id(parsed)
+            if video_id:
+                return {'kind': 'embed', 'src': f'https://player.vimeo.com/video/{video_id}'}
+        elif parsed.scheme == 'https' and parsed.path.lower().endswith(('.mp4', '.webm', '.ogg')):
+            return {'kind': 'media', 'src': self.video_url}
+        return None
 
     def save(self, *args, **kwargs):
         if self._state.adding:

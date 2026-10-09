@@ -58,7 +58,7 @@ class LessonForm(forms.ModelForm):
 
     class Meta:
         model = Lesson
-        fields = ['title', 'content', 'order']
+        fields = ['title', 'content', 'video_url', 'order']
         widgets = {
             'title': forms.TextInput(
                 attrs={
@@ -71,6 +71,12 @@ class LessonForm(forms.ModelForm):
                     'class': 'form-input',
                     'placeholder': 'Lesson content',
                     'rows': 8,
+                }
+            ),
+            'video_url': forms.URLInput(
+                attrs={
+                    'class': 'form-input',
+                    'placeholder': 'https://youtu.be/... or https://example.org/video.mp4',
                 }
             ),
             'order': forms.NumberInput(

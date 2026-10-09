@@ -556,7 +556,7 @@ When engineering leaders and hiring supervisors evaluate a Full-Stack take-home 
   python manage.py runserver
   ```
 
-### 4. Comprehensive Test Coverage (135 Passing Tests)
+### 4. Comprehensive Test Coverage (142 Passing Tests)
 - Features are backed by automated tests across every layer:
   - Role permissions (`test_permissions.py`)
   - Cross-tenant ID manipulation & IDOR (`test_phase_auth_isolation.py`)
