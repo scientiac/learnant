@@ -191,7 +191,7 @@ Detailed documentation is available in the `docs/` directory:
 
 ### Portable container deployment
 
-`Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist both the PostgreSQL data directory and `/app/uploads`. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
+`Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist both the PostgreSQL data directory and `/app/uploads`. Gunicorn's optional control socket is disabled in the container because the service account has no login home and the HTTP app does not need the administrative socket. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
 
 ---
 
