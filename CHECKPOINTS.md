@@ -8,7 +8,7 @@
 
 - **Overall status:** Tenant-scoped course list verified locally with Tailwind/HTMX UI baseline
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** 44d43c2 Record login dashboard checkpoint
+- **Last verified commit:** 918abd0 Add course list and Tailwind HTMX UI
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 28 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, anonymous dashboard redirect, and anonymous course-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -96,7 +96,7 @@ Expected actions:
 - **Files changed:** `PLANS.md`, `DOCUMENT.sh`, `README.md`, `config/urls.py`, `core/admin.py`, `core/models.py`, `core/views.py`, `core/migrations/0003_course.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_courses.py`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course web smoke script; `git diff --check`.
 - **Test results:** Migration created and applied; check passed with 0 issues; 28 tests passed; demo data seeded locally; runserver course web smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 918abd0 Add course list and Tailwind HTMX UI.
 
 Update this section after completing the first task.
 
@@ -132,7 +132,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `PLANS.md`, `DOCUMENT.sh`, `README.md`, `config/urls.py`, `core/admin.py`, `core/models.py`, `core/views.py`, `core/migrations/0003_course.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_courses.py`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver course web smoke script; `git diff --check`.
 - **Actual results:** Migration created and applied; check passed with 0 issues; 28 tests passed; demo data seeded locally; runserver course web smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 918abd0 Add course list and Tailwind HTMX UI.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; course creation/lesson/assignment/progress flows not implemented yet.
 - **Next single task:** Add tenant-admin course creation form with active-trial write enforcement and cross-tenant tests.
