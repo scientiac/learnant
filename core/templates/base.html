@@ -223,9 +223,9 @@
     <div>
       <!-- Navigation -->
       <nav class="sticky top-0 z-50 border-b" style="border-color: hsl(var(--border)); background-color: hsl(var(--background) / 0.8); backdrop-filter: blur(12px);">
-        <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+        <div class="mx-auto flex max-w-5xl items-center justify-between gap-2 px-3 py-2 sm:px-6 sm:py-3">
           <!-- Logo + Links -->
-          <div class="flex items-center gap-6">
+          <div class="flex min-w-0 items-center gap-2 sm:gap-6">
             <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="flex items-center gap-2.5 no-underline group" style="color: hsl(var(--foreground));">
               <!-- Original Learnant Ant Emblem -->
               <div class="flex h-7 w-7 items-center justify-center border transition-colors group-hover:bg-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary-foreground))]" style="border-color: hsl(var(--border));">
@@ -261,11 +261,28 @@
                   <a class="nav-link {% block nav_tenants %}{% endblock %}" href="{% url 'tenant-list' %}">Colonies</a>
                 {% endif %}
               </div>
+              <details class="relative sm:hidden">
+                <summary class="btn btn-outline btn-sm list-none cursor-pointer" aria-label="Open navigation menu">
+                  <i data-lucide="menu" class="h-4 w-4"></i>
+                  <span class="sr-only">Menu</span>
+                </summary>
+                <div class="absolute left-0 top-full z-50 mt-2 flex w-56 flex-col border p-2 shadow-lg" style="border-color: hsl(var(--border)); background: hsl(var(--background));">
+                  <a class="nav-link py-2" href="{% url 'course-list' %}">Courses</a>
+                  {% if user.role == 'tenant_admin' %}
+                    <a class="nav-link py-2" href="{% url 'organization-settings' %}">Organization</a>
+                    <a class="nav-link py-2" href="{% url 'tenant-user-list' %}">Members</a>
+                    <a class="nav-link py-2" href="{% url 'bulk-student-add' %}">Enroll students</a>
+                  {% endif %}
+                  {% if user.role == 'super_admin' or user.role == 'admin' or user.role == 'super_viewer' %}
+                    <a class="nav-link py-2" href="{% url 'tenant-list' %}">Colonies</a>
+                  {% endif %}
+                </div>
+              </details>
             {% endif %}
           </div>
 
           <!-- User + Auth -->
-          <div class="flex items-center gap-3">
+          <div class="flex shrink-0 items-center gap-1 sm:gap-3">
             <!-- Theme toggle -->
             <button onclick="toggleTheme()" class="btn btn-ghost btn-sm" style="padding: 0 0.5rem;" title="Toggle theme">
               <i data-lucide="sun" class="h-4 w-4 dark:hidden"></i>
@@ -278,7 +295,7 @@
                   {% if user.avatar %}
                     <img src="{% url 'user-avatar' user.id %}" alt="" class="h-6 w-6 border object-cover" style="border-color: hsl(var(--border));">
                   {% endif %}
-                  <span class="font-mono">@{{ user.username }}</span>
+                  <span class="max-w-[6.5rem] truncate font-mono sm:max-w-none">@{{ user.username }}</span>
                   <span class="badge badge-role hidden sm:inline-flex">{{ user.get_role_display }}</span>
                   <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
                 </summary>
@@ -314,8 +331,8 @@
 
     <!-- Minimalist Sera Footer -->
     <footer class="border-t py-6 mt-12" style="border-color: hsl(var(--border));">
-      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 text-xs sm:px-6" style="color: hsl(var(--muted-foreground));">
-        <div class="flex items-center gap-2">
+      <div class="mx-auto flex max-w-5xl flex-col items-start gap-3 px-4 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6" style="color: hsl(var(--muted-foreground));">
+        <div class="flex flex-wrap items-center gap-2">
           <span class="inline-flex items-center gap-1.5">
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <ellipse cx="12" cy="5" rx="2" ry="1.8"/><ellipse cx="12" cy="11" rx="1.8" ry="2.2"/><ellipse cx="12" cy="18" rx="2.5" ry="3"/>

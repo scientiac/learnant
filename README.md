@@ -31,7 +31,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 
 ### Run with Docker Compose (Django + PostgreSQL)
 
-The supported container deployment runs Django and PostgreSQL as separate services, with named persistent volumes for the database and uploads:
+The supported container deployment runs Django and PostgreSQL as separate services, with named persistent volumes for the database and uploaded media:
 
 ```bash
 cp .env.example .env
@@ -154,7 +154,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (198 tests):
+Run the full automated test suite (199 tests):
 
 ```bash
 python manage.py test
@@ -187,11 +187,11 @@ Detailed documentation is available in the `docs/` directory:
 - **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. `learnant.3o14.com` is always allowed; when Railway provides `RAILWAY_PUBLIC_DOMAIN`, the app also adds that exact hostname and its HTTPS origin. Other hosts must be listed in the environment. Django does not auto-load `.env`.
 - Production requires a strong `SECRET_KEY`, database URL, and host list. SMTP defaults to the standard backend when `DEBUG=false`; configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_USE_TLS` if the app begins sending email.
 - **Static Files:** WhiteNoise serves collected assets from the container. The startup script applies migrations and runs `collectstatic` before starting Gunicorn.
-- **Uploaded Media:** User/organization images and lesson media live under `MEDIA_ROOT` (default `uploads/`). Mount persistent storage at `/app/uploads` (or set `MEDIA_ROOT`) to retain uploads across container replacements.
+- **Uploaded Media:** User/organization images and lesson media are stored as files under `MEDIA_ROOT` (default `/app/uploads` in the container). Mount a persistent volume at `/app/uploads` to retain them across container replacements; PostgreSQL stores their metadata and references.
 
 ### Portable container deployment
 
-`Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist both the PostgreSQL data directory and `/app/uploads`. Gunicorn's optional control socket is disabled in the container because the service account has no login home and the HTTP app does not need the administrative socket. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
+`Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist the PostgreSQL data directory and the media volume mounted at `/app/uploads`. Startup prepares the mounted directory for the non-root Django process. Gunicorn's optional control socket is disabled in the container because the service account has no login home and the HTTP app does not need the administrative socket. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
 
 ### Step-by-step Railway deployment
 
@@ -213,7 +213,7 @@ Detailed documentation is available in the `docs/` directory:
 
    A successful first run prints `Provisioned bootstrap Super Admin: <username>` (never the password). Sign in with that username and the configured password; the account is required to change its password at first login. Setting these variables alone does not create the user: the command must be run explicitly against the app's configured database.
 
-9. **Persist uploaded files.** In the Railway app service, attach a persistent volume mounted at `/app/uploads` (or configure `MEDIA_ROOT` to its mount path). Lesson image/video bytes, avatars, and logos are stored as files there; PostgreSQL stores their metadata and references, not the file bytes. Without a persistent volume or external object storage, uploaded files disappear when the app container is replaced. Docker Compose uses a persistent `uploads` volume by default.
+9. **Persist uploaded files.** In the Railway app service, open **Settings → Volumes → Add Volume** and use `/app/uploads` as the mount path. Add the service variable `MEDIA_ROOT=/app/uploads`. Lesson images/videos, avatars, and organization logos are files in this volume; PostgreSQL stores their metadata and references. The container prepares the mounted directory for its non-root Django user. Keep the volume when redeploying—deleting it deletes the media. Docker Compose also mounts a named `uploads` volume at `/app/uploads`. A new volume does not automatically copy files from the old container's temporary filesystem; copy any media that still exists before replacing that instance.
 10. **Verify PostgreSQL and data.** In the same app shell, check the active database and tenant count:
 
    ```bash
@@ -222,7 +222,7 @@ Detailed documentation is available in the `docs/` directory:
 
    The engine must be `django.db.backends.postgresql`. If it reports SQLite, stop and fix the database variables before using the app. New PostgreSQL databases start empty; data previously stored only in a disposable container's SQLite file is not automatically copied over. If `bootstrap_superadmin` says the user already exists, it does not reset that user's password.
 
-Once a lesson has been created, use **Add image or video** in its editor to upload one file at a time. Each upload is stored immediately and its Markdown reference is inserted into the content field; save the lesson to retain other unsaved edits. You can keep adding more files, including multiple videos.
+Once a lesson has been created, use **Add image or video** in its editor to upload one file at a time. Each upload is stored immediately on the persistent volume and its Markdown reference is inserted into the content field; save the lesson to retain other unsaved edits. You can keep adding more files, including multiple videos.
 
 When publishing a new version, wait for the GHCR workflow and redeploy the app image. Do not delete or replace the PostgreSQL service/volume unless you intend to discard its data.
 

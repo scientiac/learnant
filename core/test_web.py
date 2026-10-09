@@ -80,6 +80,15 @@ class WebFlowTests(TestCase):
         self.assertContains(response, 'btn btn-outline w-full justify-start')
         self.assertContains(response, 'var(--destructive)')
 
+    def test_authenticated_header_and_footer_have_mobile_responsive_layouts(self):
+        self.client.login(username='learner', password='password123')
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertContains(response, 'sm:hidden')
+        self.assertContains(response, 'Open navigation menu')
+        self.assertContains(response, 'flex-col items-start gap-3 px-4 text-xs sm:flex-row')
+
     def test_learner_can_login_and_view_tenant_dashboard(self):
         logged_in = self.client.login(username='learner', password='password123')
 

@@ -38,6 +38,7 @@ class DeploymentSettingsTests(SimpleTestCase):
 from config import settings
 assert settings.DEBUG is False
 assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql'
+assert settings.STORAGES['default']['BACKEND'] == 'django.core.files.storage.FileSystemStorage'
 assert settings.ALLOWED_HOSTS == ['learnant.example.org', 'learnant.example.net', 'learnant.3o14.com']
 assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant.example.org', 'https://learnant.3o14.com']
 assert 'whitenoise.middleware.WhiteNoiseMiddleware' in settings.MIDDLEWARE
@@ -61,6 +62,7 @@ assert settings.MAILERS['default']['BACKEND'] == 'django.core.mail.backends.smtp
 from config import settings
 assert settings.DEBUG is True
 assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3'
+assert settings.STORAGES['default']['BACKEND'] == 'django.core.files.storage.FileSystemStorage'
 assert settings.ALLOWED_HOSTS == ['localhost', '127.0.0.1', 'learnant.3o14.com']
 assert settings.STORAGES['staticfiles']['BACKEND'] == 'django.contrib.staticfiles.storage.StaticFilesStorage'
 """,

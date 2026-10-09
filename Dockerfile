@@ -7,6 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 RUN addgroup --system learnant && adduser --system --ingroup learnant learnant
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
@@ -16,7 +19,6 @@ RUN mkdir -p /app/staticfiles /app/uploads \
     && chmod 755 /app/docker-entrypoint.sh \
     && chown -R learnant:learnant /app
 
-USER learnant
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
