@@ -27,7 +27,7 @@
 
     <h1 class="text-3xl font-bold tracking-tight">Learnant Platform</h1>
     <p class="mt-2 text-base leading-relaxed" style="color: hsl(var(--muted-foreground));">
-      A multi-tenant Learning Platform conceptualized around autonomous <strong>Colonies</strong>. Designed with zero-trust database isolation, strict 5-tier role hierarchy, and production usability.
+      Learnant gives each institute a private learning workspace to author courses, enroll learners, and follow study progress. Every organization works in its own <strong>Colony Workspace</strong>, with server-enforced tenant boundaries.
     </p>
 
     <div class="mt-6 flex flex-wrap gap-3">
@@ -49,63 +49,57 @@
     </div>
   </div>
 
-  <!-- Reviewer Credentials Grid -->
-  <div class="card p-6">
-    <div class="mb-4">
-      <div class="flex items-center gap-2">
-        <i data-lucide="key-round" class="h-4 w-4"></i>
-        <h2 class="text-sm font-semibold uppercase tracking-wider font-mono">Demo Evaluation Accounts</h2>
-      </div>
-      <p class="text-xs mt-1" style="color: hsl(var(--muted-foreground));">
-        Password for all pre-seeded evaluation accounts: <code class="px-1.5 py-0.5 border font-mono text-xs" style="border-color: hsl(var(--border));">password123</code>
-      </p>
+  <section class="card p-6">
+    <div class="flex items-center gap-2">
+      <i data-lucide="workflow" class="h-4 w-4"></i>
+      <h2 class="text-sm font-semibold uppercase tracking-wider font-mono">How Learnant works</h2>
     </div>
+    <ol class="mt-5 grid gap-4 sm:grid-cols-2">
+      <li class="border p-4" style="border-color: hsl(var(--border));">
+        <p class="font-mono text-xs" style="color: hsl(var(--muted-foreground));">01 / CREATE A WORKSPACE</p>
+        <h3 class="mt-2 font-semibold">An institute starts its colony</h3>
+        <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">An institute administrator creates an organization workspace. New organizations begin with a 14-day trial.</p>
+      </li>
+      <li class="border p-4" style="border-color: hsl(var(--border));">
+        <p class="font-mono text-xs" style="color: hsl(var(--muted-foreground));">02 / BUILD THE SYLLABUS</p>
+        <h3 class="mt-2 font-semibold">Create courses and lessons</h3>
+        <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Admins organize ordered lessons with Markdown, images, video, and mathematical notation.</p>
+      </li>
+      <li class="border p-4" style="border-color: hsl(var(--border));">
+        <p class="font-mono text-xs" style="color: hsl(var(--muted-foreground));">03 / INVITE LEARNERS</p>
+        <h3 class="mt-2 font-semibold">Enroll and assign members</h3>
+        <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Tenant admins add learners individually or by CSV, then assign them to relevant courses.</p>
+      </li>
+      <li class="border p-4" style="border-color: hsl(var(--border));">
+        <p class="font-mono text-xs" style="color: hsl(var(--muted-foreground));">04 / STUDY AND TRACK</p>
+        <h3 class="mt-2 font-semibold">Learners follow their path</h3>
+        <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Learners study assigned lessons, mark work complete, and see their own progress. Admins review progress for their colony.</p>
+      </li>
+    </ol>
+  </section>
 
-    <div class="overflow-x-auto">
+  <section class="card p-6">
+    <div class="flex items-center gap-2">
+      <i data-lucide="users-round" class="h-4 w-4"></i>
+      <h2 class="text-sm font-semibold uppercase tracking-wider font-mono">Workspace roles</h2>
+    </div>
+    <div class="mt-4 overflow-x-auto">
       <table class="table">
-        <thead>
-          <tr>
-            <th>Role</th>
-            <th>Username</th>
-            <th>Colony Scope</th>
-            <th>Primary Capabilities</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Role</th><th>Scope</th><th>What they do</th></tr></thead>
         <tbody>
-          <tr>
-            <td><span class="badge badge-active">Super Admin</span></td>
-            <td class="font-mono text-xs font-semibold">superadmin</td>
-            <td class="text-xs">Platform-wide</td>
-            <td class="text-xs">Reactivate expired colonies, full access</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-role">Admin</span></td>
-            <td class="font-mono text-xs font-semibold">admin</td>
-            <td class="text-xs">Platform-wide</td>
-            <td class="text-xs">Manage colonies, inspect courses</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-suspended">Super Viewer</span></td>
-            <td class="font-mono text-xs font-semibold">viewer</td>
-            <td class="text-xs">Platform-wide</td>
-            <td class="text-xs">Read-only platform inspection & metrics</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-role">Tenant Admin</span></td>
-            <td class="font-mono text-xs font-semibold">tenant_admin / institute_admin</td>
-            <td class="text-xs">Demo Institute</td>
-            <td class="text-xs">Manage courses, syllabus, enrollments</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-role">Tenant User</span></td>
-            <td class="font-mono text-xs font-semibold">learner</td>
-            <td class="text-xs">Demo Institute</td>
-            <td class="text-xs">Study assigned courses, mark progress</td>
-          </tr>
+          <tr><td><span class="badge badge-active">Super Admin</span></td><td>Platform</td><td>Oversees organizations and subscriptions, and can reactivate expired trials.</td></tr>
+          <tr><td><span class="badge badge-role">Admin</span></td><td>Platform</td><td>Manages and monitors organization workspaces.</td></tr>
+          <tr><td><span class="badge badge-suspended">Super Viewer</span></td><td>Platform</td><td>Read-only platform-wide visibility.</td></tr>
+          <tr><td><span class="badge badge-role">Tenant Admin</span></td><td>One organization</td><td>Authors courses, enrolls learners, assigns courses, and reviews progress.</td></tr>
+          <tr><td><span class="badge badge-role">Tenant User</span></td><td>One organization</td><td>Studies assigned courses and tracks personal progress.</td></tr>
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
+
+  <p class="border p-4 text-sm" style="border-color: hsl(var(--border)); color: hsl(var(--muted-foreground));">
+    <strong style="color: hsl(var(--foreground));">Production access:</strong> Learnant does not provide shared demo or evaluation accounts in production. Organization members are invited by their Tenant Admin; platform administrator accounts are provisioned by the platform operator.
+  </p>
 
   <!-- Key Architecture Principles -->
   <div class="grid gap-4 sm:grid-cols-3">

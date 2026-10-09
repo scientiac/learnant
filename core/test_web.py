@@ -41,6 +41,17 @@ class WebFlowTests(TestCase):
         self.assertGreaterEqual(response.content.count(b'<svg'), 2)
         self.assertNotContains(response, '🐜 Learnant')
 
+    def test_about_page_explains_product_and_production_access_without_demo_credentials(self):
+        response = self.client.get(reverse('about'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'How Learnant works')
+        self.assertContains(response, 'Create courses and lessons')
+        self.assertContains(response, 'Workspace roles')
+        self.assertContains(response, 'Learnant does not provide shared demo or evaluation accounts in production.')
+        self.assertNotContains(response, 'Demo Evaluation Accounts')
+        self.assertNotContains(response, 'password123')
+
     def test_authenticated_home_redirects_to_dashboard(self):
         self.client.login(username='learner', password='password123')
 

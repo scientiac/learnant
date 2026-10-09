@@ -102,7 +102,7 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 
 ## 6. Testing Strategy
 
-- **Test Suite:** 197 automated test cases spanning:
+- **Test Suite:** 198 automated test cases spanning:
   - Role-based permissions (`test_permissions.py`)
   - Cross-tenant data isolation and ID manipulation (`test_phase_auth_isolation.py`)
   - Course and lesson CRUD boundaries (`test_courses.py`, `test_lessons.py`)

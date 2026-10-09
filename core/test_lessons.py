@@ -193,6 +193,7 @@ class LessonViewTests(TestCase):
         self.lesson.refresh_from_db()
 
         self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('lesson-list', args=[self.course.id]))
         self.assertEqual(self.lesson.title, 'Updated Lesson')
         self.assertEqual(self.lesson.course, self.course)
 

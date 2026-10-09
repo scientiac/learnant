@@ -926,7 +926,7 @@ def lesson_update(request, course_id, lesson_id):
             updated_lesson = form.save(commit=False)
             updated_lesson.course = course
             updated_lesson.save()
-            return redirect('lesson-update', course_id=course.id, lesson_id=lesson.id)
+            return redirect('lesson-list', course_id=course.id)
     else:
         form = LessonForm(instance=lesson)
 

@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Portable Docker deployment and environment handling implemented (197 tests passing, Django check 0 issues).
+- **Overall Status:** Portable Docker deployment and environment handling implemented (198 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL in container deployments, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -136,6 +136,7 @@
 - [x] Add deployment-time Super Admin bootstrap with forced password change.
 - [x] Add Super Admin single-account provisioning for Admin/Super Viewer with forced password change.
 - [x] Add the missing organization admin email field to self-signup and correct signup guidance.
+- [x] Replace production demo-account details on About with product overview, workflow, role guide, and production access information.
 - [x] Reconcile architecture/permissions docs and test counts with current implementation.
 - [ ] Record the original self-deadline if known; it cannot be reconstructed from the repository.
 - [ ] Human developer completes `docs/ai-course-design.md`; do not generate its content.

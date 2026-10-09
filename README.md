@@ -69,7 +69,7 @@ Open `http://127.0.0.1:8000/` in your browser.
 
 ## 3. Demo Credentials
 
-All demo accounts are created with password: `password123`.
+These credentials are for local development only, after running `python manage.py seed_demo`. They are not created or available in production.
 
 | Username | Role | Scope | Key Capabilities |
 |---|---|---|---|
@@ -154,7 +154,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (197 tests):
+Run the full automated test suite (198 tests):
 
 ```bash
 python manage.py test
