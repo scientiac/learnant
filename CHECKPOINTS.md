@@ -20,7 +20,7 @@
 - **Backend:** Django.
 - **API:** Django REST Framework where useful.
 - **Database:** PostgreSQL for the completed application.
-- **UI:** Django templates with Tailwind CSS and HTMX via CDN for a clean minimal interface; Django Admin for appropriately restricted internal administration.
+- **UI:** Django templates using a shadcn/ui-inspired design system (CSS variables + Tailwind CDN + Inter font). All component styles (btn, card, form-input, badge, table, alert) are defined in `base.html`. HTMX via CDN for progressive enhancement. Django Admin for appropriately restricted internal administration.
 - **Authentication:** Django authentication with a custom user model defined before the first migrations.
 - **Tenant approach:** Shared database with tenant ownership on tenant-owned records; backend queries and permissions enforce isolation.
 - **Trial:** Suggested 14-day trial, with request-time enforcement and an idempotent scheduled management command.
@@ -132,11 +132,10 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Added minimal usable workflow navigation and demo guidance.
-- **Files changed:** `core/templates/base.html`, `core/templates/core/dashboard.html`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver Phase 7 smoke script.
-- **Actual results:** Check passed with 0 issues; 86 tests passed; demo data seeded locally; runserver Phase 7 smoke passed.
-- **Commit:** f55ef21 Add minimal demo workflow polish.
+- **Task completed:** Redesigned all Django templates with shadcn/ui design system; added public self-signup flow (creates Tenant + Tenant Admin atomically); added 5 signup tests.
+- **Files changed:** `core/templates/base.html`, `core/templates/registration/login.html`, `core/templates/registration/signup.html` (new), `core/templates/core/dashboard.html`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/course_form.html`, `core/templates/core/lesson_form.html`, `core/templates/core/assignment_list.html`, `core/templates/core/assignment_form.html`, `core/templates/core/progress_list.html`, `core/templates/core/confirm_delete.html`, `core/templates/core/tenant_list.html`, `core/forms.py` (TenantSignupForm), `core/views.py` (signup view), `config/urls.py` (/signup/ URL), `core/test_web.py` (5 new tests + updated assertion).
+- **Tests executed:** `.venv/bin/python manage.py test` (full suite).
+- **Actual results:** 91 tests passed (86 original + 5 new signup tests); 0 failures.
 - **Current phase:** Phase 8 — Verification and security review.
 - **Remaining issues:** PostgreSQL unavailable in PATH; Phase 8/9 remain.
 - **Next single task:** Run Phase 8 verification/security review and add any regression tests for findings.

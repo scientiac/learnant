@@ -1,28 +1,72 @@
 {% extends "base.html" %}
-
-{% block title %}Assignments · {{ course.title }}{% endblock %}
+{% block title %}Assignments · {{ course.title }} · LearnTenant{% endblock %}
+{% block nav_courses %}active{% endblock %}
 
 {% block content %}
-  <p><a href="{% url 'course-list' %}">Back to courses</a></p>
-  <h1>Assignments for {{ course.title }}</h1>
+<div class="mb-1">
+  <a href="{% url 'course-list' %}" class="inline-flex items-center gap-1 text-sm no-underline transition-colors" style="color: hsl(215.4 16.3% 46.9%)" onmouseover="this.style.color='hsl(222.2 84% 4.9%)'" onmouseout="this.style.color='hsl(215.4 16.3% 46.9%)'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    Back to courses
+  </a>
+</div>
+
+<div class="mb-6 mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Assignments</h1>
+    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Learners assigned to <strong>{{ course.title }}</strong>.</p>
+  </div>
   {% if can_create_assignments %}
-    <p><a href="{% url 'assignment-create' course.id %}">Assign learner</a></p>
+    <a class="btn btn-primary" href="{% url 'assignment-create' course.id %}" id="assign-learner-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+      Assign learner
+    </a>
   {% endif %}
-  {% if assignments %}
-    <ul>
-      {% for assignment in assignments %}
-        <li>
-          {{ assignment.learner.username }} assigned at {{ assignment.assigned_at }}
-          {% if can_create_assignments %}
-            <form method="post" action="{% url 'assignment-delete' course.id assignment.id %}" style="display:inline">
-              {% csrf_token %}
-              <button type="submit">Revoke</button>
-            </form>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No learners assigned yet.</p>
-  {% endif %}
+</div>
+
+{% if assignments %}
+  <div class="card overflow-hidden">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Learner</th>
+          <th>Name</th>
+          <th>Assigned</th>
+          {% if can_create_assignments %}<th></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for assignment in assignments %}
+          <tr>
+            <td>
+              <span class="font-medium" style="color: hsl(222.2 84% 4.9%)">{{ assignment.learner.username }}</span>
+            </td>
+            <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">
+              {{ assignment.learner.get_full_name|default:"—" }}
+            </td>
+            <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">{{ assignment.assigned_at|date:"N j, Y" }}</td>
+            {% if can_create_assignments %}
+              <td>
+                <form method="post" action="{% url 'assignment-delete' course.id assignment.id %}" class="inline" id="revoke-{{ assignment.id }}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-ghost btn-sm" style="color: hsl(0 84.2% 60.2%)">Revoke</button>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card p-10 text-center">
+    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full" style="background: hsl(210 40% 96.1%)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: hsl(215.4 16.3% 46.9%)"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+    </div>
+    <p class="text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">No learners assigned</p>
+    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Assign learners to give them access to this course.</p>
+    {% if can_create_assignments %}
+      <a class="btn btn-primary mt-4 inline-flex" href="{% url 'assignment-create' course.id %}">Assign first learner</a>
+    {% endif %}
+  </div>
+{% endif %}
 {% endblock %}

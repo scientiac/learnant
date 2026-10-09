@@ -3,6 +3,35 @@
 ## Mission
 Build the **smallest complete, secure, maintainable** version that meets the assignment. Prefer working, understandable code over cleverness or extra features.
 
+## Frontend Design System
+
+The UI uses a **shadcn/ui-inspired design system** implemented with Tailwind CSS CDN and Inter font (Google Fonts). All design tokens and reusable component classes are defined in `core/templates/base.html` — do NOT use ad hoc Tailwind classes in individual templates.
+
+### Available CSS classes (defined in base.html `<style>` block)
+- **Buttons:** `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-destructive`, `.btn-ghost`, `.btn-outline`, `.btn-sm`
+- **Cards:** `.card` (white rounded card with border and shadow)
+- **Forms:** `.form-input` (use in all form widget attrs), `.form-label`
+- **Badges:** `.badge`, `.badge-active` (green), `.badge-expired` (red), `.badge-suspended` (amber), `.badge-role` (blue)
+- **Alerts:** `.alert-error`, `.alert-warning`, `.alert-info`
+- **Tables:** `.table` (use on `<table>` with `<thead>`, `<tbody>`, `<th>`, `<td>`)
+- **Nav links:** `.nav-link`, `.nav-link.active`
+
+### Template block conventions
+- `{% block nav_courses %}active{% endblock %}` — marks Courses nav link active
+- `{% block nav_tenants %}active{% endblock %}` — marks Tenants nav link active
+
+### Signup flow
+- `GET/POST /signup/` → `core.views.signup` → `registration/signup.html`
+- `TenantSignupForm` in `core/forms.py` creates a Tenant and Tenant Admin user atomically (using `transaction.atomic`)
+- Authenticated users visiting `/signup/` are redirected to dashboard
+- After successful signup the user is logged in automatically
+
+### Do not
+- Add new raw Tailwind classes to templates — use the existing component classes
+- Use `|split` or other non-standard Django template filters
+- Change the color palette without updating the CSS variables block in `base.html`
+
+
 ## Before editing
 1. Read `PLANS.md`, `Checkpoint.md`, and the assignment brief if present.
 2. Inspect the existing repository, `git status --short`, Python version, and installed project conventions. Do not assume files, tools, or services exist.

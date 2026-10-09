@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import CourseAssignmentForm, CourseForm, LessonForm
+from .forms import CourseAssignmentForm, CourseForm, LessonForm, TenantSignupForm
 from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
@@ -18,6 +18,27 @@ from .permissions import (
 def health_check(request):
     return JsonResponse({'status': 'ok'})
 
+
+def signup(request):
+    """Public sign-up: creates a new Tenant and a Tenant Admin account."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    if request.method == 'POST':
+        form = TenantSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            from django.contrib.auth import login as auth_login
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('dashboard')
+    else:
+        form = TenantSignupForm()
+    features = [
+        'Tenant-isolated course management',
+        'Role-based access control',
+        'Learner progress tracking',
+        '14-day trial — no card needed',
+    ]
+    return render(request, 'registration/signup.html', {'form': form, 'features': features})
 
 @login_required
 def dashboard(request):

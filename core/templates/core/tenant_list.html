@@ -1,24 +1,68 @@
 {% extends "base.html" %}
-
-{% block title %}Tenants · Tenant Learning{% endblock %}
+{% block title %}Tenants · LearnTenant{% endblock %}
+{% block nav_tenants %}active{% endblock %}
 
 {% block content %}
-  <h1>Tenants</h1>
-  {% if tenants %}
-    <ul>
-      {% for tenant in tenants %}
-        <li>
-          {{ tenant.name }} — {{ tenant.get_status_display }} — trial ends {{ tenant.trial_ends_at }}
-          {% if can_reactivate_tenants and tenant.status == 'expired' %}
-            <form method="post" action="{% url 'tenant-reactivate' tenant.id %}" style="display:inline">
-              {% csrf_token %}
-              <button type="submit">Reactivate</button>
-            </form>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No tenants yet.</p>
-  {% endif %}
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Tenants</h1>
+    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">All organisations registered on the platform.</p>
+  </div>
+</div>
+
+{% if tenants %}
+  <div class="card overflow-hidden">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Organisation</th>
+          <th>Status</th>
+          <th>Trial ends</th>
+          <th>Created</th>
+          {% if can_reactivate_tenants %}<th></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for tenant in tenants %}
+          <tr>
+            <td>
+              <span class="font-medium" style="color: hsl(222.2 84% 4.9%)">{{ tenant.name }}</span>
+            </td>
+            <td>
+              {% if tenant.status == 'active' %}
+                <span class="badge badge-active">Active</span>
+              {% elif tenant.status == 'expired' %}
+                <span class="badge badge-expired">Expired</span>
+              {% else %}
+                <span class="badge badge-suspended">{{ tenant.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">{{ tenant.trial_ends_at|date:"N j, Y" }}</td>
+            <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">{{ tenant.created_at|date:"N j, Y" }}</td>
+            {% if can_reactivate_tenants %}
+              <td>
+                {% if tenant.status == 'expired' %}
+                  <form method="post" action="{% url 'tenant-reactivate' tenant.id %}" class="inline" id="reactivate-{{ tenant.id }}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary btn-sm">Reactivate</button>
+                  </form>
+                {% else %}
+                  <span class="text-xs" style="color: hsl(215.4 16.3% 46.9%)">—</span>
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card p-10 text-center">
+    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full" style="background: hsl(210 40% 96.1%)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: hsl(215.4 16.3% 46.9%)"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <p class="text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">No tenants yet</p>
+    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Organisations will appear here when they sign up.</p>
+  </div>
+{% endif %}
 {% endblock %}

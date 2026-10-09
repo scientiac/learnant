@@ -49,8 +49,8 @@ class WebFlowTests(TestCase):
         response = self.client.get(reverse('dashboard'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Platform overview')
-        self.assertContains(response, 'Platform management: read-only')
+        self.assertContains(response, 'Total Tenants')
+        self.assertContains(response, 'Read-only')
         self.assertContains(response, 'View tenants')
 
     def test_health_check_stays_public(self):
@@ -64,3 +64,54 @@ class WebFlowTests(TestCase):
 
         self.assertTrue(self.client.login(username='learner', password='password123'))
         self.assertTrue(User.objects.filter(username='superadmin').exists())
+
+    def test_signup_page_loads(self):
+        response = self.client.get(reverse('signup'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Create your account')
+
+    def test_signup_creates_tenant_and_admin(self):
+        response = self.client.post(reverse('signup'), {
+            'org_name': 'New Test Institute',
+            'username': 'newadmin',
+            'password1': 'Str0ng!Pass99',
+            'password2': 'Str0ng!Pass99',
+        })
+
+        self.assertRedirects(response, reverse('dashboard'))
+        self.assertTrue(User.objects.filter(username='newadmin').exists())
+        self.assertTrue(Tenant.objects.filter(name='New Test Institute').exists())
+        user = User.objects.get(username='newadmin')
+        self.assertEqual(user.role, User.Role.TENANT_ADMIN)
+        self.assertEqual(user.tenant.name, 'New Test Institute')
+
+    def test_signup_rejects_duplicate_org_name(self):
+        Tenant.objects.create(name='Existing Org')
+        response = self.client.post(reverse('signup'), {
+            'org_name': 'Existing Org',
+            'username': 'someone',
+            'password1': 'Str0ng!Pass99',
+            'password2': 'Str0ng!Pass99',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'already exists')
+
+    def test_signup_rejects_password_mismatch(self):
+        response = self.client.post(reverse('signup'), {
+            'org_name': 'Mismatch Org',
+            'username': 'mismatchuser',
+            'password1': 'Str0ng!Pass99',
+            'password2': 'WrongPass99!',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Passwords do not match')
+
+    def test_authenticated_user_signup_redirects(self):
+        self.client.login(username='learner', password='password123')
+        response = self.client.get(reverse('signup'))
+
+        self.assertRedirects(response, reverse('dashboard'))
+

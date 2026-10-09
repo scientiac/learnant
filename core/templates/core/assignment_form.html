@@ -1,13 +1,45 @@
 {% extends "base.html" %}
-
-{% block title %}Assign learner · {{ course.title }}{% endblock %}
+{% block title %}Assign learner · {{ course.title }} · LearnTenant{% endblock %}
+{% block nav_courses %}active{% endblock %}
 
 {% block content %}
-  <p><a href="{% url 'assignment-list' course.id %}">Back to assignments</a></p>
-  <h1>Assign learner to {{ course.title }}</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Assign learner</button>
-  </form>
+<div class="mb-1">
+  <a href="{% url 'assignment-list' course.id %}" class="inline-flex items-center gap-1 text-sm no-underline transition-colors" style="color: hsl(215.4 16.3% 46.9%)" onmouseover="this.style.color='hsl(222.2 84% 4.9%)'" onmouseout="this.style.color='hsl(215.4 16.3% 46.9%)'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    Back to assignments
+  </a>
+</div>
+
+<div class="mb-6 mt-2">
+  <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Assign learner</h1>
+  <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Assign a learner to <strong>{{ course.title }}</strong>.</p>
+</div>
+
+<div class="mx-auto max-w-md">
+  <div class="card p-6">
+    <form method="post" class="space-y-5" id="assignment-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div>
+        <label class="form-label" for="{{ form.learner.id_for_label }}">
+          Learner <span style="color: hsl(0 84.2% 60.2%)">*</span>
+        </label>
+        {{ form.learner }}
+        {% if form.learner.errors %}
+          <p class="mt-1 text-xs" style="color: hsl(0 72% 35%)">{{ form.learner.errors|join:", " }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs" style="color: hsl(215.4 16.3% 46.9%)">Only tenant users in your organisation are shown.</p>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button class="btn btn-primary" type="submit" id="assign-btn">Assign learner</button>
+        <a class="btn btn-outline" href="{% url 'assignment-list' course.id %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

@@ -34,6 +34,7 @@ from core.views import (
     lesson_mark_complete,
     lesson_update,
     progress_list,
+    signup,
     tenant_list,
     tenant_reactivate,
 )
@@ -64,6 +65,7 @@ urlpatterns = [
         name='lesson-mark-complete',
     ),
     path('health/', health_check, name='health-check'),
+    path('signup/', signup, name='signup'),
     path(
         'login/',
         auth_views.LoginView.as_view(template_name='registration/login.html'),
