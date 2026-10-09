@@ -184,7 +184,7 @@ Detailed documentation is available in the `docs/` directory:
 ## 7. Configuration & Database
 
 - **Database:** Deployments use PostgreSQL. Docker Compose starts PostgreSQL and Django together; direct local development without a database URL uses a local SQLite database only for convenience. Set `DATABASE_URL` or the `POSTGRES_*` variables for direct PostgreSQL use.
-- **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. Django does not auto-load `.env`; export its values in your local shell or configure them in the deployment host.
+- **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. When Railway provides `RAILWAY_PUBLIC_DOMAIN`, the app automatically adds that exact hostname and its HTTPS origin; other hosts must be listed in the environment. Django does not auto-load `.env`.
 - Production requires a strong `SECRET_KEY`, database URL, and host list. SMTP defaults to the standard backend when `DEBUG=false`; configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_USE_TLS` if the app begins sending email.
 - **Static Files:** WhiteNoise serves collected assets from the container. The startup script applies migrations and runs `collectstatic` before starting Gunicorn.
 - **Uploaded Media:** User/organization images and lesson media live under `MEDIA_ROOT` (default `uploads/`). Mount persistent storage at `/app/uploads` (or set `MEDIA_ROOT`) to retain uploads across container replacements.

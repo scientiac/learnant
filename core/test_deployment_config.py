@@ -15,6 +15,7 @@ def settings_environment(**values):
         'DEBUG', 'DJANGO_DEBUG', 'SECRET_KEY', 'DJANGO_SECRET_KEY', 'ALLOWED_HOSTS',
         'DJANGO_ALLOWED_HOSTS', 'CSRF_TRUSTED_ORIGINS', 'DATABASE_URL', 'POSTGRES_DB',
         'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST', 'POSTGRES_PORT',
+        'RAILWAY_PUBLIC_DOMAIN',
     ):
         env.pop(key, None)
     env.update(values)
@@ -63,6 +64,22 @@ assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3'
 assert settings.ALLOWED_HOSTS == ['localhost', '127.0.0.1']
 assert settings.STORAGES['staticfiles']['BACKEND'] == 'django.contrib.staticfiles.storage.StaticFilesStorage'
 """,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_railway_public_domain_is_added_as_exact_host_and_https_origin(self):
+        result = self.run_settings_probe(
+            """
+from config import settings
+assert settings.ALLOWED_HOSTS == ['localhost', 'learnant-production.up.railway.app']
+assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant-production.up.railway.app']
+""",
+            DEBUG='false',
+            SECRET_KEY='a-secure-test-key-that-is-not-used-for-any-real-data',
+            ALLOWED_HOSTS='localhost',
+            RAILWAY_PUBLIC_DOMAIN='learnant-production.up.railway.app',
+            DATABASE_URL='postgresql://user:pass@127.0.0.1:5432/learnant',
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)

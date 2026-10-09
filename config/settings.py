@@ -42,6 +42,9 @@ ALLOWED_HOSTS = [
     for host in os.environ.get('ALLOWED_HOSTS', os.environ.get('DJANGO_ALLOWED_HOSTS', _default_hosts)).split(',')
     if host.strip()
 ]
+_platform_public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if _platform_public_domain and _platform_public_domain not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_platform_public_domain)
 if not ALLOWED_HOSTS:
     raise ImproperlyConfigured('Set ALLOWED_HOSTS to a comma-separated host list.')
 
@@ -50,6 +53,10 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
 ]
+if _platform_public_domain:
+    _platform_origin = f'https://{_platform_public_domain}'
+    if _platform_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_platform_origin)
 
 
 # Application definition
