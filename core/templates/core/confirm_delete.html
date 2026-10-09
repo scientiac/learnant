@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm delete{% endblock %}
+
+{% block content %}
+  <h1>Confirm delete</h1>
+  <p>Delete {{ object }}?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Delete</button>
+  </form>
+  {% if cancel_url_arg %}
+    <p><a href="{% url cancel_url cancel_url_arg %}">Cancel</a></p>
+  {% else %}
+    <p><a href="{% url cancel_url %}">Cancel</a></p>
+  {% endif %}
+{% endblock %}

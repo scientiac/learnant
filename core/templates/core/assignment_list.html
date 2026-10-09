@@ -11,7 +11,15 @@
   {% if assignments %}
     <ul>
       {% for assignment in assignments %}
-        <li>{{ assignment.learner.username }} assigned at {{ assignment.assigned_at }}</li>
+        <li>
+          {{ assignment.learner.username }} assigned at {{ assignment.assigned_at }}
+          {% if can_create_assignments %}
+            <form method="post" action="{% url 'assignment-delete' course.id assignment.id %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit">Revoke</button>
+            </form>
+          {% endif %}
+        </li>
       {% endfor %}
     </ul>
   {% else %}

@@ -134,3 +134,40 @@ class CourseAssignmentViewTests(TestCase):
         response = self.client.get(reverse('lesson-list', args=[self.course.id]))
 
         self.assertEqual(response.status_code, 404)
+
+    def test_tenant_admin_can_revoke_own_assignment(self):
+        assignment = CourseAssignment.objects.create(
+            tenant=self.tenant, course=self.course, learner=self.learner
+        )
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(reverse('assignment-delete', args=[self.course.id, assignment.id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(CourseAssignment.objects.filter(id=assignment.id).exists())
+
+    def test_tenant_admin_cannot_revoke_other_tenant_assignment(self):
+        other_assignment = CourseAssignment.objects.create(
+            tenant=self.other_tenant, course=self.other_course, learner=self.other_learner
+        )
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('assignment-delete', args=[self.other_course.id, other_assignment.id])
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(CourseAssignment.objects.filter(id=other_assignment.id).exists())
+
+    def test_expired_tenant_admin_cannot_revoke_assignment(self):
+        assignment = CourseAssignment.objects.create(
+            tenant=self.tenant, course=self.course, learner=self.learner
+        )
+        self.tenant.status = Tenant.Status.EXPIRED
+        self.tenant.save()
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(reverse('assignment-delete', args=[self.course.id, assignment.id]))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(CourseAssignment.objects.filter(id=assignment.id).exists())

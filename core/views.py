@@ -100,6 +100,42 @@ def course_create(request):
     return render(request, 'core/course_form.html', {'form': form})
 
 
+@login_required
+def course_update(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can update their own courses.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            updated_course = form.save(commit=False)
+            updated_course.tenant = course.tenant
+            updated_course.creator = course.creator
+            updated_course.save()
+            return redirect('course-list')
+    else:
+        form = CourseForm(instance=course)
+
+    return render(request, 'core/course_form.html', {'form': form, 'course': course})
+
+
+@login_required
+def course_delete(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can delete their own courses.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+    if request.method != 'POST':
+        return render(request, 'core/confirm_delete.html', {'object': course, 'cancel_url': 'course-list'})
+
+    course.delete()
+    return redirect('course-list')
+
+
 def visible_courses_for_user(user):
     courses = Course.objects.select_related('tenant', 'creator')
     if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
@@ -166,6 +202,47 @@ def lesson_create(request, course_id):
 
 
 @login_required
+def lesson_update(request, course_id, lesson_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can update lessons for their own courses.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    if request.method == 'POST':
+        form = LessonForm(request.POST, instance=lesson)
+        if form.is_valid():
+            updated_lesson = form.save(commit=False)
+            updated_lesson.course = course
+            updated_lesson.save()
+            return redirect('lesson-list', course_id=course.id)
+    else:
+        form = LessonForm(instance=lesson)
+
+    return render(request, 'core/lesson_form.html', {'course': course, 'lesson': lesson, 'form': form})
+
+
+@login_required
+def lesson_delete(request, course_id, lesson_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can delete lessons for their own courses.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+    if request.method != 'POST':
+        return render(
+            request,
+            'core/confirm_delete.html',
+            {'object': lesson, 'cancel_url': 'lesson-list', 'cancel_url_arg': course.id},
+        )
+
+    lesson.delete()
+    return redirect('lesson-list', course_id=course.id)
+
+
+@login_required
 def assignment_list(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
@@ -202,6 +279,25 @@ def assignment_create(request, course_id):
         form = CourseAssignmentForm(tenant=request.user.tenant)
 
     return render(request, 'core/assignment_form.html', {'course': course, 'form': form})
+
+
+@login_required
+def assignment_delete(request, course_id, assignment_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can revoke their own course assignments.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+    assignment = get_object_or_404(CourseAssignment, id=assignment_id, course=course, tenant=request.user.tenant)
+    if request.method != 'POST':
+        return render(
+            request,
+            'core/confirm_delete.html',
+            {'object': assignment, 'cancel_url': 'assignment-list', 'cancel_url_arg': course.id},
+        )
+
+    assignment.delete()
+    return redirect('assignment-list', course_id=course.id)
 
 
 @login_required

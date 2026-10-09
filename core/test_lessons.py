@@ -142,3 +142,54 @@ class LessonViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Lesson.objects.filter(title='Expired Lesson').exists())
+
+    def test_tenant_admin_can_update_own_lesson(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-update', args=[self.course.id, self.lesson.id]),
+            {'title': 'Updated Lesson', 'content': 'Updated content', 'order': 1},
+        )
+        self.lesson.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.lesson.title, 'Updated Lesson')
+        self.assertEqual(self.lesson.course, self.course)
+
+    def test_tenant_admin_cannot_update_other_tenant_lesson(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-update', args=[self.other_course.id, self.other_lesson.id]),
+            {'title': 'Cross Tenant Update', 'content': 'Nope', 'order': 1},
+        )
+        self.other_lesson.refresh_from_db()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.other_lesson.title, 'Tenant B Lesson')
+
+    def test_expired_tenant_admin_cannot_delete_lesson(self):
+        self.tenant.status = Tenant.Status.EXPIRED
+        self.tenant.save()
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(reverse('lesson-delete', args=[self.course.id, self.lesson.id]))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Lesson.objects.filter(id=self.lesson.id).exists())
+
+    def test_super_viewer_cannot_delete_lesson(self):
+        self.client.login(username='viewer', password='test')
+
+        response = self.client.post(reverse('lesson-delete', args=[self.course.id, self.lesson.id]))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Lesson.objects.filter(id=self.lesson.id).exists())
+
+    def test_tenant_admin_can_delete_own_lesson(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(reverse('lesson-delete', args=[self.course.id, self.lesson.id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Lesson.objects.filter(id=self.lesson.id).exists())

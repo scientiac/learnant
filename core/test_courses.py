@@ -194,3 +194,79 @@ class CourseCreateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Course.objects.filter(title='Expired Course').exists())
+
+
+class CourseMutationViewTests(TestCase):
+    def setUp(self):
+        self.tenant = Tenant.objects.create(name='Tenant A')
+        self.other_tenant = Tenant.objects.create(name='Tenant B')
+        self.tenant_admin = User.objects.create_user(
+            username='tenant-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
+        )
+        self.other_admin = User.objects.create_user(
+            username='other-admin', password='test', role=User.Role.TENANT_ADMIN, tenant=self.other_tenant
+        )
+        self.learner = User.objects.create_user(
+            username='learner', password='test', role=User.Role.TENANT_USER, tenant=self.tenant
+        )
+        self.viewer = User.objects.create_user(username='viewer', password='test', role=User.Role.SUPER_VIEWER)
+        self.course = Course.objects.create(tenant=self.tenant, title='Course A', creator=self.tenant_admin)
+        self.other_course = Course.objects.create(
+            tenant=self.other_tenant, title='Course B', creator=self.other_admin
+        )
+
+    def test_tenant_admin_can_update_own_course(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('course-update', args=[self.course.id]),
+            {'title': 'Updated Course', 'description': 'Updated'},
+        )
+        self.course.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.course.title, 'Updated Course')
+        self.assertEqual(self.course.tenant, self.tenant)
+
+    def test_tenant_admin_cannot_update_other_tenant_course(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('course-update', args=[self.other_course.id]),
+            {'title': 'Cross Tenant Update', 'description': ''},
+        )
+        self.other_course.refresh_from_db()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.other_course.title, 'Course B')
+
+    def test_expired_tenant_admin_cannot_update_course(self):
+        self.tenant.status = Tenant.Status.EXPIRED
+        self.tenant.save()
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('course-update', args=[self.course.id]),
+            {'title': 'Expired Update', 'description': ''},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_learner_and_super_viewer_cannot_delete_course(self):
+        self.client.login(username='learner', password='test')
+        learner_response = self.client.post(reverse('course-delete', args=[self.course.id]))
+        self.client.logout()
+        self.client.login(username='viewer', password='test')
+        viewer_response = self.client.post(reverse('course-delete', args=[self.course.id]))
+
+        self.assertEqual(learner_response.status_code, 404)
+        self.assertEqual(viewer_response.status_code, 403)
+        self.assertTrue(Course.objects.filter(id=self.course.id).exists())
+
+    def test_tenant_admin_can_delete_own_course(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(reverse('course-delete', args=[self.course.id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Course.objects.filter(id=self.course.id).exists())

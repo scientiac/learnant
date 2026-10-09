@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Trial expiration command and Super Admin reactivation verified
-- **Current phase:** Phase 4 — Courses, Lessons, and Assignments finalization
+- **Overall status:** Phase 4 course/lesson/assignment CRUD and revocation permissions verified
+- **Current phase:** Phase 2/3 authorization and isolation final review
 - **Last verified commit:** 897d9a8 Add trial expiration and reactivation
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 67 tests
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 80 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/` and anonymous tenant-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Close remaining Phase 4 gaps: assignment revocation and minimal course/lesson update/delete permissions.
+- **Next task:** Review Phase 2/3 acceptance criteria and add any missing authorization/isolation regression tests before ticking them.
 
 ## 2. Project Decisions
 
@@ -64,7 +64,7 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 - [x] Phase 1 — Tenant and user foundations
 - [ ] Phase 2 — Authentication and authorization
 - [ ] Phase 3 — Tenant isolation
-- [ ] Phase 4 — Courses, lessons, and assignments
+- [x] Phase 4 — Courses, lessons, and assignments
 - [x] Phase 5 — Learning progress
 - [x] Phase 6 — Trial expiration and reactivation
 - [ ] Phase 7 — Minimal usable UI
@@ -74,35 +74,34 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 Notes:
 - Phase 2 is not checked yet because broader protected administrative operations still need review.
 - Phase 3 is not checked yet because tenant isolation must be reviewed across every endpoint after progress/trial work is added.
-- Phase 4 is not checked yet because course/lesson/assignment basics exist, but remaining update/delete/revocation and final acceptance review are not complete.
+- Phase 4 is checked because course/lesson list/create/update/delete basics, assignment create/revoke, same-tenant validation, expired-tenant write blocking, and regression tests are verified.
 - Phase 5 is checked because learner progress ownership, tenant-admin progress visibility, expired-tenant read-only behavior, and progress tests are verified.
 - Phase 6 is checked because request-time write blocking, idempotent expiration command, data preservation, and Super Admin-only reactivation are verified.
 
 ## 6. Current Task
 
-**Task:** Close remaining Phase 4 course/lesson/assignment gaps.
+**Task:** Phase 2/3 authorization and tenant-isolation final review.
 
 Expected actions:
-- Add assignment revocation for Tenant Admins in their own active tenant.
-- Add minimal course/lesson update/delete where required by Phase 4.
-- Enforce tenant scope and expired-tenant read-only behavior for each write.
-- Add tests for cross-tenant ID manipulation and denied roles.
+- Review protected views/endpoints for anonymous access, role restrictions, and server-side authorization.
+- Review tenant-owned queries for tenant scoping and ID manipulation protection.
+- Add any missing regression tests for Phase 2/3 acceptance criteria.
 - Run checks, tests, demo seed, and smoke checks.
 
 **Acceptance criteria:**
-- Tenant Admin can update/delete only own-tenant courses/lessons while active.
-- Tenant Admin can revoke only own-tenant assignments while active.
-- Expired tenants cannot update/delete/revoke.
-- Tenant User and Super Viewer cannot mutate tenant learning records.
+- Anonymous users cannot access protected functionality.
+- Each role is allowed only documented operations.
+- Tenant-owned list/detail/update/delete/assignment/progress queries are scoped to the authorized tenant.
+- Cross-tenant ID manipulation is denied without leaking data to tenant users.
 - Tests and smoke checks pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Added `expired_at`, request-time trial write blocking, idempotent `expire_trials` command, tenant list, and Super Admin-only tenant reactivation.
-- **Files changed:** `core/models.py`, `core/permissions.py`, `core/views.py`, `config/urls.py`, `core/migrations/0007_tenant_expired_at.py`, `core/management/commands/expire_trials.py`, `core/templates/core/dashboard.html`, `core/templates/core/tenant_list.html`, `core/test_trials.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver trial smoke script; `git diff --check`.
-- **Test results:** Migration created and applied; check passed with 0 issues; 67 tests passed; demo data seeded locally; runserver trial smoke passed; whitespace diff check passed.
-- **Commit:** 897d9a8 Add trial expiration and reactivation.
+- **Task:** Added course update/delete, lesson update/delete, and assignment revocation with tenant/role/expiry checks.
+- **Files changed:** `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/confirm_delete.html`, `core/test_courses.py`, `core/test_lessons.py`, `core/test_assignments.py`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
+- **Test results:** Check passed with 0 issues; 80 tests passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -133,11 +132,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Added idempotent trial expiration command and Super Admin reactivation.
-- **Files changed:** `core/models.py`, `core/permissions.py`, `core/views.py`, `config/urls.py`, `core/migrations/0007_tenant_expired_at.py`, `core/management/commands/expire_trials.py`, `core/templates/core/dashboard.html`, `core/templates/core/tenant_list.html`, `core/test_trials.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver trial smoke script; `git diff --check`.
-- **Actual results:** Migration created and applied; check passed with 0 issues; 67 tests passed; demo data seeded locally; runserver trial smoke passed; whitespace diff check passed.
-- **Commit:** 897d9a8 Add trial expiration and reactivation.
-- **Current phase:** Phase 4 — Courses, Lessons, and Assignments finalization.
-- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 4 update/delete/revocation acceptance still needs final pass; Phase 2/3 need final authorization/isolation review before ticking.
-- **Next single task:** Add assignment revocation and minimal course/lesson update/delete permissions.
+- **Task completed:** Completed Phase 4 mutation/revocation permissions.
+- **Files changed:** `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/confirm_delete.html`, `core/test_courses.py`, `core/test_lessons.py`, `core/test_assignments.py`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
+- **Actual results:** Check passed with 0 issues; 80 tests passed.
+- **Commit:** Pending.
+- **Current phase:** Phase 2/3 authorization and tenant-isolation final review.
+- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 2/3 need final authorization/isolation review before ticking.
+- **Next single task:** Review Phase 2/3 acceptance criteria and add any missing authorization/isolation regression tests before ticking them.
