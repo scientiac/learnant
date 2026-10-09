@@ -27,6 +27,8 @@ from core.views import (
     health_check,
     lesson_create,
     lesson_list,
+    lesson_mark_complete,
+    progress_list,
 )
 
 urlpatterns = [
@@ -37,6 +39,12 @@ urlpatterns = [
     path('courses/<int:course_id>/lessons/new/', lesson_create, name='lesson-create'),
     path('courses/<int:course_id>/assignments/', assignment_list, name='assignment-list'),
     path('courses/<int:course_id>/assignments/new/', assignment_create, name='assignment-create'),
+    path('courses/<int:course_id>/progress/', progress_list, name='progress-list'),
+    path(
+        'courses/<int:course_id>/lessons/<int:lesson_id>/complete/',
+        lesson_mark_complete,
+        name='lesson-mark-complete',
+    ),
     path('health/', health_check, name='health-check'),
     path(
         'login/',

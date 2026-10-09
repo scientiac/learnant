@@ -25,6 +25,7 @@
                 <a class="mt-2 inline-block text-sm text-slate-700 underline hover:text-slate-950" href="{% url 'lesson-list' course.id %}">View lessons</a>
                 {% if user.role == 'tenant_admin' %}
                   <a class="ml-3 mt-2 inline-block text-sm text-slate-700 underline hover:text-slate-950" href="{% url 'assignment-list' course.id %}">Assignments</a>
+                  <a class="ml-3 mt-2 inline-block text-sm text-slate-700 underline hover:text-slate-950" href="{% url 'progress-list' course.id %}">Progress</a>
                 {% endif %}
               </div>
               <div class="text-sm text-slate-500 sm:text-right">

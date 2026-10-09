@@ -201,3 +201,38 @@ class CourseAssignment(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class LessonProgress(models.Model):
+    assignment = models.ForeignKey(
+        CourseAssignment,
+        on_delete=models.CASCADE,
+        related_name='lesson_progress',
+    )
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progress_records')
+    is_complete = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['lesson__order', 'lesson__title']
+        constraints = [
+            models.UniqueConstraint(fields=['assignment', 'lesson'], name='unique_progress_per_assignment_lesson'),
+        ]
+
+    def __str__(self):
+        return f'{self.assignment.learner} progress for {self.lesson}'
+
+    def clean(self):
+        super().clean()
+        if self.assignment_id and self.lesson_id:
+            if self.assignment.course_id != self.lesson.course_id:
+                raise ValidationError('Progress lesson must belong to the assigned course.')
+
+    def save(self, *args, **kwargs):
+        if self.is_complete and self.completed_at is None:
+            self.completed_at = timezone.now()
+        if not self.is_complete:
+            self.completed_at = None
+        self.full_clean()
+        super().save(*args, **kwargs)

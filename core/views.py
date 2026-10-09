@@ -3,13 +3,14 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CourseAssignmentForm, CourseForm, LessonForm
-from .models import Course, CourseAssignment, Lesson, Tenant, User
+from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
     can_mutate_tenant_data,
     can_read_platform,
     can_reactivate_tenant,
     is_tenant_admin,
+    is_tenant_user,
 )
 
 
@@ -90,15 +91,31 @@ def visible_courses_for_user(user):
 def lesson_list(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     lessons = Lesson.objects.filter(course=course)
+    assignment = None
+    progress_by_lesson = {}
+    if is_tenant_user(request.user):
+        assignment = get_object_or_404(CourseAssignment, course=course, learner=request.user)
+        progress_by_lesson = {
+            progress.lesson_id: progress
+            for progress in LessonProgress.objects.filter(assignment=assignment)
+        }
+    lesson_items = [
+        {'lesson': lesson, 'progress': progress_by_lesson.get(lesson.id)}
+        for lesson in lessons
+    ]
     return render(
         request,
         'core/lesson_list.html',
         {
             'course': course,
-            'lessons': lessons,
+            'lesson_items': lesson_items,
+            'assignment': assignment,
             'can_create_lessons': request.user.role == User.Role.TENANT_ADMIN
             and request.user.tenant_id == course.tenant_id
             and course.tenant.status == Tenant.Status.ACTIVE,
+            'can_update_progress': bool(
+                assignment and course.tenant.status == Tenant.Status.ACTIVE
+            ),
         },
     )
 
@@ -161,3 +178,36 @@ def assignment_create(request, course_id):
         form = CourseAssignmentForm(tenant=request.user.tenant)
 
     return render(request, 'core/assignment_form.html', {'course': course, 'form': form})
+
+
+@login_required
+def lesson_mark_complete(request, course_id, lesson_id):
+    if request.method != 'POST':
+        return HttpResponseForbidden('Progress updates must use POST.')
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_user(request.user):
+        return HttpResponseForbidden('Only learners can update their own progress.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+    assignment = get_object_or_404(CourseAssignment, course=course, learner=request.user)
+    lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
+    progress, _ = LessonProgress.objects.get_or_create(assignment=assignment, lesson=lesson)
+    progress.is_complete = True
+    progress.save()
+    return redirect('lesson-list', course_id=course.id)
+
+
+@login_required
+def progress_list(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can view course progress.')
+    assignments = CourseAssignment.objects.select_related('learner').filter(course=course)
+    progress_records = LessonProgress.objects.select_related('assignment__learner', 'lesson').filter(
+        assignment__course=course
+    )
+    return render(
+        request,
+        'core/progress_list.html',
+        {'course': course, 'assignments': assignments, 'progress_records': progress_records},
+    )

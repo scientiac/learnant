@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Course, CourseAssignment, Lesson, Tenant, User
+from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
 
 
 @admin.register(Tenant)
@@ -39,3 +39,13 @@ class CourseAssignmentAdmin(admin.ModelAdmin):
     list_display = ('course', 'learner', 'tenant', 'assigned_at')
     list_filter = ('tenant',)
     search_fields = ('course__title', 'learner__username', 'tenant__name')
+
+
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
+    list_display = ('lesson', 'learner_username', 'is_complete', 'completed_at')
+    list_filter = ('is_complete', 'assignment__tenant')
+    search_fields = ('lesson__title', 'assignment__learner__username')
+
+    def learner_username(self, obj):
+        return obj.assignment.learner.username

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Progress · {{ course.title }}{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'course-list' %}">Back to courses</a></p>
+  <h1>Progress for {{ course.title }}</h1>
+
+  <h2>Assigned learners</h2>
+  {% if assignments %}
+    <ul>
+      {% for assignment in assignments %}
+        <li>{{ assignment.learner.username }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No learners assigned yet.</p>
+  {% endif %}
+
+  <h2>Completed lessons</h2>
+  {% if progress_records %}
+    <ul>
+      {% for progress in progress_records %}
+        <li>{{ progress.assignment.learner.username }} — {{ progress.lesson.title }} — {% if progress.is_complete %}complete{% else %}incomplete{% endif %}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No progress recorded yet.</p>
+  {% endif %}
+{% endblock %}
