@@ -96,6 +96,36 @@ Every user belongs to a specific tier and must have dedicated, role-appropriate 
 - **Design-Only Feature:** The application can include an intuitive UI entry point / preview modal (e.g., "AI Course Assistant Preview") where Tenant Admins can input learner role, current level, goal, hours/week, and duration to see sample structured course output.
 - **Strict Human Author Constraint:** Do **NOT** connect to paid AI APIs. Do **NOT** generate or write the content in `docs/ai-course-design.md`. That document is strictly reserved for the human developer to write in their own words.
 
+### F. Lesson Ordering & Collision Prevention (First Priority Bug Fix)
+- **Automatic Order Indexing:** Automatically calculate `order = max(order) + 1` by default when creating a lesson. Do not expose a colliding default `1` that triggers `IntegrityError (UNIQUE constraint failed: core_lesson.course_id, core_lesson.order)`.
+- **Interactive Reorder Mode:** Provide a dedicated reordering interface (drag-and-drop or order swap) that renumbers lessons inside an atomic database transaction using negative or deferred buffer ordering to avoid intermediate uniqueness violations.
+
+### G. Dedicated Lesson Study View & Rich Content (GFM, LaTeX, Video)
+- **Individual Study Route:** A dedicated lesson detail view (`/courses/<course_id>/lessons/<lesson_id>/`) allowing students to focus on one lesson at a time with previous/next navigation and course sidebar.
+- **Rich Document Rendering:** Support GitHub-Flavored Markdown (GFM), inline images, and LaTeX mathematical expressions (via KaTeX / MathJax).
+- **Video Embed Support:** Allow 1 video per lesson (embed URL or direct media player) displayed prominently above or alongside lesson text.
+
+### H. First-Login Password Reset Flow
+- **Temporary Password Security:** Users provisioned via bulk import or administrative creation have `must_change_password = True`.
+- **First-Login Interception:** If `must_change_password` is True upon login, intercept request and redirect user to a password change screen before granting access to courses.
+
+### I. Flexible Subscription & Granular Expiration (Super Admin)
+- **Subscription Status Transition:** Super Admins can transition organizations between `trial` and `subscribed` status.
+- **Arbitrary Expiration Adjustments:** Super Admins can set any exact expiration datetime or add/subtract time (e.g., +10 minutes, +10 months, or decrease duration even if a trial is currently active).
+
+### J. Profile Avatars & Extended Organization Details
+- **Profile Image:** Allow users to upload or configure an avatar for their profile.
+- **Organization Branding & Metadata:** Organizations can upload a logo image and maintain contact information (physical address, phone number, support email, website URL) displayed to learners in their workspace.
+
+### K. Fail-Proof Spreadsheet Bulk Enrollment (CSV/Excel)
+- **Template Export:** Allow Tenant Admins to download a standardized `.csv` template with clear columns (`username`, `email`, `first_name`, `last_name`, optional `courses`).
+- **Resilient Import Parser:** Import processing must validate rows individually without failing the entire batch, skip duplicates safely, automatically bind learners to `role = TENANT_USER` and `request.user.tenant`, and allow enrolling without mandatory course assignments.
+
+### L. Railway Deployment Architecture (Django + PostgreSQL)
+- **Deployment Reference:** Support standard Railway deployment pattern via `https://railway.com/deploy/django-w-postgres`.
+- **Runtime Assets:** Provide `Procfile` (`web: gunicorn config.wsgi`), `railway.toml`, `dj-database-url`, and `whitenoise` for zero-configuration static file serving.
+- **Environment Invariants:** Gracefully read `DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`.
+
 ---
 
 ## 5. Code Organization & DRY Best Practices

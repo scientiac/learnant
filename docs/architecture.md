@@ -108,3 +108,29 @@ All authorization rules are enforced in views and models on the server, independ
   - Learner progress tracking and cross-user isolation (`test_progress.py`)
   - Trial expiration boundaries and idempotency (`test_trials.py`)
   - Web flows, signup, and authentication redirects (`test_web.py`)
+
+---
+
+## 7. Production Roadmap & Architectural Extensions
+
+### 1. Robust Lesson Sequence Management
+- **Collision Prevention:** Default order calculated via `max(order) + 1` to eliminate `IntegrityError` collisions on `(course_id, order)`.
+- **Reordering Subsystem:** Dedicated drag-and-drop / swap interface utilizing atomic multi-step buffer transactions to safely reorder syllabus modules.
+
+### 2. Rich Content & Dedicated Lesson Study Environment
+- **Dedicated Study View:** Individual lesson route (`/courses/<course_id>/lessons/<lesson_id>/`) with progress toggling and syllabus outline.
+- **GFM & LaTeX Engine:** Client-side KaTeX + GFM Markdown rendering for technical, mathematical, and rich textual course material.
+- **Video Embeds:** 1 video media slot per lesson supporting YouTube, Vimeo, or direct streams.
+
+### 3. Dynamic Onboarding Engine ("Set up your colony")
+- Self-hiding state checklist evaluating colony setup progress: name review, initial course creation, lesson authoring, and learner onboarding.
+
+### 4. Enterprise Subscription & Expiration Controls
+- Super Admin controls to toggle between `trial` and `subscribed` status.
+- Granular expiration adjustment allowing positive or negative time deltas (e.g. +10 mins, +10 months, or shortening active duration).
+
+### 5. Resilient Spreadsheet Ingestion
+- CSV template export and fault-tolerant batch importer assigning users to `TENANT_USER` with optional course associations.
+
+### 6. Railway Cloud Architecture (Django + PostgreSQL)
+- Deployment target on Railway (`https://railway.com/deploy/django-w-postgres`) leveraging `dj-database-url`, `whitenoise`, and `gunicorn`.
