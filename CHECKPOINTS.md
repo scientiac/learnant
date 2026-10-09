@@ -8,7 +8,7 @@
 
 - **Overall status:** Phases 2, 3, and 4 verified with authorization and tenant-isolation regression tests
 - **Current phase:** Phase 7 — Minimal usable UI / workflow polish
-- **Last verified commit:** 897d9a8 Add trial expiration and reactivation
+- **Last verified commit:** abf770d Verify authorization and tenant isolation phases
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 86 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/` and anonymous tenant-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -100,7 +100,7 @@ Expected actions:
 - **Files changed:** `core/test_phase_auth_isolation.py`, `CHECKPOINTS.md` plus Phase 4 mutation files from previous task.
 - **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
 - **Test results:** Check passed with 0 issues; 86 tests passed.
-- **Commit:** Pending.
+- **Commit:** abf770d Verify authorization and tenant isolation phases.
 
 Update this section after completing the first task.
 
@@ -135,7 +135,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/test_phase_auth_isolation.py`, `CHECKPOINTS.md` plus Phase 4 mutation files from previous task.
 - **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
 - **Actual results:** Check passed with 0 issues; 86 tests passed.
-- **Commit:** Pending.
+- **Commit:** abf770d Verify authorization and tenant isolation phases.
 - **Current phase:** Phase 7 — Minimal usable UI / workflow polish.
 - **Remaining issues:** PostgreSQL unavailable in PATH; Phase 7/8/9 remain.
 - **Next single task:** Add minimal workflow polish/demo guidance, then run verification review.
