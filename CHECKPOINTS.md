@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Phase 4 course/lesson/assignment CRUD and revocation permissions verified
-- **Current phase:** Phase 2/3 authorization and isolation final review
+- **Overall status:** Phases 2, 3, and 4 verified with authorization and tenant-isolation regression tests
+- **Current phase:** Phase 7 — Minimal usable UI / workflow polish
 - **Last verified commit:** 897d9a8 Add trial expiration and reactivation
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 80 tests
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 86 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/` and anonymous tenant-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Review Phase 2/3 acceptance criteria and add any missing authorization/isolation regression tests before ticking them.
+- **Next task:** Add minimal workflow polish/demo guidance, then run verification review.
 
 ## 2. Project Decisions
 
@@ -62,8 +62,8 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 
 - [x] Phase 0 — Repository and project setup
 - [x] Phase 1 — Tenant and user foundations
-- [ ] Phase 2 — Authentication and authorization
-- [ ] Phase 3 — Tenant isolation
+- [x] Phase 2 — Authentication and authorization
+- [x] Phase 3 — Tenant isolation
 - [x] Phase 4 — Courses, lessons, and assignments
 - [x] Phase 5 — Learning progress
 - [x] Phase 6 — Trial expiration and reactivation
@@ -72,35 +72,34 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 - [ ] Phase 9 — Documentation and submission
 
 Notes:
-- Phase 2 is not checked yet because broader protected administrative operations still need review.
-- Phase 3 is not checked yet because tenant isolation must be reviewed across every endpoint after progress/trial work is added.
+- Phase 2 is checked because login/logout, protected pages, role helpers, documented permissions, role denials, and admin access restrictions are verified.
+- Phase 3 is checked because tenant-owned list/detail/update/delete/assignment/progress paths are scoped and ID manipulation tests are verified.
 - Phase 4 is checked because course/lesson list/create/update/delete basics, assignment create/revoke, same-tenant validation, expired-tenant write blocking, and regression tests are verified.
 - Phase 5 is checked because learner progress ownership, tenant-admin progress visibility, expired-tenant read-only behavior, and progress tests are verified.
 - Phase 6 is checked because request-time write blocking, idempotent expiration command, data preservation, and Super Admin-only reactivation are verified.
 
 ## 6. Current Task
 
-**Task:** Phase 2/3 authorization and tenant-isolation final review.
+**Task:** Minimal usable UI / workflow polish.
 
 Expected actions:
-- Review protected views/endpoints for anonymous access, role restrictions, and server-side authorization.
-- Review tenant-owned queries for tenant scoping and ID manipulation protection.
-- Add any missing regression tests for Phase 2/3 acceptance criteria.
+- Keep UI simple and functional, not polished.
+- Ensure demo workflows are clear from README.
+- Add small navigation/help improvements only where they support testing the app.
 - Run checks, tests, demo seed, and smoke checks.
 
 **Acceptance criteria:**
-- Anonymous users cannot access protected functionality.
-- Each role is allowed only documented operations.
-- Tenant-owned list/detail/update/delete/assignment/progress queries are scoped to the authorized tenant.
-- Cross-tenant ID manipulation is denied without leaking data to tenant users.
+- Main workflows can be demonstrated in a browser.
+- UI does not substitute for backend permission checks.
+- Demo instructions are clear.
 - Tests and smoke checks pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Added course update/delete, lesson update/delete, and assignment revocation with tenant/role/expiry checks.
-- **Files changed:** `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/confirm_delete.html`, `core/test_courses.py`, `core/test_lessons.py`, `core/test_assignments.py`, `CHECKPOINTS.md`.
+- **Task:** Added final Phase 2/3 authorization and tenant-isolation regression tests after completing Phase 4 mutation/revocation permissions.
+- **Files changed:** `core/test_phase_auth_isolation.py`, `CHECKPOINTS.md` plus Phase 4 mutation files from previous task.
 - **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
-- **Test results:** Check passed with 0 issues; 80 tests passed.
+- **Test results:** Check passed with 0 issues; 86 tests passed.
 - **Commit:** Pending.
 
 Update this section after completing the first task.
@@ -132,11 +131,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Completed Phase 4 mutation/revocation permissions.
-- **Files changed:** `core/views.py`, `config/urls.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/confirm_delete.html`, `core/test_courses.py`, `core/test_lessons.py`, `core/test_assignments.py`, `CHECKPOINTS.md`.
+- **Task completed:** Completed Phase 2/3 final authorization and tenant-isolation review tests.
+- **Files changed:** `core/test_phase_auth_isolation.py`, `CHECKPOINTS.md` plus Phase 4 mutation files from previous task.
 - **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
-- **Actual results:** Check passed with 0 issues; 80 tests passed.
+- **Actual results:** Check passed with 0 issues; 86 tests passed.
 - **Commit:** Pending.
-- **Current phase:** Phase 2/3 authorization and tenant-isolation final review.
-- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 2/3 need final authorization/isolation review before ticking.
-- **Next single task:** Review Phase 2/3 acceptance criteria and add any missing authorization/isolation regression tests before ticking them.
+- **Current phase:** Phase 7 — Minimal usable UI / workflow polish.
+- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 7/8/9 remain.
+- **Next single task:** Add minimal workflow polish/demo guidance, then run verification review.
