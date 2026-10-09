@@ -8,7 +8,7 @@
 
 - **Overall status:** Phase 2 login flow and initial dashboard verified locally
 - **Current phase:** Phase 2 — Authentication and Authorization
-- **Last verified commit:** b3eb4d0 Record initial checkpoint commit
+- **Last verified commit:** 41f0bbb Add login flow and dashboard
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 22 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, and anonymous dashboard redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -96,7 +96,7 @@ Expected actions:
 - **Files changed:** `config/settings.py`, `config/urls.py`, `core/views.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver web smoke script; `git diff --check`.
 - **Test results:** Check passed with 0 issues; 22 tests passed; demo data seeded locally; runserver web smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 41f0bbb Add login flow and dashboard.
 
 Update this section after completing the first task.
 
@@ -132,7 +132,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `config/settings.py`, `config/urls.py`, `core/views.py`, `core/templates/`, `core/management/commands/seed_demo.py`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver web smoke script; `git diff --check`.
 - **Actual results:** Check passed with 0 issues; 22 tests passed; demo data seeded locally; runserver web smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 41f0bbb Add login flow and dashboard.
 - **Current phase:** Phase 2 — Authentication and Authorization.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; course/assignment/progress models not implemented yet.
 - **Next single task:** Start Phase 3/4 with the smallest tenant-scoped course model and protected course list.
