@@ -1,7 +1,9 @@
 import secrets
+from pathlib import PurePath
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import UploadedFile
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
@@ -26,7 +28,7 @@ from .forms import (
     TenantSignupForm,
     TenantUserManagementForm,
 )
-from .media import classify_lesson_upload, image_mime_type
+from .media import classify_lesson_upload, image_mime_type, validate_image_upload
 from .csv_enrollment import (
     blank_enrollment_csv,
     create_learner,
@@ -273,38 +275,6 @@ def dashboard(request):
                 context['assigned_lesson'] = context['assigned_course'].lessons.order_by('order', 'id').first()
 
     return render(request, 'core/dashboard.html', context)
-
-
-def save_lesson_uploads(lesson, uploads, remove_video=False):
-    if not uploads and not remove_video:
-        return
-
-    created_assets = []
-    try:
-        if remove_video:
-            for asset in lesson.assets.filter(kind=LessonAsset.Kind.VIDEO):
-                lesson.content = lesson.content.replace(asset.markdown_embed(), '').strip()
-                asset.delete()
-
-        embeds = []
-        for upload in uploads:
-            kind, mime_type = classify_lesson_upload(upload)
-            asset = LessonAsset(lesson=lesson, kind=kind, mime_type=mime_type)
-            asset.file.save(upload.name, upload, save=False)
-            created_assets.append(asset)
-            asset.full_clean()
-            asset.save()
-            embeds.append(asset.markdown_embed())
-
-        if embeds:
-            markdown = '\n\n'.join(embeds)
-            lesson.content = f'{lesson.content.rstrip()}\n\n{markdown}' if lesson.content.strip() else markdown
-        lesson.save(update_fields=['content'])
-    except Exception:
-        for asset in created_assets:
-            if asset.file:
-                asset.file.storage.delete(asset.file.name)
-        raise
 
 
 @login_required
@@ -833,6 +803,7 @@ def lesson_detail(request, course_id, lesson_id):
             'can_update_progress': bool(assignment and can_mutate_tenant_data(request.user)),
             'can_manage_lesson': can_manage_tenant(request.user, course.tenant),
             'video_player': lesson.video_player,
+            'uploaded_videos': lesson.assets.filter(kind=LessonAsset.Kind.VIDEO),
         },
     )
 
@@ -850,14 +821,8 @@ def lesson_create(request, course_id):
         if form.is_valid():
             lesson = form.save(commit=False)
             lesson.course = course
-            with transaction.atomic():
-                lesson.save()
-                save_lesson_uploads(
-                    lesson,
-                    form.cleaned_data['media_files'],
-                    form.cleaned_data['remove_video'],
-                )
-            return redirect('lesson-list', course_id=course.id)
+            lesson.save()
+            return redirect('lesson-update', course_id=course.id, lesson_id=lesson.id)
     else:
         next_order = (
             Lesson.objects.filter(course=course).aggregate(max_order=Max('order'))['max_order'] or 0
@@ -867,7 +832,7 @@ def lesson_create(request, course_id):
     return render(
         request,
         'core/lesson_form.html',
-        {'course': course, 'form': form, 'has_uploaded_video': False},
+        {'course': course, 'form': form},
     )
 
 
@@ -890,6 +855,63 @@ def lesson_asset(request, asset_id):
 
 
 @login_required
+def lesson_asset_upload(request, course_id, lesson_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Media uploads require POST.'}, status=405)
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
+    if not can_manage_tenant(request.user, course.tenant):
+        return JsonResponse({'error': 'You cannot manage this lesson.'}, status=403)
+    if not can_mutate_tenant_data(request.user, course.tenant):
+        return JsonResponse({'error': 'This tenant is read-only.'}, status=403)
+    upload = request.FILES.get('media_file')
+    if upload is None:
+        return JsonResponse({'error': 'Choose an image or video file.'}, status=400)
+
+    asset = None
+    try:
+        kind, mime_type = classify_lesson_upload(upload)
+        if kind == LessonAsset.Kind.IMAGE:
+            mime_type = validate_image_upload(upload)
+        with transaction.atomic():
+            lesson = Lesson.objects.select_for_update().get(pk=lesson.pk)
+            original_filename = PurePath(upload.name.replace('\\', '/')).name[:255]
+            asset = LessonAsset(
+                lesson=lesson,
+                kind=kind,
+                mime_type=mime_type,
+                original_filename=original_filename,
+            )
+            asset.file.save(upload.name, upload, save=False)
+            asset.full_clean()
+            asset.save()
+            markdown = asset.markdown_embed()
+            current_content = request.POST.get('content', lesson.content)
+            lesson.content = (
+                f'{current_content.rstrip()}\n\n{markdown}' if current_content.strip() else markdown
+            )
+            lesson.save(update_fields=['content'])
+    except ValidationError as error:
+        if asset and asset.file:
+            asset.file.storage.delete(asset.file.name)
+        return JsonResponse({'error': ' '.join(error.messages)}, status=400)
+    except Exception:
+        if asset and asset.file:
+            asset.file.storage.delete(asset.file.name)
+        raise
+
+    return JsonResponse(
+        {
+            'asset_id': str(asset.public_id),
+            'kind': asset.kind,
+            'markdown': markdown,
+            'content': lesson.content,
+        },
+        status=201,
+    )
+
+
+@login_required
 def lesson_update(request, course_id, lesson_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
@@ -903,14 +925,8 @@ def lesson_update(request, course_id, lesson_id):
         if form.is_valid():
             updated_lesson = form.save(commit=False)
             updated_lesson.course = course
-            with transaction.atomic():
-                updated_lesson.save()
-                save_lesson_uploads(
-                    updated_lesson,
-                    form.cleaned_data['media_files'],
-                    form.cleaned_data['remove_video'],
-                )
-            return redirect('lesson-list', course_id=course.id)
+            updated_lesson.save()
+            return redirect('lesson-update', course_id=course.id, lesson_id=lesson.id)
     else:
         form = LessonForm(instance=lesson)
 
@@ -921,7 +937,6 @@ def lesson_update(request, course_id, lesson_id):
             'course': course,
             'lesson': lesson,
             'form': form,
-            'has_uploaded_video': lesson.assets.filter(kind=LessonAsset.Kind.VIDEO).exists(),
         },
     )
 

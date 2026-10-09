@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Portable Docker deployment and environment handling implemented (193 tests passing, Django check 0 issues).
+- **Overall Status:** Portable Docker deployment and environment handling implemented (197 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL in container deployments, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -98,7 +98,9 @@
 ### Priority 3: Dedicated Lesson Study View & Rich Content (GFM + LaTeX + Video)
 - [x] Dedicated individual lesson study page (`/courses/<course_id>/lessons/<lesson_id>/`) with syllabus navigation.
 - [x] Rich document support: GitHub-Flavored Markdown (GFM) with images and LaTeX math equations (KaTeX).
-- [x] Upload images and one video per lesson; add them directly into Markdown content and serve them through tenant-authorized media URLs.
+- [x] Lesson lists show title and description without content previews.
+- [x] Add images/videos one at a time; uploaded references insert into Markdown immediately and multiple videos per lesson are supported.
+- [x] Document persistent `/app/uploads` storage required to preserve files between container rebuilds.
 
 ### Priority 4: Student First-Login Password Reset
 - [x] Add `must_change_password` flag to User model (default `True` for new learners; existing/demo accounts preserved).
@@ -122,6 +124,10 @@
 - [x] Portable Docker deployment with PostgreSQL Compose service, persistent volumes, Gunicorn, and WhiteNoise.
 - [x] Environment variable specifications (`DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`).
 - [x] GitHub Actions multi-architecture GHCR publishing and keyless Cosign image signing.
+- [x] Railway deployment defaults to production and refuses to fall back to ephemeral SQLite.
+- [x] README step-by-step deployment guide covers PostgreSQL linking, required secrets, Super Admin bootstrap, and database verification.
+- [x] Documented that bootstrap credentials must be followed by an explicit management command and that existing usernames are not password-reset by rerunning it.
+- [x] Allow the `learnant.3o14.com` hostname and HTTPS origin.
 - [ ] PostgreSQL service connectivity could not be exercised locally; verify against the target host's PostgreSQL service at deployment.
 
 ### Priority 9: Remaining Take-Home Submission Items

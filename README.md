@@ -154,7 +154,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (193 tests):
+Run the full automated test suite (197 tests):
 
 ```bash
 python manage.py test
@@ -184,7 +184,7 @@ Detailed documentation is available in the `docs/` directory:
 ## 7. Configuration & Database
 
 - **Database:** Deployments use PostgreSQL. Docker Compose starts PostgreSQL and Django together; direct local development without a database URL uses a local SQLite database only for convenience. Set `DATABASE_URL` or the `POSTGRES_*` variables for direct PostgreSQL use.
-- **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. When Railway provides `RAILWAY_PUBLIC_DOMAIN`, the app automatically adds that exact hostname and its HTTPS origin; other hosts must be listed in the environment. Django does not auto-load `.env`.
+- **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. `learnant.3o14.com` is always allowed; when Railway provides `RAILWAY_PUBLIC_DOMAIN`, the app also adds that exact hostname and its HTTPS origin. Other hosts must be listed in the environment. Django does not auto-load `.env`.
 - Production requires a strong `SECRET_KEY`, database URL, and host list. SMTP defaults to the standard backend when `DEBUG=false`; configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_USE_TLS` if the app begins sending email.
 - **Static Files:** WhiteNoise serves collected assets from the container. The startup script applies migrations and runs `collectstatic` before starting Gunicorn.
 - **Uploaded Media:** User/organization images and lesson media live under `MEDIA_ROOT` (default `uploads/`). Mount persistent storage at `/app/uploads` (or set `MEDIA_ROOT`) to retain uploads across container replacements.
@@ -193,7 +193,38 @@ Detailed documentation is available in the `docs/` directory:
 
 `Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist both the PostgreSQL data directory and `/app/uploads`. Gunicorn's optional control socket is disabled in the container because the service account has no login home and the HTTP app does not need the administrative socket. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
 
-On Railway, add a PostgreSQL service and expose its `DATABASE_URL` to the app service (for example, with Railway's variable reference `${{Postgres.DATABASE_URL}}`, using your actual database service name). Railway's `RAILWAY_PUBLIC_DOMAIN` is included automatically in host and HTTPS origin validation. Railway runs now default to `DEBUG=false` and refuse to start without PostgreSQL instead of silently creating ephemeral SQLite data. Existing data in an old container-local SQLite database is not automatically migrated; it must be exported from that old database while it still exists and imported into PostgreSQL.
+### Step-by-step Railway deployment
+
+1. **Publish the app image.** Push to `master` (or a version tag) and wait for the GitHub Actions **Build and publish container** workflow to complete. It publishes `ghcr.io/<github-owner>/<repository>:latest` for the default branch and signs the image digest with Cosign.
+2. **Create PostgreSQL.** In Railway, create a PostgreSQL service in your project. Keep this service and its volume when redeploying the app; database contents do not live in the Django container.
+3. **Deploy the image.** Add an app service using the published GHCR image. If the package is private, configure Railway with permission to pull it. Expose port `8000` (or configure the service's target port as `8000`).
+4. **Link the database.** In the app service's Variables, set `DATABASE_URL` to a Railway reference to the Postgres service, such as `${{Postgres.DATABASE_URL}}` (replace `Postgres` with your service's exact name). Do not copy a URL for a different database or environment.
+5. **Set app configuration.** Add `SECRET_KEY` as a strong, private random value; set `DEBUG=false`. `learnant.3o14.com` is already allowed. Railway's `RAILWAY_PUBLIC_DOMAIN` is also added automatically to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`. If using another custom domain or host, add it to `ALLOWED_HOSTS` and its full HTTPS origin to `CSRF_TRUSTED_ORIGINS`.
+
+   Generate a secret locally with `python -c "import secrets; print(secrets.token_urlsafe(50))"`, then paste the output into Railway's `SECRET_KEY` variable. Do not commit it or share it. The app deliberately refuses to start on Railway if its secret or PostgreSQL configuration is missing; it will not silently use SQLite.
+
+6. **Deploy and check startup logs.** The container applies migrations and collects static files before starting Gunicorn. Confirm migrations complete and the service becomes healthy.
+7. **Configure first Super Admin credentials.** In the app service's Variables, set `LEARNANT_SUPERADMIN_USERNAME`, `LEARNANT_SUPERADMIN_EMAIL`, and `LEARNANT_SUPERADMIN_PASSWORD`. Use a unique, strong password. Apply the variables/redeploy so they are available to the app's shell.
+8. **Create the account once.** Open the app service's shell and run:
+
+   ```bash
+   python manage.py bootstrap_superadmin
+   ```
+
+   A successful first run prints `Provisioned bootstrap Super Admin: <username>` (never the password). Sign in with that username and the configured password; the account is required to change its password at first login. Setting these variables alone does not create the user: the command must be run explicitly against the app's configured database.
+
+9. **Persist uploaded files.** In the Railway app service, attach a persistent volume mounted at `/app/uploads` (or configure `MEDIA_ROOT` to its mount path). Lesson image/video bytes, avatars, and logos are stored as files there; PostgreSQL stores their metadata and references, not the file bytes. Without a persistent volume or external object storage, uploaded files disappear when the app container is replaced. Docker Compose uses a persistent `uploads` volume by default.
+10. **Verify PostgreSQL and data.** In the same app shell, check the active database and tenant count:
+
+   ```bash
+   python manage.py shell -c "from django.conf import settings; from django.db import connection; from core.models import Tenant; print('engine:', settings.DATABASES['default']['ENGINE']); print('database:', connection.settings_dict['NAME']); print('host:', connection.settings_dict['HOST']); print('tenants:', Tenant.objects.count())"
+   ```
+
+   The engine must be `django.db.backends.postgresql`. If it reports SQLite, stop and fix the database variables before using the app. New PostgreSQL databases start empty; data previously stored only in a disposable container's SQLite file is not automatically copied over. If `bootstrap_superadmin` says the user already exists, it does not reset that user's password.
+
+Once a lesson has been created, use **Add image or video** in its editor to upload one file at a time. Each upload is stored immediately and its Markdown reference is inserted into the content field; save the lesson to retain other unsaved edits. You can keep adding more files, including multiple videos.
+
+When publishing a new version, wait for the GHCR workflow and redeploy the app image. Do not delete or replace the PostgreSQL service/volume unless you intend to discard its data.
 
 ---
 

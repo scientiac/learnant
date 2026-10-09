@@ -102,7 +102,7 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 
 ## 6. Testing Strategy
 
-- **Test Suite:** 193 automated test cases spanning:
+- **Test Suite:** 197 automated test cases spanning:
   - Role-based permissions (`test_permissions.py`)
   - Cross-tenant data isolation and ID manipulation (`test_phase_auth_isolation.py`)
   - Course and lesson CRUD boundaries (`test_courses.py`, `test_lessons.py`)
@@ -124,7 +124,7 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 ### 2. Rich Content & Dedicated Lesson Study Environment
 - **Dedicated Study View:** Individual lesson route (`/courses/<course_id>/lessons/<lesson_id>/`) with progress toggling and syllabus outline.
 - **GFM & LaTeX Engine:** Client-side KaTeX + GFM Markdown rendering for technical, mathematical, and rich textual course material.
-- **Video Embeds:** 1 video media slot per lesson supporting YouTube, Vimeo, or direct streams.
+- **Video Embeds:** YouTube/Vimeo/direct video URLs plus repeatable uploaded video assets with Markdown references.
 
 ### 3. Dynamic Onboarding Engine ("Set up your colony")
 - Self-hiding state checklist evaluating colony setup progress: name review, initial course creation, lesson authoring, and learner onboarding.

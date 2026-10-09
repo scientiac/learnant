@@ -38,8 +38,8 @@ class DeploymentSettingsTests(SimpleTestCase):
 from config import settings
 assert settings.DEBUG is False
 assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql'
-assert settings.ALLOWED_HOSTS == ['learnant.example.org', 'learnant.example.net']
-assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant.example.org']
+assert settings.ALLOWED_HOSTS == ['learnant.example.org', 'learnant.example.net', 'learnant.3o14.com']
+assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant.example.org', 'https://learnant.3o14.com']
 assert 'whitenoise.middleware.WhiteNoiseMiddleware' in settings.MIDDLEWARE
 assert settings.STORAGES['staticfiles']['BACKEND'] == 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 assert settings.SESSION_COOKIE_SECURE and settings.CSRF_COOKIE_SECURE
@@ -61,7 +61,7 @@ assert settings.MAILERS['default']['BACKEND'] == 'django.core.mail.backends.smtp
 from config import settings
 assert settings.DEBUG is True
 assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3'
-assert settings.ALLOWED_HOSTS == ['localhost', '127.0.0.1']
+assert settings.ALLOWED_HOSTS == ['localhost', '127.0.0.1', 'learnant.3o14.com']
 assert settings.STORAGES['staticfiles']['BACKEND'] == 'django.contrib.staticfiles.storage.StaticFilesStorage'
 """,
         )
@@ -72,8 +72,8 @@ assert settings.STORAGES['staticfiles']['BACKEND'] == 'django.contrib.staticfile
         result = self.run_settings_probe(
             """
 from config import settings
-assert settings.ALLOWED_HOSTS == ['localhost', 'learnant-production.up.railway.app']
-assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant-production.up.railway.app']
+assert settings.ALLOWED_HOSTS == ['localhost', 'learnant.3o14.com', 'learnant-production.up.railway.app']
+assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant.3o14.com', 'https://learnant-production.up.railway.app']
 """,
             DEBUG='false',
             SECRET_KEY='a-secure-test-key-that-is-not-used-for-any-real-data',

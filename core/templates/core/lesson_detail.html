@@ -39,6 +39,15 @@
       </div>
     {% endif %}
 
+    {% for uploaded_video in uploaded_videos %}
+      <div class="mb-6">
+        <video class="w-full border" controls preload="metadata" style="border-color: hsl(var(--border));">
+          <source src="{% url 'lesson-asset' uploaded_video.public_id %}" type="{{ uploaded_video.mime_type }}">
+          Your browser does not support embedded video.
+        </video>
+      </div>
+    {% endfor %}
+
     <div id="lesson-content" class="lesson-markdown"><pre class="whitespace-pre-wrap">{{ lesson.content }}</pre></div>
     <div id="lesson-markdown-source" class="hidden">{{ lesson.content }}</div>
     <noscript><pre class="mt-5 whitespace-pre-wrap">{{ lesson.content }}</pre></noscript>

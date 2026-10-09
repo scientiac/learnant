@@ -350,17 +350,11 @@ class LessonAsset(models.Model):
     file = models.FileField(upload_to=lesson_asset_upload_to)
     kind = models.CharField(max_length=10, choices=Kind.choices)
     mime_type = models.CharField(max_length=50)
+    original_filename = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['uploaded_at', 'id']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['lesson'],
-                condition=Q(kind='video'),
-                name='one_video_asset_per_lesson',
-            ),
-        ]
 
     def __str__(self):
         return f'{self.kind} for {self.lesson}'
@@ -368,8 +362,10 @@ class LessonAsset(models.Model):
     def markdown_embed(self):
         url = f'/lesson-assets/{self.public_id}/'
         if self.kind == self.Kind.IMAGE:
-            return f'![{PurePath(self.file.name).stem}]({url})'
-        return f'<video controls preload="metadata"><source src="{url}" type="{self.mime_type}"></video>'
+            image_name = PurePath(self.original_filename or self.file.name).stem.replace('[', '(').replace(']', ')')
+            return f'![{image_name}]({url})'
+        filename = (self.original_filename or PurePath(self.file.name).name).replace('[', '(').replace(']', ')')
+        return f'[Video: {filename}]({url})'
 
     def clean(self):
         super().clean()

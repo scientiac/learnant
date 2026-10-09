@@ -9,21 +9,7 @@ from django.core.validators import validate_email
 from django.utils.text import slugify
 
 from .models import Course, CourseAssignment, Lesson, Tenant, User
-from .media import MAX_VIDEO_SIZE, classify_lesson_upload, validate_image_upload
-
-
-class MultipleFileInput(forms.FileInput):
-    allow_multiple_selected = True
-
-
-class MultipleFileField(forms.FileField):
-    widget = MultipleFileInput
-
-    def clean(self, data, initial=None):
-        if not data:
-            return []
-        files = data if isinstance(data, (list, tuple)) else [data]
-        return [super(MultipleFileField, self).clean(file, initial) for file in files]
+from .media import validate_image_upload
 
 
 class CourseForm(forms.ModelForm):
@@ -105,59 +91,9 @@ class LessonForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['media_files'] = MultipleFileField(
-            required=False,
-            widget=MultipleFileInput(
-                attrs={
-                    'class': 'form-input',
-                    'multiple': True,
-                    'accept': 'image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm,video/ogg',
-                }
-            ),
-            label='Upload images or a video to insert into the Markdown content',
-        )
-        self.fields['remove_video'] = forms.BooleanField(
-            required=False,
-            label='Remove the existing uploaded video',
-            widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
-        )
         # Creation may leave order blank to request automatic append ordering;
         # editing must keep an explicit positive position.
         self.fields['order'].required = bool(self.instance.pk)
-
-    def clean_media_files(self):
-        uploads = self.cleaned_data.get('media_files', [])
-        if len(uploads) > 10:
-            raise ValidationError('Upload at most 10 files per lesson.')
-        if sum(upload.size for upload in uploads) > MAX_VIDEO_SIZE:
-            raise ValidationError('Combined lesson uploads must not exceed 100 MB.')
-        videos = 0
-        errors = []
-        for upload in uploads:
-            try:
-                kind, _mime_type = classify_lesson_upload(upload)
-            except ValidationError as error:
-                errors.extend(error.messages)
-                continue
-            videos += kind == 'video'
-        if videos > 1:
-            errors.append('A lesson may contain at most one video.')
-        if errors:
-            raise ValidationError(errors)
-        return uploads
-
-    def clean(self):
-        cleaned = super().clean()
-        uploads = cleaned.get('media_files', [])
-        has_video_upload = any(classify_lesson_upload(upload)[0] == 'video' for upload in uploads)
-        if (
-            has_video_upload
-            and self.instance.pk
-            and self.instance.assets.filter(kind='video').exists()
-            and not cleaned.get('remove_video')
-        ):
-            self.add_error('media_files', 'Select “Remove the existing uploaded video” to replace it.')
-        return cleaned
 
 
 class CourseAssignmentForm(forms.ModelForm):

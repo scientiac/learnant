@@ -15,7 +15,7 @@
     <div class="mb-5">
       <h1 class="text-lg font-semibold tracking-tight">{% if lesson %}Edit lesson{% else %}Add new lesson{% endif %}</h1>
       <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
-        {% if lesson %}Update lesson content, video, and order in the syllabus.{% else %}Expand your course syllabus with structured content.{% endif %}
+        {% if lesson %}Update lesson content and order in the syllabus.{% else %}Expand your course syllabus with structured content.{% endif %}
       </p>
     </div>
 
@@ -59,7 +59,7 @@
         <label class="form-label" for="{{ form.content.id_for_label }}">
           Lesson content (Markdown) <span style="color: hsl(var(--destructive));">*</span>
         </label>
-        <p class="mb-1 text-xs" style="color: hsl(var(--muted-foreground));">Supports GFM, images, and LaTeX. Uploaded media is inserted into the Markdown content.</p>
+        <p class="mb-1 text-xs" style="color: hsl(var(--muted-foreground));">Supports GFM, images, and LaTeX. Added media inserts a Markdown reference here immediately.</p>
         {{ form.content }}
         {% if form.content.errors %}
           <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.content.errors|join:", " }}</p>
@@ -67,16 +67,27 @@
       </div>
 
       <div>
-        <label class="form-label" for="{{ form.media_files.id_for_label }}">Upload images or video</label>
-        {{ form.media_files }}
-        <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">PNG, JPEG, GIF, WebP, MP4, WebM, or Ogg. Up to 10 files; one video maximum.</p>
-        {% if form.media_files.errors %}
-          <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.media_files.errors|join:", " }}</p>
+        <span class="form-label">Lesson media</span>
+        {% if lesson %}
+        <p class="mb-3 text-xs" style="color: hsl(var(--muted-foreground));">Add images or videos one at a time. Each upload is stored and its Markdown link is inserted into the content immediately. PNG, JPEG, GIF, WebP, MP4, WebM, or Ogg.</p>
+        <div class="flex flex-wrap items-center gap-3">
+          <button class="btn btn-outline" type="button" id="add-lesson-media"><i data-lucide="plus" class="h-4 w-4"></i> Add image or video</button>
+          <span id="lesson-media-status" class="text-sm" style="color: hsl(var(--muted-foreground));" aria-live="polite">Ready to add media</span>
+        </div>
+        <input type="file" id="lesson-media-files" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm,video/ogg" class="sr-only">
+        <ul id="lesson-media-queue" class="mt-3 space-y-2" aria-label="Files to upload"></ul>
+        <p id="lesson-media-error" class="alert-error mt-2" hidden></p>
+        {% else %}
+          <p class="text-sm" style="color: hsl(var(--muted-foreground));">Save the lesson first, then add media here; each file will be linked into the Markdown content.</p>
         {% endif %}
       </div>
 
-      {% if has_uploaded_video %}
-        <label class="flex items-center gap-2 text-sm">{{ form.remove_video }} {{ form.remove_video.label }}</label>
+      {% if lesson %}
+        {% with existing_videos=lesson.assets.all %}
+          {% for asset in existing_videos %}{% if asset.kind == 'video' %}
+            <p class="text-xs" style="color: hsl(var(--muted-foreground));">Existing video retained: <a class="underline" href="{% url 'lesson-asset' asset.public_id %}">{{ asset.original_filename|default:asset.file.name }}</a></p>
+          {% endif %}{% endfor %}
+        {% endwith %}
       {% endif %}
 
       <div class="flex items-center gap-3 pt-3">
@@ -95,4 +106,53 @@
     </form>
   </div>
 </div>
+{% if lesson %}
+<script>
+  (function () {
+    const input = document.getElementById('lesson-media-files');
+    const addButton = document.getElementById('add-lesson-media');
+    const queue = document.getElementById('lesson-media-queue');
+    const status = document.getElementById('lesson-media-status');
+    const error = document.getElementById('lesson-media-error');
+    const content = document.getElementById('{{ form.content.id_for_label }}');
+    if (!input || !addButton || !queue || !status || !content) return;
+    addButton.addEventListener('click', () => input.click());
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const item = document.createElement('li');
+      item.className = 'border px-3 py-2 text-sm';
+      item.style.borderColor = 'hsl(var(--border))';
+      item.textContent = `${file.name} — uploading…`;
+      queue.prepend(item);
+      addButton.disabled = true;
+      error.hidden = true;
+      status.textContent = 'Uploading and inserting Markdown…';
+      const body = new FormData();
+      body.append('media_file', file);
+      body.append('content', content.value);
+      try {
+        const response = await fetch('{% url "lesson-asset-upload" course.id lesson.id %}', {
+          method: 'POST',
+          headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value},
+          body,
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Upload failed.');
+        content.value = result.content;
+        item.textContent = `${file.name} — added to lesson content`;
+        status.textContent = 'Media added. Save changes to keep other lesson edits.';
+      } catch (uploadError) {
+        item.remove();
+        error.textContent = uploadError.message;
+        error.hidden = false;
+        status.textContent = 'Upload failed; check the file and try again.';
+      } finally {
+        addButton.disabled = false;
+        input.value = '';
+      }
+    });
+  })();
+</script>
+{% endif %}
 {% endblock %}

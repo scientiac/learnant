@@ -116,8 +116,6 @@ class LessonStudyViewTests(TestCase):
 
     def test_lesson_description_and_uploaded_image_are_added_to_markdown(self):
         self.client.login(username='manager-a', password='test')
-        image = SimpleUploadedFile('diagram.png', b'png bytes', content_type='image/png')
-
         response = self.client.post(
             reverse('lesson-create', args=[self.course.id]),
             {
@@ -125,20 +123,35 @@ class LessonStudyViewTests(TestCase):
                 'description': 'A short summary.',
                 'content': 'Study this diagram.',
                 'order': '',
-                'media_files': image,
             },
         )
 
         self.assertEqual(response.status_code, 302)
         lesson = Lesson.objects.get(title='Diagram Lesson')
+        image = SimpleUploadedFile(
+            'diagram.png', b'\x89PNG\r\n\x1a\nimage-bytes', content_type='image/png'
+        )
+        upload_response = self.client.post(
+            reverse('lesson-asset-upload', args=[self.course.id, lesson.id]),
+            {'media_file': image, 'content': lesson.content},
+        )
+        self.assertEqual(upload_response.status_code, 201, upload_response.content)
+        self.assertEqual(upload_response.json()['kind'], 'image')
         asset = LessonAsset.objects.get(lesson=lesson)
+        lesson.refresh_from_db()
         self.assertEqual(lesson.description, 'A short summary.')
-        self.assertIn(f'![{asset.public_id.hex}](/lesson-assets/{asset.public_id}/)', lesson.content)
+        self.assertIn(f'![diagram](/lesson-assets/{asset.public_id}/)', lesson.content)
         self.assertTrue(asset.file.storage.exists(asset.file.name))
 
         detail_response = self.client.get(reverse('lesson-detail', args=[self.course.id, lesson.id]))
         self.assertContains(detail_response, lesson.description)
         self.assertContains(detail_response, f'/lesson-assets/{asset.public_id}/')
+        self.assertRedirects(
+            response,
+            reverse('lesson-update', args=[self.course.id, lesson.id]),
+        )
+        editor_response = self.client.get(reverse('lesson-update', args=[self.course.id, lesson.id]))
+        self.assertContains(editor_response, f'![diagram](/lesson-assets/{asset.public_id}/)')
         self.client.force_login(self.learner)
         media_response = self.client.get(reverse('lesson-asset', args=[asset.public_id]))
         self.assertEqual(media_response.status_code, 200)
@@ -159,8 +172,6 @@ class LessonStudyViewTests(TestCase):
 
     def test_uploaded_video_is_stored_and_embedded_in_lesson_markdown(self):
         self.client.login(username='manager-a', password='test')
-        video = SimpleUploadedFile('walkthrough.mp4', b'video bytes', content_type='video/mp4')
-
         response = self.client.post(
             reverse('lesson-create', args=[self.course.id]),
             {
@@ -168,58 +179,95 @@ class LessonStudyViewTests(TestCase):
                 'description': 'Watch the walkthrough.',
                 'content': 'Introduction.',
                 'order': '',
-                'media_files': video,
             },
         )
 
         self.assertEqual(response.status_code, 302)
         lesson = Lesson.objects.get(title='Video Lesson')
+        video = SimpleUploadedFile('walkthrough.mp4', b'video bytes', content_type='video/mp4')
+        upload_response = self.client.post(
+            reverse('lesson-asset-upload', args=[self.course.id, lesson.id]),
+            {'media_file': video, 'content': lesson.content},
+        )
+        self.assertEqual(upload_response.status_code, 201, upload_response.content)
+        lesson.refresh_from_db()
         asset = LessonAsset.objects.get(lesson=lesson, kind=LessonAsset.Kind.VIDEO)
-        self.assertIn(f'<video controls preload="metadata"><source src="/lesson-assets/{asset.public_id}/"', lesson.content)
+        self.assertIn(f'[Video: walkthrough.mp4](/lesson-assets/{asset.public_id}/)', lesson.content)
         response = self.client.get(reverse('lesson-detail', args=[self.course.id, lesson.id]))
         self.assertContains(response, 'lesson-content')
         self.assertContains(response, f'/lesson-assets/{asset.public_id}/')
+        self.assertContains(response, '<video')
 
     def test_edit_form_has_no_separate_video_url_input(self):
         self.client.login(username='manager-a', password='test')
 
-        response = self.client.get(reverse('lesson-create', args=[self.course.id]))
+        response = self.client.get(reverse('lesson-update', args=[self.course.id, self.first.id]))
 
-        self.assertContains(response, 'Upload images or video')
+        self.assertContains(response, 'Add image or video')
+        self.assertContains(response, 'lesson-media-files')
         self.assertNotContains(response, 'Optional video URL')
 
-    def test_replacing_video_requires_explicit_remove_and_preserves_single_video_rule(self):
+    def test_lesson_list_shows_title_and_description_without_content_preview(self):
+        self.first.description = 'A concise summary.'
+        self.first.content = 'Secret preview body text.'
+        self.first.save()
+        self.client.login(username='manager-a', password='test')
+
+        response = self.client.get(reverse('lesson-list', args=[self.course.id]))
+
+        self.assertContains(response, self.first.title)
+        self.assertContains(response, 'A concise summary.')
+        self.assertNotContains(response, 'Secret preview body text.')
+
+    def test_lesson_can_accumulate_multiple_uploaded_videos_and_markdown_links(self):
         old_asset = LessonAsset.objects.create(
             lesson=self.first,
             kind=LessonAsset.Kind.VIDEO,
             mime_type='video/mp4',
+            original_filename='old.mp4',
             file=SimpleUploadedFile('old.mp4', b'old video', content_type='video/mp4'),
         )
         self.client.login(username='manager-a', password='test')
-        post_data = {
-            'title': self.first.title,
-            'description': '',
-            'content': 'Updated lesson body.',
-            'order': 1,
-        }
-        new_video = SimpleUploadedFile('new.webm', b'new video', content_type='video/webm')
-
-        rejected = self.client.post(
-            reverse('lesson-update', args=[self.course.id, self.first.id]),
-            {**post_data, 'media_files': new_video},
+        first_video = SimpleUploadedFile('new.webm', b'new video', content_type='video/webm')
+        response = self.client.post(
+            reverse('lesson-asset-upload', args=[self.course.id, self.first.id]),
+            {'media_file': first_video, 'content': f'Updated lesson body.\n\n{old_asset.markdown_embed()}'},
         )
-        self.assertEqual(rejected.status_code, 200)
-        self.assertTrue(LessonAsset.objects.filter(id=old_asset.id).exists())
-
-        replacement = SimpleUploadedFile('new.webm', b'new video', content_type='video/webm')
-        accepted = self.client.post(
-            reverse('lesson-update', args=[self.course.id, self.first.id]),
-            {**post_data, 'remove_video': 'on', 'media_files': replacement},
+        self.assertEqual(response.status_code, 201)
+        second_video = SimpleUploadedFile('another.mp4', b'another video', content_type='video/mp4')
+        second_response = self.client.post(
+            reverse('lesson-asset-upload', args=[self.course.id, self.first.id]),
+            {'media_file': second_video, 'content': response.json()['content']},
         )
-        self.assertEqual(accepted.status_code, 302)
+        self.assertEqual(second_response.status_code, 201)
         videos = LessonAsset.objects.filter(lesson=self.first, kind=LessonAsset.Kind.VIDEO)
-        self.assertEqual(videos.count(), 1)
-        self.assertEqual(videos.get().mime_type, 'video/webm')
+        self.assertEqual(videos.count(), 3)
+        self.assertTrue(LessonAsset.objects.filter(id=old_asset.id).exists())
+        self.first.refresh_from_db()
+        self.assertIn(f'[Video: old.mp4](/lesson-assets/{old_asset.public_id}/)', self.first.content)
+        for video in videos.exclude(id=old_asset.id):
+            self.assertIn(video.markdown_embed(), self.first.content)
+
+        editor = self.client.get(reverse('lesson-update', args=[self.course.id, self.first.id]))
+        self.assertContains(editor, str(old_asset.public_id))
+        self.assertContains(editor, 'new.webm')
+
+    def test_media_upload_is_rejected_for_unassigned_learner_and_invalid_image(self):
+        self.client.login(username='manager-a', password='test')
+        invalid_image = SimpleUploadedFile('bad.png', b'not-an-image', content_type='image/png')
+        invalid_response = self.client.post(
+            reverse('lesson-asset-upload', args=[self.course.id, self.first.id]),
+            {'media_file': invalid_image, 'content': self.first.content},
+        )
+        self.assertEqual(invalid_response.status_code, 400)
+        self.assertFalse(LessonAsset.objects.filter(lesson=self.first).exists())
+
+        self.client.force_login(self.unassigned_learner)
+        denied = self.client.post(
+            reverse('lesson-asset-upload', args=[self.course.id, self.first.id]),
+            {'media_file': SimpleUploadedFile('movie.mp4', b'video'), 'content': ''},
+        )
+        self.assertEqual(denied.status_code, 404)
 
 
 class LessonVideoValidationTests(TestCase):

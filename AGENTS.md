@@ -103,7 +103,7 @@ Every user belongs to a specific tier and must have dedicated, role-appropriate 
 ### G. Dedicated Lesson Study View & Rich Content (GFM, LaTeX, Video)
 - **Individual Study Route:** A dedicated lesson detail view (`/courses/<course_id>/lessons/<lesson_id>/`) allowing students to focus on one lesson at a time with previous/next navigation and course sidebar.
 - **Rich Document Rendering:** Support GitHub-Flavored Markdown (GFM), inline images, and LaTeX mathematical expressions (via KaTeX / MathJax).
-- **Video Embed Support:** Allow 1 video per lesson (embed URL or direct media player) displayed prominently above or alongside lesson text.
+- **Video Embed Support:** Support multiple uploaded videos per lesson, displayed in the study view and linked from Markdown; keep direct media storage tenant-authorized.
 
 ### H. First-Login Password Reset Flow
 - **Temporary Password Security:** Users provisioned via bulk import or administrative creation have `must_change_password = True`.

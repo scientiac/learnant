@@ -47,6 +47,8 @@ ALLOWED_HOSTS = [
     for host in os.environ.get('ALLOWED_HOSTS', os.environ.get('DJANGO_ALLOWED_HOSTS', _default_hosts)).split(',')
     if host.strip()
 ]
+if 'learnant.3o14.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('learnant.3o14.com')
 _platform_public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
 if _platform_public_domain and _platform_public_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(_platform_public_domain)
@@ -58,6 +60,8 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
 ]
+if 'https://learnant.3o14.com' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://learnant.3o14.com')
 if _platform_public_domain:
     _platform_origin = f'https://{_platform_public_domain}'
     if _platform_origin not in CSRF_TRUSTED_ORIGINS:
