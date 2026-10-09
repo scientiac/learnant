@@ -1,11 +1,15 @@
+import calendar
+from datetime import timedelta
+
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import validate_email
 from django.utils.text import slugify
 
 from .models import Course, CourseAssignment, Lesson, Tenant, User
-from .media import MAX_VIDEO_SIZE, classify_lesson_upload
+from .media import MAX_VIDEO_SIZE, classify_lesson_upload, validate_image_upload
 
 
 class MultipleFileInput(forms.FileInput):
@@ -254,24 +258,130 @@ class TenantSignupForm(forms.Form):
 class TenantSettingsForm(forms.ModelForm):
     class Meta:
         model = Tenant
-        fields = ['name', 'brand_color']
+        fields = ['name', 'brand_color', 'logo', 'address', 'contact_phone', 'support_email', 'website']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input'}),
             'brand_color': forms.TextInput(
                 attrs={'class': 'form-input', 'type': 'color', 'aria-label': 'Organization brand color'}
             ),
+            'logo': forms.ClearableFileInput(attrs={'class': 'form-input', 'accept': 'image/png,image/jpeg,image/gif,image/webp'}),
+            'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
+            'contact_phone': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'tel'}),
+            'support_email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
+            'website': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://example.org'}),
         }
+
+    def clean_logo(self):
+        logo = self.cleaned_data.get('logo')
+        if isinstance(logo, UploadedFile):
+            validate_image_upload(logo)
+        return logo
+
+
+class TenantSubscriptionForm(forms.Form):
+    subscription_status = forms.ChoiceField(
+        choices=Tenant.SubscriptionStatus.choices,
+        widget=forms.Select(attrs={'class': 'form-input'}),
+    )
+    expiration_mode = forms.ChoiceField(
+        choices=[('exact', 'Set exact trial end'), ('adjust', 'Adjust current trial end')],
+        widget=forms.Select(attrs={'class': 'form-input'}),
+    )
+    trial_ends_at = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S%z'],
+        widget=forms.DateTimeInput(
+            format='%Y-%m-%dT%H:%M',
+            attrs={'class': 'form-input', 'type': 'datetime-local'},
+        ),
+    )
+    adjustment_amount = forms.IntegerField(
+        required=False,
+        min_value=-100000,
+        max_value=100000,
+        widget=forms.NumberInput(attrs={'class': 'form-input'}),
+        help_text='Use a positive or negative number.',
+    )
+    adjustment_unit = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Choose a unit'), ('minutes', 'Minutes'), ('hours', 'Hours'), ('days', 'Days'), ('months', 'Months')],
+        widget=forms.Select(attrs={'class': 'form-input'}),
+    )
+
+    def __init__(self, *args, tenant, **kwargs):
+        self.tenant = tenant
+        super().__init__(*args, **kwargs)
+        self.initial.setdefault('subscription_status', tenant.subscription_status)
+        self.initial.setdefault('expiration_mode', 'exact')
+        self.initial.setdefault('trial_ends_at', tenant.trial_ends_at)
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('subscription_status') != Tenant.SubscriptionStatus.TRIAL:
+            return cleaned
+
+        mode = cleaned.get('expiration_mode')
+        if mode == 'exact':
+            end_time = cleaned.get('trial_ends_at')
+            if not end_time:
+                self.add_error('trial_ends_at', 'Enter the exact trial expiration date and time.')
+                return cleaned
+        elif mode == 'adjust':
+            amount = cleaned.get('adjustment_amount')
+            unit = cleaned.get('adjustment_unit')
+            if amount is None or not unit:
+                self.add_error(None, 'Enter both an adjustment amount and unit.')
+                return cleaned
+            if amount == 0:
+                self.add_error('adjustment_amount', 'Adjustment must not be zero.')
+                return cleaned
+            try:
+                end_time = self._adjust_expiration(self.tenant.trial_ends_at, amount, unit)
+            except (OverflowError, ValueError):
+                self.add_error('adjustment_amount', 'The adjusted expiration date is out of range.')
+                return cleaned
+        else:
+            self.add_error('expiration_mode', 'Choose how to update the trial expiration.')
+            return cleaned
+
+        if end_time <= self.tenant.trial_starts_at:
+            self.add_error(None, 'Trial expiration must be after its start date.')
+            return cleaned
+        cleaned['resolved_trial_ends_at'] = end_time
+        return cleaned
+
+    @staticmethod
+    def _adjust_expiration(value, amount, unit):
+        if unit == 'minutes':
+            return value + timedelta(minutes=amount)
+        if unit == 'hours':
+            return value + timedelta(hours=amount)
+        if unit == 'days':
+            return value + timedelta(days=amount)
+
+        month_index = value.year * 12 + (value.month - 1) + amount
+        year, month_zero_based = divmod(month_index, 12)
+        month = month_zero_based + 1
+        day = min(value.day, calendar.monthrange(year, month)[1])
+        return value.replace(year=year, month=month, day=day)
 
 
 class ProfileSettingsForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        fields = ['first_name', 'last_name', 'email', 'avatar']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'given-name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'family-name'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'form-input', 'accept': 'image/png,image/jpeg,image/gif,image/webp'}),
         }
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar')
+        if isinstance(avatar, UploadedFile):
+            validate_image_upload(avatar)
+        return avatar
 
 
 class BulkStudentOnboardingForm(forms.Form):

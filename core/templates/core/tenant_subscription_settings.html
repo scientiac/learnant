@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Subscription controls · {{ tenant.name }}{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-xl">
+  <p><a href="{% url 'tenant-list' %}">← Back to tenants</a></p>
+  <h1 class="mt-3 text-2xl font-semibold">Subscription controls</h1>
+  <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">{{ tenant.name }} · currently {{ tenant.get_subscription_status_display }} · trial ends {{ tenant.trial_ends_at }}</p>
+  <form method="post" class="card mt-6 space-y-4 p-6">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert-error">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div>
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="alert-error mt-2">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Save subscription settings</button>
+  </form>
+</div>
+{% endblock %}

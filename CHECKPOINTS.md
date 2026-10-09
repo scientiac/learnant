@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Lesson descriptions and protected in-Markdown media uploads verified (152 tests passing, Django check 0 issues).
+- **Overall Status:** Lesson media, first-login reset, subscription controls, and organization/profile branding verified (163 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (152 tests, 0 failures)
+  - [x] Full automated test suite passing (163 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -105,13 +105,13 @@
 - [x] Redirect provisioned learners to set a secure password before accessing the application; permit password change or logout.
 
 ### Priority 5: Flexible Subscription & Expiration Control (Super Admin)
-- [ ] Super Admin ability to switch tenant between `trial` and `subscribed` status.
-- [ ] Granular time adjustments: grant or reduce time (e.g. +10 minutes, +10 months, or decrease duration even while trial is active).
+- [x] Super Admin ability to switch tenant between `trial` and `subscribed` status.
+- [x] Granular time adjustments: set exact trial end or grant/reduce minutes, hours, days, or months.
 
 ### Priority 6: User Avatars & Extended Organization Details
-- [ ] Profile image upload for user profiles.
-- [ ] Organization logo / branding image upload.
-- [ ] Organization public details for students (address, contact number, support email, website).
+- [x] Profile image upload for user profiles.
+- [x] Organization logo / branding image upload.
+- [x] Organization public details for students (address, contact number, support email, website).
 
 ### Priority 7: Fail-Proof Spreadsheet Bulk Enrollment (CSV/Excel)
 - [ ] Exportable sample spreadsheet template (`.csv`).

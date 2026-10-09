@@ -17,16 +17,18 @@ from .forms import (
     CourseAssistantPreviewForm,
     LessonForm,
     ProfileSettingsForm,
+    TenantSubscriptionForm,
     TenantSettingsForm,
     TenantSignupForm,
 )
-from .media import classify_lesson_upload
+from .media import classify_lesson_upload, image_mime_type
 from .models import Course, CourseAssignment, Lesson, LessonAsset, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
     can_manage_tenant,
     can_manage_tenant_learning,
     can_mutate_tenant_data,
+    can_read_tenant_data,
     can_read_platform,
     can_reactivate_tenant,
     is_platform_user,
@@ -310,6 +312,75 @@ def tenant_reactivate(request, tenant_id):
 
 
 @login_required
+def tenant_subscription_settings(request, tenant_id):
+    if not can_reactivate_tenant(request.user):
+        return HttpResponseForbidden('Only Super Admin can change subscription or expiration settings.')
+    tenant = get_object_or_404(Tenant, id=tenant_id)
+    if request.method == 'POST':
+        form = TenantSubscriptionForm(request.POST, tenant=tenant)
+        if form.is_valid():
+            tenant.subscription_status = form.cleaned_data['subscription_status']
+            if tenant.subscription_status == Tenant.SubscriptionStatus.SUBSCRIBED:
+                tenant.status = Tenant.Status.ACTIVE
+                tenant.expired_at = None
+            else:
+                tenant.trial_ends_at = form.cleaned_data['resolved_trial_ends_at']
+                if tenant.is_trial_expired():
+                    tenant.status = Tenant.Status.EXPIRED
+                    tenant.expired_at = timezone.now()
+                else:
+                    tenant.status = Tenant.Status.ACTIVE
+                    tenant.expired_at = None
+            tenant.save()
+            return redirect('tenant-list')
+    else:
+        form = TenantSubscriptionForm(tenant=tenant)
+    return render(request, 'core/tenant_subscription_settings.html', {'tenant': tenant, 'form': form})
+
+
+@login_required
+@never_cache
+def tenant_logo(request, tenant_id):
+    tenant = get_object_or_404(Tenant, id=tenant_id)
+    if not tenant.logo or not can_read_tenant_data(request.user, tenant):
+        raise Http404
+    mime_type = image_mime_type(tenant.logo.name)
+    if not mime_type:
+        raise Http404
+    try:
+        file_handle = tenant.logo.open('rb')
+    except (OSError, ValueError):
+        raise Http404
+    response = FileResponse(file_handle, content_type=mime_type)
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@login_required
+@never_cache
+def user_avatar(request, user_id):
+    profile_user = get_object_or_404(User, id=user_id)
+    may_view = (
+        request.user.id == profile_user.id
+        or is_platform_user(request.user)
+        or is_tenant_admin(request.user)
+        and request.user.tenant_id == profile_user.tenant_id
+    )
+    if not profile_user.avatar or not may_view:
+        raise Http404
+    mime_type = image_mime_type(profile_user.avatar.name)
+    if not mime_type:
+        raise Http404
+    try:
+        file_handle = profile_user.avatar.open('rb')
+    except (OSError, ValueError):
+        raise Http404
+    response = FileResponse(file_handle, content_type=mime_type)
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@login_required
 def organization_settings(request, tenant_id=None):
     user = request.user
     if tenant_id is not None:
@@ -326,7 +397,7 @@ def organization_settings(request, tenant_id=None):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = TenantSettingsForm(request.POST, instance=tenant)
+        form = TenantSettingsForm(request.POST, request.FILES, instance=tenant)
         if form.is_valid():
             form.save()
             return redirect('tenant-list' if tenant_id else 'dashboard')
@@ -342,7 +413,7 @@ def profile_settings(request):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = ProfileSettingsForm(request.POST, instance=user)
+        form = ProfileSettingsForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
             return redirect('dashboard')

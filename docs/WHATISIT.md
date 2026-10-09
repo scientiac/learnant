@@ -67,7 +67,7 @@ The application provides tailored experiences based on **who is logged in**. Use
 ### 1. Platform Super Admin
 - **Who they are:** The SaaS system owner / platform executive.
 - **Their goal:** Oversee the entire ecosystem, observe system health, and reactivate accounts when organizations renew.
-- **Permissions:** Highest role. Inherits platform Admin and Tenant Admin management actions across active institutes: course/lesson CRUD, assignments, learner onboarding, organization settings, and progress visibility; also has platform administration and exclusive ability to reactivate expired institute trials.
+- **Permissions:** Highest role. Inherits platform Admin and Tenant Admin management actions across active institutes: course/lesson CRUD, assignments, learner onboarding, organization settings, and progress visibility; also has platform administration, subscription transitions, granular trial-end controls, and exclusive ability to reactivate expired institute trials.
 
 ### 2. Platform Admin
 - **Who they are:** Platform operations and customer success staff.
@@ -556,7 +556,7 @@ When engineering leaders and hiring supervisors evaluate a Full-Stack take-home 
   python manage.py runserver
   ```
 
-### 4. Comprehensive Test Coverage (152 Passing Tests)
+### 4. Comprehensive Test Coverage (163 Passing Tests)
 - Features are backed by automated tests across every layer:
   - Role permissions (`test_permissions.py`)
   - Cross-tenant ID manipulation & IDOR (`test_phase_auth_isolation.py`)

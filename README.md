@@ -14,6 +14,8 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Tenant Admin:** Manages courses, ordered lessons, assignments, and learner progress for their institute.
   - **Tenant User:** Learner accessing assigned courses, completing lessons, and tracking progress.
 - **Trial Lifecycle & Expiration:** 14-day default free trial with request-time boundary checks, idempotent scheduled expiration command (`python manage.py expire_trials`), read-only preservation of tenant data upon expiry, and Super Admin reactivation.
+- **Subscription Administration:** Super Admins can switch an organization between trial and subscribed access, set an exact trial end, or adjust it by signed minutes, hours, days, or months.
+- **Organization & Profile Branding:** Tenant Admins can manage institute contact details and upload a logo; users can upload a profile avatar. Uploaded images are served through access-controlled routes.
 - **Modern UI:** shadcn/ui-inspired responsive interface built with Django templates, Tailwind CSS, and Inter typography.
 - **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
 - **Organization & Profile Settings:** Active Tenant Admins can update their own organization name/brand color; signed-in users can update their own display name and email.
@@ -92,7 +94,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
    ```
 2. For an expired tenant, tenant users and admins retain read-only access to existing data; creation and updates are blocked with friendly notices.
 3. Log in as `superadmin` and navigate to **Tenants** (`/tenants/`).
-4. Click **Reactivate** next to an expired tenant to restore active status with a new 14-day trial window.
+4. Use **Subscription** to switch Trial/Subscribed or adjust an exact trial end. Click **Reactivate** next to an expired tenant to start a fresh 14-day trial.
 
 ### Workflow G: Platform Tenant Administration
 1. Log in as `admin` or `superadmin` and open **Tenants**.
@@ -100,8 +102,8 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 3. Super Admin can additionally reactivate expired institutes. Super Viewer can open tenant courses but has no management actions.
 
 ### Workflow E: Organization & Profile Settings
-1. As an active `tenant_admin`, use **Organization** to update the institute name and brand color.
-2. Any signed-in user can open **Profile** to update their own first name, last name, and email. Role and tenant membership are not editable there.
+1. As an active `tenant_admin`, use **Organization** to update the institute name, brand color, contact details, and logo.
+2. Any signed-in user can open **Profile** to update their own first name, last name, email, and avatar. Role and tenant membership are not editable there.
 
 ### Workflow F: Bulk Student Onboarding
 1. Log in as `tenant_admin` (or `institute_admin`) and open **Enroll students** (`/students/bulk-add/`).
@@ -114,7 +116,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (152 tests):
+Run the full automated test suite (163 tests):
 
 ```bash
 python manage.py test

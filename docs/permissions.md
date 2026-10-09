@@ -41,5 +41,6 @@ Reactivation policy:
 - Only Super Admin can reactivate an expired tenant.
 - Reactivation sets the tenant back to active, clears `expired_at`, and starts a new 14-day trial from the reactivation time.
 - Existing tenant data is preserved during expiration and reactivation.
+- Only Super Admin can switch subscription status or adjust the exact trial end; subscribed tenants do not expire through the trial command.
 
 Tenant identity must always come from authenticated server-side user context, never from client-supplied tenant IDs.

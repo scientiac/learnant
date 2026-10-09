@@ -47,6 +47,9 @@ from core.views import (
     signup,
     tenant_list,
     tenant_reactivate,
+    tenant_subscription_settings,
+    tenant_logo,
+    user_avatar,
 )
 
 urlpatterns = [
@@ -78,6 +81,9 @@ urlpatterns = [
     path('tenants/<int:tenant_id>/students/bulk-add/', bulk_student_add, name='tenant-bulk-student-add'),
     path('tenants/<int:tenant_id>/courses/', course_list, name='tenant-course-list'),
     path('tenants/<int:tenant_id>/reactivate/', tenant_reactivate, name='tenant-reactivate'),
+    path('tenants/<int:tenant_id>/subscription/', tenant_subscription_settings, name='tenant-subscription-settings'),
+    path('tenant-assets/logos/<int:tenant_id>/', tenant_logo, name='tenant-logo'),
+    path('profile-assets/avatars/<int:user_id>/', user_avatar, name='user-avatar'),
     path('settings/organization/', organization_settings, name='organization-settings'),
     path('settings/profile/', profile_settings, name='profile-settings'),
     path('students/bulk-add/', bulk_student_add, name='bulk-student-add'),

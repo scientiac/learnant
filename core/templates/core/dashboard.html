@@ -70,6 +70,9 @@
   <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div class="card p-5">
       <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Colony Organisation</p>
+      {% if user.tenant.logo %}
+        <img class="mt-3 max-h-16 max-w-40 object-contain" src="{% url 'tenant-logo' user.tenant_id %}" alt="{{ user.tenant.name }} logo">
+      {% endif %}
       <p class="mt-2 text-lg font-semibold">{{ user.tenant.name }}</p>
       <p class="mt-2">
         {% if user.tenant.status == 'active' %}
@@ -117,6 +120,16 @@
       {% endif %}
     </div>
   </div>
+  {% endif %}
+
+  {% if user.tenant.address or user.tenant.contact_phone or user.tenant.support_email or user.tenant.website %}
+    <section class="card mb-6 p-5">
+      <h2 class="font-semibold">Institute contact</h2>
+      {% if user.tenant.address %}<p class="mt-2 text-sm">{{ user.tenant.address }}</p>{% endif %}
+      {% if user.tenant.contact_phone %}<p class="mt-1 text-sm">{{ user.tenant.contact_phone }}</p>{% endif %}
+      {% if user.tenant.support_email %}<p class="mt-1 text-sm"><a href="mailto:{{ user.tenant.support_email }}">{{ user.tenant.support_email }}</a></p>{% endif %}
+      {% if user.tenant.website %}<p class="mt-1 text-sm"><a href="{{ user.tenant.website }}" target="_blank" rel="noopener noreferrer">{{ user.tenant.website }}</a></p>{% endif %}
+    </section>
   {% endif %}
 
   {% if onboarding_steps %}

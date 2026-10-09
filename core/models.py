@@ -7,11 +7,19 @@ from urllib.parse import parse_qs, urlsplit
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
+from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
 from django.db import transaction
 from django.db.models import Max, Q
 from django.utils import timezone
+
+
+def tenant_logo_upload_to(instance, filename):
+    return f'organization-logos/{uuid.uuid4().hex}{PurePath(filename).suffix.lower()}'
+
+
+def user_avatar_upload_to(instance, filename):
+    return f'profile-avatars/{uuid.uuid4().hex}{PurePath(filename).suffix.lower()}'
 
 
 class Tenant(models.Model):
@@ -20,16 +28,34 @@ class Tenant(models.Model):
         EXPIRED = 'expired', 'Expired'
         SUSPENDED = 'suspended', 'Suspended'
 
+    class SubscriptionStatus(models.TextChoices):
+        TRIAL = 'trial', 'Trial'
+        SUBSCRIBED = 'subscribed', 'Subscribed'
+
     name = models.CharField(max_length=255, unique=True)
     brand_color = models.CharField(
         max_length=7,
         default='#09090b',
         validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$', 'Enter a 6-digit hex color.')],
     )
+    address = models.TextField(blank=True)
+    contact_phone = models.CharField(max_length=40, blank=True)
+    support_email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+    logo = models.FileField(
+        upload_to=tenant_logo_upload_to,
+        blank=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif', 'webp'])],
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.ACTIVE,
+    )
+    subscription_status = models.CharField(
+        max_length=20,
+        choices=SubscriptionStatus.choices,
+        default=SubscriptionStatus.TRIAL,
     )
     trial_starts_at = models.DateTimeField(default=timezone.now)
     trial_ends_at = models.DateTimeField()
@@ -65,10 +91,15 @@ class Tenant(models.Model):
 
     def is_trial_expired(self, at_time=None):
         at_time = at_time or timezone.now()
-        return at_time >= self.trial_ends_at
+        return (
+            self.subscription_status == self.SubscriptionStatus.TRIAL
+            and at_time >= self.trial_ends_at
+        )
 
     def mark_expired(self, at_time=None):
         at_time = at_time or timezone.now()
+        if self.subscription_status != self.SubscriptionStatus.TRIAL:
+            return
         if self.status != self.Status.EXPIRED:
             self.status = self.Status.EXPIRED
             self.expired_at = at_time
@@ -76,11 +107,14 @@ class Tenant(models.Model):
 
     def reactivate(self, at_time=None):
         at_time = at_time or timezone.now()
+        self.subscription_status = self.SubscriptionStatus.TRIAL
         self.status = self.Status.ACTIVE
         self.trial_starts_at = at_time
         self.trial_ends_at = at_time + timedelta(days=getattr(settings, 'DEFAULT_TRIAL_DAYS', 14))
         self.expired_at = None
-        self.save(update_fields=['status', 'trial_starts_at', 'trial_ends_at', 'expired_at', 'updated_at'])
+        self.save(update_fields=[
+            'subscription_status', 'status', 'trial_starts_at', 'trial_ends_at', 'expired_at', 'updated_at'
+        ])
 
 
 class User(AbstractUser):
@@ -103,6 +137,11 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=30, choices=Role.choices, default=Role.TENANT_USER)
     must_change_password = models.BooleanField(default=True)
+    avatar = models.FileField(
+        upload_to=user_avatar_upload_to,
+        blank=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif', 'webp'])],
+    )
     tenant = models.ForeignKey(
         Tenant,
         null=True,

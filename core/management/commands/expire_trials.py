@@ -9,7 +9,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = timezone.now()
-        tenants = Tenant.objects.filter(status=Tenant.Status.ACTIVE, trial_ends_at__lte=now)
+        tenants = Tenant.objects.filter(
+            status=Tenant.Status.ACTIVE,
+            subscription_status=Tenant.SubscriptionStatus.TRIAL,
+            trial_ends_at__lte=now,
+        )
         count = 0
         for tenant in tenants:
             tenant.mark_expired(now)

@@ -15,6 +15,13 @@ LESSON_UPLOAD_TYPES = {
 }
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
 MAX_VIDEO_SIZE = 100 * 1024 * 1024
+IMAGE_MIME_TYPES = {
+    '.png': ('image/png', b'\x89PNG\r\n\x1a\n'),
+    '.jpg': ('image/jpeg', b'\xff\xd8\xff'),
+    '.jpeg': ('image/jpeg', b'\xff\xd8\xff'),
+    '.gif': ('image/gif', (b'GIF87a', b'GIF89a')),
+    '.webp': ('image/webp', b'RIFF'),
+}
 
 
 def classify_lesson_upload(upload):
@@ -28,3 +35,30 @@ def classify_lesson_upload(upload):
         limit_mb = max_size // (1024 * 1024)
         raise ValidationError(f'{upload.name} exceeds the {limit_mb} MB limit.')
     return kind, mime_type
+
+
+def validate_image_upload(upload):
+    extension = PurePath(upload.name).suffix.lower()
+    expected = IMAGE_MIME_TYPES.get(extension)
+    if expected is None:
+        raise ValidationError('Upload a PNG, JPEG, GIF, or WebP image.')
+    if upload.size > MAX_IMAGE_SIZE:
+        raise ValidationError('Images must be 10 MB or smaller.')
+
+    mime_type, signature = expected
+    header = upload.read(16)
+    upload.seek(0)
+    if extension == '.webp':
+        valid = len(header) >= 12 and header.startswith(b'RIFF') and header[8:12] == b'WEBP'
+    elif isinstance(signature, tuple):
+        valid = any(header.startswith(item) for item in signature)
+    else:
+        valid = header.startswith(signature)
+    if not valid:
+        raise ValidationError('Image contents do not match the file extension.')
+    return mime_type
+
+
+def image_mime_type(filename):
+    media = IMAGE_MIME_TYPES.get(PurePath(filename).suffix.lower())
+    return media[0] if media else None

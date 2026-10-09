@@ -272,6 +272,9 @@
 
             {% if user.is_authenticated %}
               <div class="hidden items-center gap-2 sm:flex">
+                {% if user.avatar %}
+                  <img src="{% url 'user-avatar' user.id %}" alt="{{ user.username }} profile image" class="h-7 w-7 border object-cover" style="border-color: hsl(var(--border));">
+                {% endif %}
                 <span class="badge badge-role">{{ user.get_role_display }}</span>
                 <span class="text-xs font-mono" style="color: hsl(var(--muted-foreground));">@{{ user.username }}</span>
               </div>

@@ -19,6 +19,7 @@
         <tr>
           <th>Colony Name</th>
           <th>Status</th>
+          <th>Plan</th>
           <th>Trial Expiry</th>
           <th>Created Date</th>
           <th class="text-right">Actions</th>
@@ -48,6 +49,7 @@
                 <span class="badge badge-suspended">{{ tenant.get_status_display }}</span>
               {% endif %}
             </td>
+            <td><span class="badge badge-role">{{ tenant.get_subscription_status_display }}</span></td>
             <td class="text-sm font-mono text-xs" style="color: hsl(var(--muted-foreground));">
               {{ tenant.trial_ends_at|date:"Y-m-d" }}
             </td>
@@ -60,6 +62,9 @@
                 {% if can_manage_tenant_content and tenant.id in mutable_tenant_ids %}
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-organization-settings' tenant.id %}">Organization</a>
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-bulk-student-add' tenant.id %}">Enroll</a>
+                {% endif %}
+                {% if can_reactivate_tenants %}
+                  <a class="btn btn-outline btn-sm" href="{% url 'tenant-subscription-settings' tenant.id %}">Subscription</a>
                 {% endif %}
                 {% if tenant.status == 'expired' %}
                   {% if can_reactivate_tenants %}
