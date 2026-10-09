@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en" class="h-full">
   <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Learnant — Colony-scale multi-tenant learning platform for institutes">
     <title>{% block title %}Learnant · Colony-Scale Learning{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/learnant-ant.svg' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -225,9 +227,9 @@
           <!-- Logo + Links -->
           <div class="flex items-center gap-6">
             <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="flex items-center gap-2.5 no-underline group" style="color: hsl(var(--foreground));">
-              <!-- Geometric Minimalist Ant Icon -->
+              <!-- Original Learnant Ant Emblem -->
               <div class="flex h-7 w-7 items-center justify-center border transition-colors group-hover:bg-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary-foreground))]" style="border-color: hsl(var(--border));">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <ellipse cx="12" cy="5" rx="2" ry="1.8"/>
                   <ellipse cx="12" cy="11" rx="1.8" ry="2.2"/>
                   <ellipse cx="12" cy="18" rx="2.5" ry="3"/>
@@ -314,7 +316,13 @@
     <footer class="border-t py-6 mt-12" style="border-color: hsl(var(--border));">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-4 text-xs sm:px-6" style="color: hsl(var(--muted-foreground));">
         <div class="flex items-center gap-2">
-          <span>🐜 Learnant</span>
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <ellipse cx="12" cy="5" rx="2" ry="1.8"/><ellipse cx="12" cy="11" rx="1.8" ry="2.2"/><ellipse cx="12" cy="18" rx="2.5" ry="3"/>
+              <path d="M10.5 3.5 8 1"/><path d="M13.5 3.5 16 1"/><path d="M9.5 10 5 8"/><path d="M14.5 10 19 8"/><path d="M9.5 12 4 13"/><path d="M14.5 12 20 13"/><path d="M10 15 5 19"/><path d="M14 15 19 19"/>
+            </svg>
+            Learnant
+          </span>
           <span>·</span>
           <span>Colony-scale multi-tenant learning architecture</span>
         </div>

@@ -37,6 +37,9 @@ class WebFlowTests(TestCase):
         self.assertContains(response, reverse('signup'))
         self.assertContains(response, 'Sign up your organization here')
         self.assertContains(response, 'Seeded demo accounts')
+        self.assertContains(response, '<link rel="icon" type="image/svg+xml"')
+        self.assertGreaterEqual(response.content.count(b'<svg'), 2)
+        self.assertNotContains(response, '🐜 Learnant')
 
     def test_authenticated_home_redirects_to_dashboard(self):
         self.client.login(username='learner', password='password123')
