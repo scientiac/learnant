@@ -8,7 +8,7 @@
 
 - **Overall status:** Lesson list/create flow verified with course-scoped tenant isolation and expired-tenant write blocking
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** ee4bf9a Record course creation checkpoint
+- **Last verified commit:** 945711a Add tenant lesson management
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 43 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous lesson-list redirect, and anonymous lesson-create redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -98,7 +98,7 @@ Expected actions:
 - **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0004_lesson.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/lesson_form.html`, `core/management/commands/seed_demo.py`, `core/test_lessons.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver lesson smoke script; `git diff --check`.
 - **Test results:** Migration created and applied; check passed with 0 issues; 43 tests passed; demo data seeded locally; runserver lesson smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 945711a Add tenant lesson management.
 
 Update this section after completing the first task.
 
@@ -134,7 +134,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0004_lesson.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/lesson_form.html`, `core/management/commands/seed_demo.py`, `core/test_lessons.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver lesson smoke script; `git diff --check`.
 - **Actual results:** Migration created and applied; check passed with 0 issues; 43 tests passed; demo data seeded locally; runserver lesson smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 945711a Add tenant lesson management.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; assignment/progress flows not implemented yet.
 - **Next single task:** Add course assignment model and tenant-admin assignment flow with same-tenant validation.
