@@ -41,6 +41,7 @@ class WebFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Demo Institute')
         self.assertContains(response, 'Tenant User')
+        self.assertContains(response, 'Open courses')
 
     def test_super_viewer_dashboard_is_read_only(self):
         self.client.login(username='viewer', password='password123')
@@ -50,6 +51,7 @@ class WebFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Platform overview')
         self.assertContains(response, 'Platform management: read-only')
+        self.assertContains(response, 'View tenants')
 
     def test_health_check_stays_public(self):
         response = self.client.get(reverse('health-check'))

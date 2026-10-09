@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Phases 2, 3, and 4 verified with authorization and tenant-isolation regression tests
-- **Current phase:** Phase 7 — Minimal usable UI / workflow polish
+- **Overall status:** Phase 7 minimal usable workflows verified
+- **Current phase:** Phase 8 — Verification and security review
 - **Last verified commit:** abf770d Verify authorization and tenant isolation phases
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 86 tests
-- **Application starts locally:** Verified with runserver smoke check for `/health/` and anonymous tenant-list redirect
+- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, and protected workflow redirects
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Add minimal workflow polish/demo guidance, then run verification review.
+- **Next task:** Run Phase 8 verification/security review and add any regression tests for findings.
 
 ## 2. Project Decisions
 
@@ -67,7 +67,7 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 - [x] Phase 4 — Courses, lessons, and assignments
 - [x] Phase 5 — Learning progress
 - [x] Phase 6 — Trial expiration and reactivation
-- [ ] Phase 7 — Minimal usable UI
+- [x] Phase 7 — Minimal usable UI
 - [ ] Phase 8 — Verification and security review
 - [ ] Phase 9 — Documentation and submission
 
@@ -77,30 +77,31 @@ Notes:
 - Phase 4 is checked because course/lesson list/create/update/delete basics, assignment create/revoke, same-tenant validation, expired-tenant write blocking, and regression tests are verified.
 - Phase 5 is checked because learner progress ownership, tenant-admin progress visibility, expired-tenant read-only behavior, and progress tests are verified.
 - Phase 6 is checked because request-time write blocking, idempotent expiration command, data preservation, and Super Admin-only reactivation are verified.
+- Phase 7 is checked because main demo workflows have simple navigation/instructions, backend permissions remain enforced by tests, and smoke checks pass.
 
 ## 6. Current Task
 
-**Task:** Minimal usable UI / workflow polish.
+**Task:** Verification and security review.
 
 Expected actions:
-- Keep UI simple and functional, not polished.
-- Ensure demo workflows are clear from README.
-- Add small navigation/help improvements only where they support testing the app.
-- Run checks, tests, demo seed, and smoke checks.
+- Run the complete test suite and Django checks.
+- Review authentication, authorization, and every tenant-owned endpoint.
+- Test cross-tenant ID manipulation, role escalation, assignment consistency, expiration boundaries, and repeated expiration processing.
+- Fix findings and add regression tests.
+- Review diff/status for unrelated changes.
 
 **Acceptance criteria:**
-- Main workflows can be demonstrated in a browser.
-- UI does not substitute for backend permission checks.
-- Demo instructions are clear.
-- Tests and smoke checks pass.
+- All tests pass or failures are documented accurately.
+- No known critical tenant-isolation flaw remains.
+- Changed code and permission decisions are understandable.
 
 ## 7. Last Completed Task
 
-- **Task:** Added final Phase 2/3 authorization and tenant-isolation regression tests after completing Phase 4 mutation/revocation permissions.
-- **Files changed:** `core/test_phase_auth_isolation.py`, `CHECKPOINTS.md` plus Phase 4 mutation files from previous task.
-- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
-- **Test results:** Check passed with 0 issues; 86 tests passed.
-- **Commit:** abf770d Verify authorization and tenant isolation phases.
+- **Task:** Added minimal role-aware navigation and README demo workflow guidance for browser demonstration.
+- **Files changed:** `core/templates/base.html`, `core/templates/core/dashboard.html`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver Phase 7 smoke script.
+- **Test results:** Check passed with 0 issues; 86 tests passed; demo data seeded locally; runserver Phase 7 smoke passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -131,11 +132,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Completed Phase 2/3 final authorization and tenant-isolation review tests.
-- **Files changed:** `core/test_phase_auth_isolation.py`, `CHECKPOINTS.md` plus Phase 4 mutation files from previous task.
-- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`.
-- **Actual results:** Check passed with 0 issues; 86 tests passed.
-- **Commit:** abf770d Verify authorization and tenant isolation phases.
-- **Current phase:** Phase 7 — Minimal usable UI / workflow polish.
-- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 7/8/9 remain.
-- **Next single task:** Add minimal workflow polish/demo guidance, then run verification review.
+- **Task completed:** Added minimal usable workflow navigation and demo guidance.
+- **Files changed:** `core/templates/base.html`, `core/templates/core/dashboard.html`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver Phase 7 smoke script.
+- **Actual results:** Check passed with 0 issues; 86 tests passed; demo data seeded locally; runserver Phase 7 smoke passed.
+- **Commit:** Pending.
+- **Current phase:** Phase 8 — Verification and security review.
+- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 8/9 remain.
+- **Next single task:** Run Phase 8 verification/security review and add any regression tests for findings.

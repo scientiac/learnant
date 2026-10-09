@@ -17,7 +17,10 @@
               <li>Platform management: {% if can_manage_platform %}enabled{% else %}read-only{% endif %}</li>
               <li>Tenant reactivation: {% if can_reactivate_tenant %}enabled{% else %}not allowed{% endif %}</li>
             </ul>
-            <p class="mt-4"><a href="{% url 'tenant-list' %}">View tenants</a></p>
+            <div class="mt-4 space-x-3">
+              <a href="{% url 'tenant-list' %}">View tenants</a>
+              <a href="{% url 'course-list' %}">View courses</a>
+            </div>
           {% elif user.tenant %}
             <h2 class="text-lg font-medium">{{ user.tenant.name }}</h2>
             <p>Tenant status: <strong>{{ user.tenant.get_status_display }}</strong></p>
@@ -30,6 +33,9 @@
               <li>Users in your tenant: {{ tenant_user_count }}</li>
               <li>Role: {{ user.get_role_display }}</li>
             </ul>
+            <div class="mt-4">
+              <a href="{% url 'course-list' %}">Open courses</a>
+            </div>
           {% else %}
             <div class="rounded-md border border-red-200 bg-red-50 p-3 text-red-900">Your account has no valid tenant assignment.</div>
           {% endif %}

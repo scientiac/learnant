@@ -30,6 +30,16 @@ The health check is available at `http://127.0.0.1:8000/health/`.
 
 After running `seed_demo`, log in as `tenantadmin` and open `http://127.0.0.1:8000/courses/` to see the sample course list. Tenant admins with an active tenant can create courses, lessons, assign tenant learners, and view progress. The seeded `learner` account is assigned to the sample course and can mark lessons complete.
 
+## Demo workflow
+
+1. Log in as `tenantadmin` and open **Courses**.
+2. Create or edit a course, open its lessons, add/edit lessons, then open assignments and assign `learner`.
+3. Log out and log in as `learner`; open **Courses**, open the assigned course lessons, and mark a lesson complete.
+4. Log out and log in as `tenantadmin`; open the course progress page to see learner progress.
+5. Log out and log in as `superadmin`; open **Tenants** to view/reactivate expired tenants.
+
+The UI is intentionally plain. Backend tests enforce the permissions; hidden links are not relied on for security.
+
 Trial expiration can be processed with:
 
 ```bash
