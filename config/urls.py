@@ -35,6 +35,8 @@ from core.views import (
     lesson_list,
     lesson_mark_complete,
     lesson_update,
+    organization_settings,
+    profile_settings,
     progress_list,
     signup,
     tenant_list,
@@ -63,6 +65,8 @@ urlpatterns = [
     path('courses/<int:course_id>/progress/', progress_list, name='progress-list'),
     path('tenants/', tenant_list, name='tenant-list'),
     path('tenants/<int:tenant_id>/reactivate/', tenant_reactivate, name='tenant-reactivate'),
+    path('settings/organization/', organization_settings, name='organization-settings'),
+    path('settings/profile/', profile_settings, name='profile-settings'),
     path(
         'courses/<int:course_id>/lessons/<int:lesson_id>/complete/',
         lesson_mark_complete,

@@ -16,6 +16,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Trial Lifecycle & Expiration:** 14-day default free trial with request-time boundary checks, idempotent scheduled expiration command (`python manage.py expire_trials`), read-only preservation of tenant data upon expiry, and Super Admin reactivation.
 - **Modern UI:** shadcn/ui-inspired responsive interface built with Django templates, Tailwind CSS, and Inter typography.
 - **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
+- **Organization & Profile Settings:** Active Tenant Admins can update their own organization name/brand color; signed-in users can update their own display name and email.
 
 ---
 
@@ -89,11 +90,15 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 3. Log in as `superadmin` and navigate to **Tenants** (`/tenants/`).
 4. Click **Reactivate** next to an expired tenant to restore active status with a new 14-day trial window.
 
+### Workflow E: Organization & Profile Settings
+1. As an active `tenantadmin`, use **Organization** to update the institute name and brand color.
+2. Any signed-in user can open **Profile** to update their own first name, last name, and email. Role and tenant membership are not editable there.
+
 ---
 
 ## 5. Testing & Verification
 
-Run the full automated test suite (91 tests):
+Run the full automated test suite (102 tests):
 
 ```bash
 python manage.py test

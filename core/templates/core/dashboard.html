@@ -124,6 +124,10 @@
       <i data-lucide="book-open" class="h-4 w-4"></i>
       Open courses
     </a>
+    {% if user.role == 'tenant_admin' %}
+      <a href="{% url 'organization-settings' %}" class="btn btn-outline">Organization settings</a>
+    {% endif %}
+    <a href="{% url 'profile-settings' %}" class="btn btn-outline">Profile settings</a>
   </div>
 
 {% else %}

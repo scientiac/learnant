@@ -146,3 +146,26 @@ class TenantSignupForm(forms.Form):
                 tenant=tenant,
             )
         return user
+
+
+class TenantSettingsForm(forms.ModelForm):
+    class Meta:
+        model = Tenant
+        fields = ['name', 'brand_color']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input'}),
+            'brand_color': forms.TextInput(
+                attrs={'class': 'form-input', 'type': 'color', 'aria-label': 'Organization brand color'}
+            ),
+        }
+
+
+class ProfileSettingsForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'given-name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'family-name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
+        }

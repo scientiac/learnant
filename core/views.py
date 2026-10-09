@@ -2,7 +2,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import CourseAssignmentForm, CourseForm, LessonForm, TenantSignupForm
+from .forms import (
+    CourseAssignmentForm,
+    CourseForm,
+    LessonForm,
+    ProfileSettingsForm,
+    TenantSettingsForm,
+    TenantSignupForm,
+)
 from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
@@ -109,6 +116,40 @@ def tenant_reactivate(request, tenant_id):
     tenant = get_object_or_404(Tenant, id=tenant_id)
     tenant.reactivate()
     return redirect('tenant-list')
+
+
+@login_required
+def organization_settings(request):
+    user = request.user
+    if not is_tenant_admin(user) or not user.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can manage organization settings.')
+    if not can_mutate_tenant_data(user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    if request.method == 'POST':
+        form = TenantSettingsForm(request.POST, instance=user.tenant)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+    else:
+        form = TenantSettingsForm(instance=user.tenant)
+    return render(request, 'core/organization_settings.html', {'form': form})
+
+
+@login_required
+def profile_settings(request):
+    user = request.user
+    if user.role in User.TENANT_ROLES and not can_mutate_tenant_data(user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    if request.method == 'POST':
+        form = ProfileSettingsForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+    else:
+        form = ProfileSettingsForm(instance=user)
+    return render(request, 'core/profile_settings.html', {'form': form})
 
 
 @login_required

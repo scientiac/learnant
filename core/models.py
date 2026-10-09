@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -15,6 +16,11 @@ class Tenant(models.Model):
         SUSPENDED = 'suspended', 'Suspended'
 
     name = models.CharField(max_length=255, unique=True)
+    brand_color = models.CharField(
+        max_length=7,
+        default='#09090b',
+        validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$', 'Enter a 6-digit hex color.')],
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
