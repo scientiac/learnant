@@ -5,11 +5,11 @@
 {% block content %}
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
   <div>
-    <h1 class="text-2xl font-semibold tracking-tight">Courses</h1>
-    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Courses visible to your role and organisation.</p>
+    <h1 class="text-2xl font-semibold tracking-tight">{% if tenant_filter %}Courses · {{ tenant_filter.name }}{% else %}Courses{% endif %}</h1>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Courses visible to your role and organization.</p>
   </div>
   {% if can_create_courses %}
-    <a class="btn btn-primary" href="{% url 'course-create' %}" id="create-course-btn">
+    <a class="btn btn-primary" href="{% url 'course-create' %}{% if tenant_filter %}?tenant_id={{ tenant_filter.id }}{% endif %}" id="create-course-btn">
       <i data-lucide="plus" class="h-4 w-4"></i>
       New course
     </a>
@@ -34,7 +34,7 @@
             <i data-lucide="book-open" class="h-3 w-3"></i>
             Lessons
           </a>
-          {% if user.role == 'tenant_admin' %}
+          {% if course.id in manageable_course_ids %}
             <a class="btn btn-secondary btn-sm" href="{% url 'assignment-list' course.id %}">Assignments</a>
             <a class="btn btn-secondary btn-sm" href="{% url 'progress-list' course.id %}">Progress</a>
             <a class="btn btn-ghost btn-sm" href="{% url 'course-update' course.id %}">Edit</a>
@@ -55,7 +55,7 @@
       {% endif %}
     </p>
     {% if can_create_courses %}
-      <a class="btn btn-primary mt-4" href="{% url 'course-create' %}">
+      <a class="btn btn-primary mt-4" href="{% url 'course-create' %}{% if tenant_filter %}?tenant_id={{ tenant_filter.id }}{% endif %}">
         <i data-lucide="plus" class="h-4 w-4"></i>
         New course
       </a>

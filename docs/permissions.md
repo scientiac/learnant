@@ -6,9 +6,9 @@ This document records the initial backend authorization policy. UI visibility mu
 
 | Role | Scope | Policy |
 | --- | --- | --- |
-| Super Admin | Platform-wide | Full platform administration, including tenant creation, tenant management, role management, and tenant reactivation. |
-| Admin | Platform-wide | Administrative platform user with a defined subset of Super Admin permissions. Initial implementation: may create and view tenants and manage normal tenant accounts, but may not grant Super Admin privileges, delete tenants, or reactivate expired tenants unless explicitly added later. |
-| Super Viewer | Platform-wide | Read-only user. May view explicitly permitted platform information and must not create, update, delete, reactivate, or assign records. |
+| Super Admin | Platform-wide | Highest privilege. Inherits platform Admin and Tenant Admin management actions across active tenants: create/update/delete courses and lessons, assign/revoke learners, onboard learners, manage organization settings, view progress, and exclusively reactivate expired tenants. |
+| Admin | Platform-wide | Inherits Tenant Admin management actions across active tenants: create/update/delete courses and lessons, assign/revoke learners, onboard learners, manage organization settings, and view progress. Cannot grant Super Admin privileges, delete platform tenants, or reactivate expired tenants. |
+| Super Viewer | Platform-wide | Read-only visibility across tenants, courses, lessons, assignments, and progress. Cannot create, update, delete, assign, enroll, or reactivate. |
 
 ## Tenant roles
 
@@ -16,6 +16,12 @@ This document records the initial backend authorization policy. UI visibility mu
 | --- | --- | --- |
 | Tenant Admin | Own tenant only | Manages users, courses, lessons, assignments, and progress inside their tenant while the tenant is active. |
 | Tenant User | Own tenant only | Views assigned courses/lessons and updates their own progress while the tenant is active. |
+
+## Permission inheritance
+
+Platform Admin and Super Admin can perform tenant-admin management operations for a selected tenant from the platform tenant directory or global course directory. The target tenant is resolved server-side from a validated URL/form selection. Tenant Admins remain scoped to their authenticated tenant. Super Viewer can inspect the same platform content but receives no mutation controls or permissions. Platform roles do not impersonate learners or create learner progress on a learner's behalf; learners alone mark their own assigned lessons complete.
+
+All tenant-scoped writes—including writes by platform staff—are blocked when the target tenant is expired or its trial boundary has passed.
 
 ## Expired tenant policy
 

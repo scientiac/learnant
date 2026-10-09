@@ -67,12 +67,12 @@ The application provides tailored experiences based on **who is logged in**. Use
 ### 1. Platform Super Admin
 - **Who they are:** The SaaS system owner / platform executive.
 - **Their goal:** Oversee the entire ecosystem, observe system health, and reactivate accounts when organizations renew.
-- **Permissions:** Full platform visibility across all institutes; exclusive ability to reactivate expired institute trials.
+- **Permissions:** Highest role. Inherits platform Admin and Tenant Admin management actions across active institutes: course/lesson CRUD, assignments, learner onboarding, organization settings, and progress visibility; also has platform administration and exclusive ability to reactivate expired institute trials.
 
 ### 2. Platform Admin
 - **Who they are:** Platform operations and customer success staff.
 - **Their goal:** Monitor institute status and assist with onboarding.
-- **Permissions:** View platform statistics, view institute lists, and create new institutes; cannot delete institutes or reactivate expired trials.
+- **Permissions:** Inherits Tenant Admin content and learner-onboarding operations across active institutes, and can view/manage platform tenant operations. Cannot grant Super Admin privileges, delete institutes, or reactivate expired trials.
 
 ### 3. Super Viewer
 - **Who they are:** Auditors, investors, compliance officers, or read-only support staff.
@@ -556,7 +556,7 @@ When engineering leaders and hiring supervisors evaluate a Full-Stack take-home 
   python manage.py runserver
   ```
 
-### 4. Comprehensive Test Coverage (91 Passing Tests)
+### 4. Comprehensive Test Coverage (127 Passing Tests)
 - Features are backed by automated tests across every layer:
   - Role permissions (`test_permissions.py`)
   - Cross-tenant ID manipulation & IDOR (`test_phase_auth_isolation.py`)
@@ -566,4 +566,3 @@ When engineering leaders and hiring supervisors evaluate a Full-Stack take-home 
   - Authentication, self-signup, and web navigation (`test_web.py`)
 
 This demonstrates to hiring managers that the developer writes **defensive, maintainable, production-ready software that solves real business problems**.
-

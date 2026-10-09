@@ -8,8 +8,8 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 
 - **Multi-Tenancy & Data Isolation:** Strict server-side scoping where tenant context is derived exclusively from authenticated user sessions. Cross-tenant ID manipulation is prevented via database constraints and 404/403 protections.
 - **5-Tier Role-Based Access Control (RBAC):**
-  - **Super Admin:** Full platform-level management & tenant reactivation.
-  - **Admin:** Platform-level tenant creation and management subset.
+  - **Super Admin:** Platform control plus tenant-admin course, lesson, assignment, enrollment, and organization operations across active tenants; exclusive tenant reactivation.
+  - **Admin:** The same tenant learning operations across active tenants, but no Super Admin grants, tenant deletion, or trial reactivation.
   - **Super Viewer:** Read-only platform-wide overview.
   - **Tenant Admin:** Manages courses, lessons, assignments, and learner progress for their institute.
   - **Tenant User:** Learner accessing assigned courses, completing lessons, and tracking progress.
@@ -51,8 +51,8 @@ All demo accounts are created with password: `password123`.
 
 | Username | Role | Scope | Key Capabilities |
 |---|---|---|---|
-| `superadmin` | Super Admin | Platform | View all tenants/courses; reactivate expired trials. |
-| `admin` | Admin | Platform | View and create platform tenants. |
+| `superadmin` | Super Admin | Platform | Manage active tenant learning data; reactivate expired trials. |
+| `admin` | Admin | Platform | Manage active tenant learning data; cannot reactivate trials. |
 | `viewer` | Super Viewer | Platform | Read-only visibility across platform data. |
 | `tenant_admin` | Tenant Admin | Demo Institute | Create/edit courses & lessons, enroll learners, view progress. |
 | `institute_admin` | Tenant Admin (compatibility login) | Demo Institute | Same demo role and scope as `tenant_admin`. |
@@ -92,6 +92,11 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 3. Log in as `superadmin` and navigate to **Tenants** (`/tenants/`).
 4. Click **Reactivate** next to an expired tenant to restore active status with a new 14-day trial window.
 
+### Workflow G: Platform Tenant Administration
+1. Log in as `admin` or `superadmin` and open **Tenants**.
+2. Select **Courses**, **Organization**, or **Enroll** on an active institute to administer that tenant's learning workspace.
+3. Super Admin can additionally reactivate expired institutes. Super Viewer can open tenant courses but has no management actions.
+
 ### Workflow E: Organization & Profile Settings
 1. As an active `tenant_admin`, use **Organization** to update the institute name and brand color.
 2. Any signed-in user can open **Profile** to update their own first name, last name, and email. Role and tenant membership are not editable there.
@@ -107,7 +112,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (116 tests):
+Run the full automated test suite (127 tests):
 
 ```bash
 python manage.py test

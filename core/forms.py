@@ -8,9 +8,15 @@ from .models import Course, CourseAssignment, Lesson, Tenant, User
 
 
 class CourseForm(forms.ModelForm):
+    tenant = forms.ModelChoiceField(
+        queryset=Tenant.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-input'}),
+        required=False,
+    )
+
     class Meta:
         model = Course
-        fields = ['title', 'description']
+        fields = ['title', 'description', 'tenant']
         widgets = {
             'title': forms.TextInput(
                 attrs={
@@ -26,6 +32,19 @@ class CourseForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, platform_tenant_management=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        if platform_tenant_management:
+            from django.utils import timezone
+
+            self.fields['tenant'].queryset = Tenant.objects.filter(
+                status=Tenant.Status.ACTIVE,
+                trial_ends_at__gt=timezone.now(),
+            )
+            self.fields['tenant'].required = True
+        else:
+            self.fields.pop('tenant')
 
 
 class LessonForm(forms.ModelForm):

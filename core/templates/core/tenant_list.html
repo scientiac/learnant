@@ -21,7 +21,7 @@
           <th>Status</th>
           <th>Trial Expiry</th>
           <th>Created Date</th>
-          {% if can_reactivate_tenants %}<th class="text-right">Actions</th>{% endif %}
+          <th class="text-right">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -54,9 +54,15 @@
             <td class="text-sm font-mono text-xs" style="color: hsl(var(--muted-foreground));">
               {{ tenant.created_at|date:"Y-m-d" }}
             </td>
-            {% if can_reactivate_tenants %}
-              <td class="text-right">
+            <td class="text-right">
+              <div class="flex justify-end gap-2">
+                <a class="btn btn-outline btn-sm" href="{% url 'tenant-course-list' tenant.id %}">Courses</a>
+                {% if can_manage_tenant_content and tenant.id in mutable_tenant_ids %}
+                  <a class="btn btn-outline btn-sm" href="{% url 'tenant-organization-settings' tenant.id %}">Organization</a>
+                  <a class="btn btn-outline btn-sm" href="{% url 'tenant-bulk-student-add' tenant.id %}">Enroll</a>
+                {% endif %}
                 {% if tenant.status == 'expired' %}
+                  {% if can_reactivate_tenants %}
                   <form method="post" action="{% url 'tenant-reactivate' tenant.id %}" class="inline" id="reactivate-{{ tenant.id }}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-secondary btn-sm">
@@ -64,11 +70,10 @@
                       Reactivate
                     </button>
                   </form>
-                {% else %}
-                  <span class="text-xs" style="color: hsl(var(--muted-foreground));">—</span>
+                  {% endif %}
                 {% endif %}
-              </td>
-            {% endif %}
+              </div>
+            </td>
           </tr>
         {% endfor %}
       </tbody>

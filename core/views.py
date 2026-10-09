@@ -5,6 +5,7 @@ from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
 from .forms import (
@@ -20,10 +21,13 @@ from .forms import (
 from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
+    can_manage_tenant,
+    can_manage_tenant_learning,
     can_mutate_tenant_data,
     can_read_platform,
     can_reactivate_tenant,
     is_platform_user,
+    is_platform_admin,
     is_tenant_admin,
     is_tenant_user,
 )
@@ -178,18 +182,43 @@ def course_assistant_preview(request):
 
 
 @login_required
-def course_list(request):
+def course_list(request, tenant_id=None):
     user = request.user
     visible_courses = visible_courses_for_user(user)
+    tenant_filter = None
+    selected_tenant_id = tenant_id or (
+        request.GET.get('tenant_id') if is_platform_user(user) else None
+    )
+    if tenant_id is not None and not is_platform_user(user):
+        return HttpResponseForbidden('Only platform users can select an organization.')
+    if selected_tenant_id:
+        tenant_filter = get_object_or_404(Tenant, id=selected_tenant_id)
+        visible_courses = visible_courses.filter(tenant=tenant_filter)
+    manageable_course_ids = [
+        course.id
+        for course in visible_courses
+        if can_manage_tenant_learning(user, course.tenant)
+    ]
+    if tenant_filter is not None:
+        can_create_courses = can_manage_tenant_learning(user, tenant_filter)
+    else:
+        can_create_courses = bool(
+            is_tenant_admin(user) and can_mutate_tenant_data(user)
+            or is_platform_admin(user)
+            and Tenant.objects.filter(
+                status=Tenant.Status.ACTIVE,
+                trial_ends_at__gt=timezone.now(),
+            ).exists()
+        )
 
     return render(
         request,
         'core/course_list.html',
         {
             'courses': visible_courses,
-            'can_create_courses': user.role == User.Role.TENANT_ADMIN
-            and user.tenant
-            and can_mutate_tenant_data(user),
+            'can_create_courses': can_create_courses,
+            'manageable_course_ids': manageable_course_ids,
+            'tenant_filter': tenant_filter,
         },
     )
 
@@ -199,10 +228,18 @@ def tenant_list(request):
     if not is_platform_user(request.user):
         return HttpResponseForbidden('Only platform users can view tenants.')
     tenants = Tenant.objects.all()
+    mutable_tenant_ids = [
+        tenant.id for tenant in tenants if can_mutate_tenant_data(request.user, tenant)
+    ]
     return render(
         request,
         'core/tenant_list.html',
-        {'tenants': tenants, 'can_reactivate_tenants': can_reactivate_tenant(request.user)},
+        {
+            'tenants': tenants,
+            'can_reactivate_tenants': can_reactivate_tenant(request.user),
+            'can_manage_tenant_content': is_platform_admin(request.user),
+            'mutable_tenant_ids': mutable_tenant_ids,
+        },
     )
 
 
@@ -218,20 +255,28 @@ def tenant_reactivate(request, tenant_id):
 
 
 @login_required
-def organization_settings(request):
+def organization_settings(request, tenant_id=None):
     user = request.user
-    if not is_tenant_admin(user) or not user.tenant_id:
+    if tenant_id is not None:
+        if not is_platform_admin(user):
+            return HttpResponseForbidden('Only platform admins can select an organization.')
+        tenant = get_object_or_404(Tenant, id=tenant_id)
+    elif is_tenant_admin(user) and user.tenant_id:
+        tenant = user.tenant
+    else:
         return HttpResponseForbidden('Only tenant admins can manage organization settings.')
-    if not can_mutate_tenant_data(user):
+    if not can_manage_tenant(user, tenant):
+        return HttpResponseForbidden('You cannot manage this organization.')
+    if not can_mutate_tenant_data(user, tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = TenantSettingsForm(request.POST, instance=user.tenant)
+        form = TenantSettingsForm(request.POST, instance=tenant)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')
+            return redirect('tenant-list' if tenant_id else 'dashboard')
     else:
-        form = TenantSettingsForm(instance=user.tenant)
+        form = TenantSettingsForm(instance=tenant)
     return render(request, 'core/organization_settings.html', {'form': form})
 
 
@@ -253,16 +298,24 @@ def profile_settings(request):
 
 @login_required
 @never_cache
-def bulk_student_add(request):
+def bulk_student_add(request, tenant_id=None):
     user = request.user
-    if not is_tenant_admin(user) or not user.tenant_id:
+    if tenant_id is not None:
+        if not is_platform_admin(user):
+            return HttpResponseForbidden('Only platform admins can select an organization.')
+        tenant = get_object_or_404(Tenant, id=tenant_id)
+    elif is_tenant_admin(user) and user.tenant_id:
+        tenant = user.tenant
+    else:
         return HttpResponseForbidden('Only tenant admins can onboard students.')
-    if not can_mutate_tenant_data(user):
+    if not can_manage_tenant(user, tenant):
+        return HttpResponseForbidden('You cannot onboard learners for this organization.')
+    if not can_mutate_tenant_data(user, tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
     created_students = []
     if request.method == 'POST':
-        form = BulkStudentOnboardingForm(request.POST, tenant=user.tenant)
+        form = BulkStudentOnboardingForm(request.POST, tenant=tenant)
         if form.is_valid():
             with transaction.atomic():
                 for student_data in form.cleaned_data['students']:
@@ -272,13 +325,13 @@ def bulk_student_add(request):
                         email=student_data['email'],
                         password=initial_password,
                         role=User.Role.TENANT_USER,
-                        tenant=user.tenant,
+                        tenant=tenant,
                     )
                     created_students.append(
                         {'username': student.username, 'email': student.email, 'password': initial_password}
                     )
     else:
-        form = BulkStudentOnboardingForm(tenant=user.tenant)
+        form = BulkStudentOnboardingForm(tenant=tenant)
 
     return render(
         request,
@@ -290,21 +343,28 @@ def bulk_student_add(request):
 @login_required
 def course_create(request):
     user = request.user
-    if not is_tenant_admin(user):
-        return HttpResponseForbidden('Only tenant admins can create courses.')
-    if not can_mutate_tenant_data(user):
+    platform_manager = is_platform_admin(user)
+    if not platform_manager and not is_tenant_admin(user):
+        return HttpResponseForbidden('Only tenant admins and platform admins can create courses.')
+    if not platform_manager and not can_mutate_tenant_data(user):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseForm(request.POST, platform_tenant_management=platform_manager)
         if form.is_valid():
             course = form.save(commit=False)
-            course.tenant = user.tenant
+            course.tenant = form.cleaned_data['tenant'] if platform_manager else user.tenant
             course.creator = user
+            if not can_mutate_tenant_data(user, course.tenant):
+                return HttpResponseForbidden('This tenant is read-only.')
             course.save()
             return redirect('course-list')
     else:
-        form = CourseForm()
+        form = CourseForm(platform_tenant_management=platform_manager)
+        selected_tenant_id = request.GET.get('tenant_id') if platform_manager else None
+        if selected_tenant_id:
+            if form.fields['tenant'].queryset.filter(id=selected_tenant_id).exists():
+                form.fields['tenant'].initial = selected_tenant_id
 
     return render(request, 'core/course_form.html', {'form': form})
 
@@ -312,9 +372,9 @@ def course_create(request):
 @login_required
 def course_update(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can update their own courses.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot manage this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
@@ -334,9 +394,9 @@ def course_update(request, course_id):
 @login_required
 def course_delete(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can delete their own courses.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot manage this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
     if request.method != 'POST':
         return render(request, 'core/confirm_delete.html', {'object': course, 'cancel_url': 'course-list'})
@@ -379,12 +439,9 @@ def lesson_list(request, course_id):
             'course': course,
             'lesson_items': lesson_items,
             'assignment': assignment,
-            'can_create_lessons': request.user.role == User.Role.TENANT_ADMIN
-            and request.user.tenant_id == course.tenant_id
-            and can_mutate_tenant_data(request.user),
-            'can_update_progress': bool(
-                assignment and course.tenant.status == Tenant.Status.ACTIVE
-            ),
+            'can_manage_course': can_manage_tenant(request.user, course.tenant),
+            'can_create_lessons': can_manage_tenant_learning(request.user, course.tenant),
+            'can_update_progress': bool(assignment and can_mutate_tenant_data(request.user)),
         },
     )
 
@@ -392,9 +449,9 @@ def lesson_list(request, course_id):
 @login_required
 def lesson_create(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can create lessons for their own courses.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot manage lessons for this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
@@ -414,9 +471,9 @@ def lesson_create(request, course_id):
 def lesson_update(request, course_id, lesson_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can update lessons for their own courses.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot manage lessons for this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
@@ -436,9 +493,9 @@ def lesson_update(request, course_id, lesson_id):
 def lesson_delete(request, course_id, lesson_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can delete lessons for their own courses.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot manage lessons for this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
     if request.method != 'POST':
         return render(
@@ -454,8 +511,8 @@ def lesson_delete(request, course_id, lesson_id):
 @login_required
 def assignment_list(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can view course assignments.')
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot manage assignments for this tenant course.')
     assignments = CourseAssignment.objects.select_related('learner').filter(course=course)
     return render(
         request,
@@ -463,7 +520,7 @@ def assignment_list(request, course_id):
         {
             'course': course,
             'assignments': assignments,
-            'can_create_assignments': can_mutate_tenant_data(request.user),
+            'can_create_assignments': can_manage_tenant_learning(request.user, course.tenant),
         },
     )
 
@@ -471,21 +528,21 @@ def assignment_list(request, course_id):
 @login_required
 def assignment_create(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can assign their own courses.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot assign learners to this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = CourseAssignmentForm(request.POST, tenant=request.user.tenant)
+        form = CourseAssignmentForm(request.POST, tenant=course.tenant)
         if form.is_valid():
             assignment = form.save(commit=False)
-            assignment.tenant = request.user.tenant
+            assignment.tenant = course.tenant
             assignment.course = course
             assignment.save()
             return redirect('assignment-list', course_id=course.id)
     else:
-        form = CourseAssignmentForm(tenant=request.user.tenant)
+        form = CourseAssignmentForm(tenant=course.tenant)
 
     return render(request, 'core/assignment_form.html', {'course': course, 'form': form})
 
@@ -493,11 +550,11 @@ def assignment_create(request, course_id):
 @login_required
 def assignment_delete(request, course_id, assignment_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can revoke their own course assignments.')
-    if not can_mutate_tenant_data(request.user):
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot revoke assignments for this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
         return HttpResponseForbidden('This tenant is read-only.')
-    assignment = get_object_or_404(CourseAssignment, id=assignment_id, course=course, tenant=request.user.tenant)
+    assignment = get_object_or_404(CourseAssignment, id=assignment_id, course=course, tenant=course.tenant)
     if request.method != 'POST':
         return render(
             request,
@@ -529,8 +586,8 @@ def lesson_mark_complete(request, course_id, lesson_id):
 @login_required
 def progress_list(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
-    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
-        return HttpResponseForbidden('Only tenant admins can view course progress.')
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot view progress for this tenant course.')
     assignments = CourseAssignment.objects.select_related('learner').filter(course=course)
     progress_records = LessonProgress.objects.select_related('assignment__learner', 'lesson').filter(
         assignment__course=course

@@ -26,6 +26,11 @@ def is_admin(user):
     return bool(user and user.is_authenticated and user.role == User.Role.ADMIN)
 
 
+def is_platform_admin(user):
+    """Platform staff who can administer tenant learning content."""
+    return is_super_admin(user) or is_admin(user)
+
+
 def is_super_viewer(user):
     return bool(user and user.is_authenticated and user.role == User.Role.SUPER_VIEWER)
 
@@ -50,12 +55,32 @@ def can_read_platform(user):
     return is_platform_user(user)
 
 
-def can_mutate_tenant_data(user):
-    if not user or not user.is_authenticated or user.role not in TENANT_ROLES:
+def can_manage_tenant(user, tenant):
+    """Whether the role may administer this tenant, independent of trial status."""
+    if not user or not user.is_authenticated or tenant is None:
         return False
-    if not user.tenant_id:
+    if is_platform_admin(user):
+        return True
+    return is_tenant_admin(user) and user.tenant_id == tenant.id
+
+
+def can_mutate_tenant_data(user, tenant=None):
+    """Allow tenant administrators or platform admins to write active tenant data."""
+    if not user or not user.is_authenticated:
         return False
-    return user.tenant.status == Tenant.Status.ACTIVE and not user.tenant.is_trial_expired()
+    if user.role in TENANT_ROLES:
+        if not user.tenant_id:
+            return False
+        if tenant is not None and tenant.id != user.tenant_id:
+            return False
+        tenant = user.tenant
+    elif not is_platform_admin(user) or tenant is None:
+        return False
+    return tenant.status == Tenant.Status.ACTIVE and not tenant.is_trial_expired()
+
+
+def can_manage_tenant_learning(user, tenant):
+    return can_manage_tenant(user, tenant) and can_mutate_tenant_data(user, tenant)
 
 
 def can_read_tenant_data(user, tenant):
