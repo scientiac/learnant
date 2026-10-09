@@ -30,6 +30,7 @@ from core.views import (
     course_list,
     course_update,
     dashboard,
+    download_student_csv_template,
     health_check,
     landing,
     lesson_create,
@@ -86,6 +87,12 @@ urlpatterns = [
     path('profile-assets/avatars/<int:user_id>/', user_avatar, name='user-avatar'),
     path('settings/organization/', organization_settings, name='organization-settings'),
     path('settings/profile/', profile_settings, name='profile-settings'),
+    path('students/bulk-add/template.csv', download_student_csv_template, name='student-csv-template'),
+    path(
+        'tenants/<int:tenant_id>/students/bulk-add/template.csv',
+        download_student_csv_template,
+        name='tenant-student-csv-template',
+    ),
     path('students/bulk-add/', bulk_student_add, name='bulk-student-add'),
     path(
         'courses/<int:course_id>/lessons/<int:lesson_id>/complete/',

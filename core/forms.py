@@ -460,6 +460,23 @@ class BulkStudentOnboardingForm(forms.Form):
         return students
 
 
+class StudentCsvImportForm(forms.Form):
+    csv_file = forms.FileField(
+        label='Learner CSV file',
+        widget=forms.ClearableFileInput(
+            attrs={'class': 'form-input', 'accept': '.csv,text/csv'}
+        ),
+    )
+
+    def clean_csv_file(self):
+        upload = self.cleaned_data['csv_file']
+        if not upload.name.lower().endswith('.csv'):
+            raise ValidationError('Choose a .csv file.')
+        if upload.size > 5 * 1024 * 1024:
+            raise ValidationError('CSV files must be 5 MB or smaller.')
+        return upload
+
+
 class CourseAssistantPreviewForm(forms.Form):
     learner_role = forms.CharField(
         max_length=100,

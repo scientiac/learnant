@@ -3,7 +3,7 @@ import secrets
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
 from django.db import transaction
-from django.http import FileResponse, Http404, HttpResponseForbidden, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.db.models import Max
@@ -17,11 +17,13 @@ from .forms import (
     CourseAssistantPreviewForm,
     LessonForm,
     ProfileSettingsForm,
+    StudentCsvImportForm,
     TenantSubscriptionForm,
     TenantSettingsForm,
     TenantSignupForm,
 )
 from .media import classify_lesson_upload, image_mime_type
+from .csv_enrollment import blank_enrollment_csv, import_student_csv
 from .models import Course, CourseAssignment, Lesson, LessonAsset, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
@@ -440,7 +442,14 @@ def bulk_student_add(request, tenant_id=None):
         return HttpResponseForbidden('This tenant is read-only.')
 
     created_students = []
-    if request.method == 'POST':
+    csv_form = StudentCsvImportForm()
+    csv_result = None
+    if request.method == 'POST' and request.POST.get('action') == 'import_csv':
+        csv_form = StudentCsvImportForm(request.POST, request.FILES)
+        if csv_form.is_valid():
+            csv_result = import_student_csv(csv_form.cleaned_data['csv_file'], tenant)
+        form = BulkStudentOnboardingForm(tenant=tenant)
+    elif request.method == 'POST':
         form = BulkStudentOnboardingForm(request.POST, tenant=tenant)
         if form.is_valid():
             with transaction.atomic():
@@ -463,8 +472,36 @@ def bulk_student_add(request, tenant_id=None):
     return render(
         request,
         'core/bulk_student_add.html',
-        {'form': form, 'created_students': created_students},
+        {
+            'form': form,
+            'created_students': created_students,
+            'csv_form': csv_form,
+            'csv_result': csv_result,
+            'tenant': tenant,
+        },
     )
+
+
+@login_required
+@never_cache
+def download_student_csv_template(request, tenant_id=None):
+    user = request.user
+    if tenant_id is not None:
+        if not is_platform_admin(user):
+            return HttpResponseForbidden('Only platform admins can select an organization.')
+        tenant = get_object_or_404(Tenant, id=tenant_id)
+    elif is_tenant_admin(user) and user.tenant_id:
+        tenant = user.tenant
+    else:
+        return HttpResponseForbidden('Only tenant admins can download the enrollment template.')
+    if not can_manage_tenant(user, tenant):
+        return HttpResponseForbidden('You cannot onboard learners for this organization.')
+    if not can_mutate_tenant_data(user, tenant):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    response = HttpResponse(blank_enrollment_csv(), content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="learnant-students-template.csv"'
+    return response
 
 
 @login_required

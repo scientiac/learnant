@@ -5,6 +5,35 @@
   <h1 class="text-2xl font-semibold">Onboard colony members</h1>
   <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Enter up to 100 usernames or email addresses, one per line. New learners are automatically bound to your organization.</p>
 
+  <section class="card mt-6 p-5">
+    <h2 class="font-semibold">Spreadsheet import</h2>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Import a UTF-8 CSV file. Each row is checked independently; invalid and duplicate rows are skipped while valid learners are enrolled.</p>
+    <a class="btn btn-outline btn-sm mt-3" href="{% if request.resolver_match.kwargs.tenant_id %}{% url 'tenant-student-csv-template' request.resolver_match.kwargs.tenant_id %}{% else %}{% url 'student-csv-template' %}{% endif %}">Download CSV template</a>
+    <form method="post" enctype="multipart/form-data" class="mt-4 space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="import_csv">
+      <label class="form-label" for="{{ csv_form.csv_file.id_for_label }}">{{ csv_form.csv_file.label }}</label>
+      {{ csv_form.csv_file }}
+      {% for error in csv_form.csv_file.errors %}<p class="alert-error">{{ error }}</p>{% endfor %}
+      <button class="btn btn-secondary" type="submit">Import CSV</button>
+    </form>
+    {% if csv_result %}
+      {% if csv_result.file_error %}<p class="alert-error mt-4">{{ csv_result.file_error }}</p>{% endif %}
+      {% if csv_result.created_students %}
+        <p class="mt-4 font-medium">Created {{ csv_result.created_students|length }} learner account{{ csv_result.created_students|length|pluralize }}.</p>
+        <div class="mt-2 overflow-x-auto">
+          <table class="table"><thead><tr><th>Username</th><th>Email</th><th>Temporary password</th></tr></thead>
+            <tbody>{% for student in csv_result.created_students %}<tr><td>{{ student.username }}</td><td>{{ student.email|default:'—' }}</td><td class="font-mono">{{ student.password }}</td></tr>{% endfor %}</tbody>
+          </table>
+        </div>
+      {% endif %}
+      {% if csv_result.skipped_count %}<p class="mt-3">Skipped {{ csv_result.skipped_count }} row{{ csv_result.skipped_count|pluralize }}.</p>{% endif %}
+      {% if csv_result.row_errors %}
+        <ul class="mt-2 list-disc pl-5 text-sm">{% for error in csv_result.row_errors %}<li>Row {{ error.row }}: {{ error.errors|join:"; " }}</li>{% endfor %}</ul>
+      {% endif %}
+    {% endif %}
+  </section>
+
   {% if created_students %}
     <section class="alert-info mt-6" aria-live="polite">
       <h2 class="font-semibold">{{ created_students|length }} learner account{{ created_students|length|pluralize }} created</h2>

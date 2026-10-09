@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Lesson media, first-login reset, subscription controls, and organization/profile branding verified (163 tests passing, Django check 0 issues).
+- **Overall Status:** Subscription/branding controls, CSV enrollment, and account-menu navigation verified (172 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (163 tests, 0 failures)
+  - [x] Full automated test suite passing (172 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -114,9 +114,9 @@
 - [x] Organization public details for students (address, contact number, support email, website).
 
 ### Priority 7: Fail-Proof Spreadsheet Bulk Enrollment (CSV/Excel)
-- [ ] Exportable sample spreadsheet template (`.csv`).
-- [ ] Robust spreadsheet import parser to batch-enroll learners without duplicate crashes.
-- [ ] Support enrolling learners with or without immediate course assignments.
+- [x] Exportable sample spreadsheet template (`.csv`).
+- [x] Robust CSV import parser with independent row validation and duplicate-safe skips.
+- [x] Support enrolling learners with or without immediate same-tenant course assignments.
 
 ### Priority 8: Railway Deployment Configuration (PostgreSQL + Django)
 - [ ] Production configuration for Railway (`Procfile`, `railway.toml`, `whitenoise`, `dj-database-url`, `gunicorn`).

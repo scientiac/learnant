@@ -20,6 +20,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
 - **Organization & Profile Settings:** Active Tenant Admins can update their own organization name/brand color; signed-in users can update their own display name and email.
 - **Bulk Student Onboarding:** Tenant Admins can create up to 100 tenant-bound learner accounts in one submission.
+- **Spreadsheet Enrollment:** Tenant Admins can download a CSV template and import up to 500 learners with row-level validation, duplicate skipping, and optional same-tenant course assignments.
 - **Temporary Learner Credentials:** Bulk-enrolled learners must replace their generated initial password before using the platform; seeded demo accounts remain ready to use.
 - **Focused Lesson Study:** Assigned learners get a dedicated lesson page with syllabus navigation, sanitized GFM Markdown, KaTeX math, and protected inline image/video uploads inserted into lesson content.
 
@@ -110,13 +111,15 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 2. Enter up to 100 usernames or email addresses, one per line.
 3. Newly created learner usernames and randomly generated initial passwords are shown once after submission; share them with learners securely.
 
+For CSV enrollment, download the template from the same page and fill in `username`, `email`, `first_name`, and `last_name`. Leave `courses` blank for no assignments, or enter same-organization course titles separated by semicolons.
+
 ---
 
 ## 5. Testing & Verification
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (163 tests):
+Run the full automated test suite (172 tests):
 
 ```bash
 python manage.py test
