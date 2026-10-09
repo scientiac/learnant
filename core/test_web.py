@@ -26,6 +26,24 @@ class WebFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('login'), response['Location'])
 
+    def test_public_home_is_informative_and_links_to_signin_and_org_signup(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A secure learning workspace for every institute')
+        self.assertContains(response, 'isolated')
+        self.assertContains(response, reverse('login'))
+        self.assertContains(response, reverse('signup'))
+        self.assertContains(response, 'Sign up your organization here')
+        self.assertContains(response, 'Seeded demo accounts')
+
+    def test_authenticated_home_redirects_to_dashboard(self):
+        self.client.login(username='learner', password='password123')
+
+        response = self.client.get(reverse('home'))
+
+        self.assertRedirects(response, reverse('dashboard'))
+
     def test_login_page_loads(self):
         response = self.client.get(reverse('login'))
 
@@ -69,7 +87,8 @@ class WebFlowTests(TestCase):
         response = self.client.get(reverse('signup'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create your account')
+        self.assertContains(response, 'Create your organization colony')
+        self.assertContains(response, 'Learners join through their institute')
 
     def test_signup_creates_tenant_and_admin(self):
         response = self.client.post(reverse('signup'), {
@@ -114,4 +133,3 @@ class WebFlowTests(TestCase):
         response = self.client.get(reverse('signup'))
 
         self.assertRedirects(response, reverse('dashboard'))
-

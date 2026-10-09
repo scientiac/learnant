@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Learnant · Learning for every colony{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl">
+  <section class="border p-8 sm:p-12" style="border-color: hsl(var(--border)); background: hsl(var(--card));">
+    <p class="font-mono text-xs uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">A multi-tenant learning platform</p>
+    <h1 class="mt-4 max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">A secure learning workspace for every institute.</h1>
+    <p class="mt-5 max-w-2xl leading-relaxed" style="color: hsl(var(--muted-foreground));">
+      Learnant helps institutes organize courses, lessons, learner assignments, and progress in one shared platform—while keeping each organization’s people and learning data isolated.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="{% url 'login' %}" class="btn btn-primary">
+        <i data-lucide="log-in" class="h-4 w-4"></i> Sign in
+      </a>
+      <a href="{% url 'signup' %}" class="btn btn-outline">
+        <i data-lucide="building-2" class="h-4 w-4"></i> Create an organization
+      </a>
+    </div>
+    <p class="mt-4 text-sm" style="color: hsl(var(--muted-foreground));">
+      Are you an institute or training academy? <a class="font-medium underline underline-offset-4" href="{% url 'signup' %}">Sign up your organization here</a> for a 14-day trial.
+    </p>
+  </section>
+
+  <section class="mt-8 grid gap-4 sm:grid-cols-3" aria-label="Platform benefits">
+    <article class="card p-5">
+      <i data-lucide="shield-check" class="h-5 w-5"></i>
+      <h2 class="mt-3 font-semibold">Isolated workspaces</h2>
+      <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Each institute sees only its own members, courses, and progress.</p>
+    </article>
+    <article class="card p-5">
+      <i data-lucide="book-open" class="h-5 w-5"></i>
+      <h2 class="mt-3 font-semibold">A clear learning path</h2>
+      <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Organize courses into ordered lessons and assign them to learners.</p>
+    </article>
+    <article class="card p-5">
+      <i data-lucide="chart-no-axes-column-increasing" class="h-5 w-5"></i>
+      <h2 class="mt-3 font-semibold">Progress visibility</h2>
+      <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Learners track their own completion; institute admins see tenant progress.</p>
+    </article>
+  </section>
+
+  <section class="mt-8 border p-6" style="border-color: hsl(var(--border));">
+    <h2 class="font-semibold">How access works</h2>
+    <p class="mt-2 text-sm leading-relaxed" style="color: hsl(var(--muted-foreground));">
+      Institutes create their organization workspace and receive a 14-day trial. Institute administrators invite or enroll learners; learners do not create public accounts. When a trial expires, existing data remains available read-only until a platform Super Admin reactivates the organization.
+    </p>
+    <a href="{% url 'about' %}" class="mt-4 inline-block text-sm underline underline-offset-4">Learn more about Learnant</a>
+  </section>
+
+  <p class="mt-6 text-center text-xs" style="color: hsl(var(--muted-foreground));">
+    Evaluating locally? Seeded demo accounts and role guidance are listed on the <a href="{% url 'about' %}" class="underline underline-offset-4">About page</a>.
+  </p>
+</div>
+{% endblock %}

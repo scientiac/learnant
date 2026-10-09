@@ -24,6 +24,13 @@ def about(request):
     return render(request, 'core/about.html')
 
 
+def landing(request):
+    """Public entry page; never expose the protected dashboard anonymously."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'core/landing.html')
+
+
 def signup(request):
     """Public sign-up: creates a new Tenant and a Tenant Admin account."""
     if request.user.is_authenticated:

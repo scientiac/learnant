@@ -29,6 +29,7 @@ from core.views import (
     course_update,
     dashboard,
     health_check,
+    landing,
     lesson_create,
     lesson_delete,
     lesson_list,
@@ -41,7 +42,8 @@ from core.views import (
 )
 
 urlpatterns = [
-    path('', dashboard, name='dashboard'),
+    path('', landing, name='home'),
+    path('dashboard/', dashboard, name='dashboard'),
     path('about/', about, name='about'),
     path('courses/', course_list, name='course-list'),
     path('courses/new/', course_create, name='course-create'),

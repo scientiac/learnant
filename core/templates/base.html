@@ -224,7 +224,7 @@
         <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <!-- Logo + Links -->
           <div class="flex items-center gap-6">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5 no-underline group" style="color: hsl(var(--foreground));">
+            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="flex items-center gap-2.5 no-underline group" style="color: hsl(var(--foreground));">
               <!-- Geometric Minimalist Ant Icon -->
               <div class="flex h-7 w-7 items-center justify-center border transition-colors group-hover:bg-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary-foreground))]" style="border-color: hsl(var(--border));">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -1,12 +1,12 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Core MVP Complete & Verified (91/91 tests passing, Django check 0 issues).
+- **Overall Status:** Core MVP plus public landing/signup entry complete and verified (93 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
   ```bash
-  .venv/bin/python manage.py test        # Run all 91 automated tests
+    .venv/bin/python manage.py test        # Run all automated tests
   .venv/bin/python manage.py runserver   # Launch development server
   ```
 
@@ -56,8 +56,8 @@
 ## 3. Upcoming Production Enhancements
 
 ### Group 1: Public Frontpage & Self-Signup CTA Refinement
-- [ ] Informative public landing page at `/` (explaining multi-tenancy, platform features, demo credentials) instead of a bare login card.
-- [ ] Refine signup CTA: Replace ambiguous generic signup buttons with explicit contextual text: `"Are you an institute? Sign up your organization here."` on landing and login pages.
+- [x] Informative public landing page at `/` (explaining multi-tenancy and platform features) instead of a bare login card.
+- [x] Refine signup CTA with explicit organization-only language on landing, login, and signup pages.
 
 ### Group 2: Organization Settings & Profile Customization
 - [ ] Organization Settings page (`/settings/organization/`) for Tenant Admins to customize institute name & branding.
