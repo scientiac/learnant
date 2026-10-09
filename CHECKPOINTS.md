@@ -8,7 +8,7 @@
 
 - **Overall status:** Phase 2 reusable authorization helpers verified; ready for protected views/endpoints
 - **Current phase:** Phase 2 — Authentication and Authorization
-- **Last verified commit:** 98c7788 Initial Django tenant platform setup
+- **Last verified commit:** c9211f0 Initial Django tenant platform setup
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 16 tests
 - **Application starts locally:** Verified with runserver smoke check returning `{"status": "ok"}`
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -131,7 +131,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/permissions.py`, `core/test_permissions.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `git diff --check`.
 - **Actual results:** Check passed with 0 issues; 16 tests passed; whitespace diff check passed.
-- **Commit:** 98c7788 Initial Django tenant platform setup.
+- **Commit:** c9211f0 Initial Django tenant platform setup.
 - **Current phase:** Phase 2 — Authentication and Authorization.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; authorization helpers are not wired into views/endpoints yet.
 - **Next single task:** Add minimal login/logout flow and protect a role-aware dashboard or API smoke endpoint.
