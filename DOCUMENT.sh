@@ -10,6 +10,7 @@ sudo dnf install \
 
 curl -fsSL https://ollama.com/install.sh | sh
 curl -fsSL https://opencode.ai/v2/install | bash
+curl -fsSL https://antigravity.google/cli/install.sh | bash
 
 ollama launch opencode --model qwen3.5:9b
 
