@@ -1,19 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · LearnTenant{% endblock %}
-{% block nav_courses %}active{% endblock %}
+{% block title %}Dashboard · Learnant{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-  <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Dashboard</h1>
-  <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong>.</p>
+<div class="mb-8">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="text-xs font-mono uppercase tracking-widest px-1.5 py-0.5 border" style="border-color: hsl(var(--border)); color: hsl(var(--muted-foreground));">colony workspace</span>
+  </div>
+  <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+  <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Welcome back, <strong style="color: hsl(var(--foreground));">{{ user.get_full_name|default:user.username }}</strong>.</p>
 </div>
 
 {% if user.tenant and user.tenant.status == 'expired' %}
   <div class="alert-warning mb-6 flex items-start gap-3">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+    <i data-lucide="alert-triangle" class="mt-0.5 h-4 w-4 flex-shrink-0"></i>
     <div>
-      <p class="font-medium">Trial expired</p>
-      <p class="text-xs mt-0.5">Your tenant's trial has expired. Existing data is read-only. Contact a platform administrator to reactivate.</p>
+      <p class="font-medium text-sm">Colony trial expired</p>
+      <p class="text-xs mt-0.5" style="color: hsl(var(--muted-foreground));">Your colony's trial period has elapsed. Existing syllabus data is read-only. Contact a platform administrator to reactivate.</p>
     </div>
   </div>
 {% endif %}
@@ -22,50 +24,59 @@
   <!-- Platform-level overview -->
   <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div class="card p-5">
-      <p class="text-xs font-medium uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Total Tenants</p>
-      <p class="mt-2 text-3xl font-bold" style="color: hsl(222.2 84% 4.9%)">{{ tenant_count }}</p>
-      <p class="mt-1 text-xs" style="color: hsl(215.4 16.3% 46.9%)">Active organisations on the platform</p>
+      <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Total Tenants</p>
+      <p class="mt-2 text-3xl font-bold">{{ tenant_count }}</p>
+      <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">Active colony organisations on Learnant</p>
     </div>
 
     <div class="card p-5">
-      <p class="text-xs font-medium uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Management</p>
-      <p class="mt-2 text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">
+      <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Management Privileges</p>
+      <p class="mt-2">
         {% if can_manage_platform %}
           <span class="badge badge-active">Enabled</span>
         {% else %}
-          <span class="badge" style="background: hsl(210 40% 93%); color: hsl(215.4 16.3% 46.9%)">Read-only</span>
+          <span class="badge badge-role">Read-only</span>
         {% endif %}
       </p>
-      <p class="mt-2 text-xs" style="color: hsl(215.4 16.3% 46.9%)">Your platform management access level</p>
+      <p class="mt-2 text-xs" style="color: hsl(var(--muted-foreground));">Platform-wide scope</p>
     </div>
 
     <div class="card p-5">
-      <p class="text-xs font-medium uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Reactivation</p>
-      <p class="mt-2 text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">
+      <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Reactivation Rights</p>
+      <p class="mt-2">
         {% if can_reactivate_tenant %}
           <span class="badge badge-active">Allowed</span>
         {% else %}
-          <span class="badge" style="background: hsl(210 40% 93%); color: hsl(215.4 16.3% 46.9%)">Not permitted</span>
+          <span class="badge badge-role">Not permitted</span>
         {% endif %}
       </p>
-      <p class="mt-2 text-xs" style="color: hsl(215.4 16.3% 46.9%)">Can reactivate expired tenants</p>
+      <p class="mt-2 text-xs" style="color: hsl(var(--muted-foreground));">Can extend expired colonies</p>
     </div>
   </div>
 
   <div class="flex flex-wrap gap-3">
-    <a href="{% url 'tenant-list' %}" class="btn btn-primary">View tenants</a>
-    <a href="{% url 'course-list' %}" class="btn btn-outline">View all courses</a>
+    <a href="{% url 'tenant-list' %}" class="btn btn-primary">
+      <i data-lucide="building-2" class="h-4 w-4"></i>
+      View tenants
+    </a>
+    <a href="{% url 'course-list' %}" class="btn btn-outline">
+      <i data-lucide="book-open" class="h-4 w-4"></i>
+      View all courses
+    </a>
   </div>
 
 {% elif user.tenant %}
   <!-- Tenant-level overview -->
   <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div class="card p-5">
-      <p class="text-xs font-medium uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Organisation</p>
-      <p class="mt-2 text-lg font-semibold" style="color: hsl(222.2 84% 4.9%)">{{ user.tenant.name }}</p>
-      <p class="mt-1">
+      <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Colony Organisation</p>
+      <p class="mt-2 text-lg font-semibold">{{ user.tenant.name }}</p>
+      <p class="mt-2">
         {% if user.tenant.status == 'active' %}
-          <span class="badge badge-active">Active</span>
+          <span class="badge badge-active">
+            <i data-lucide="check" class="h-3 w-3"></i>
+            Active
+          </span>
         {% elif user.tenant.status == 'expired' %}
           <span class="badge badge-expired">Expired</span>
         {% else %}
@@ -75,16 +86,16 @@
     </div>
 
     <div class="card p-5">
-      <p class="text-xs font-medium uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Your role</p>
-      <p class="mt-2 text-lg font-semibold" style="color: hsl(222.2 84% 4.9%)">{{ user.get_role_display }}</p>
-      <p class="mt-1 text-xs" style="color: hsl(215.4 16.3% 46.9%)">Access level in your organisation</p>
+      <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Your Role</p>
+      <p class="mt-2 text-lg font-semibold">{{ user.get_role_display }}</p>
+      <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">Scoped to {{ user.tenant.name }}</p>
     </div>
 
     {% if tenant_user_count is not None %}
     <div class="card p-5">
-      <p class="text-xs font-medium uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Members</p>
-      <p class="mt-2 text-3xl font-bold" style="color: hsl(222.2 84% 4.9%)">{{ tenant_user_count }}</p>
-      <p class="mt-1 text-xs" style="color: hsl(215.4 16.3% 46.9%)">Users in your organisation</p>
+      <p class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">Colony Members</p>
+      <p class="mt-2 text-3xl font-bold">{{ tenant_user_count }}</p>
+      <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">Learners & staff enrolled</p>
     </div>
     {% endif %}
   </div>
@@ -92,9 +103,12 @@
   {% if user.tenant.trial_ends_at %}
   <div class="card mb-6 p-4">
     <div class="flex items-center justify-between">
-      <div>
-        <p class="text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">Trial period</p>
-        <p class="text-xs mt-0.5" style="color: hsl(215.4 16.3% 46.9%)">Expires {{ user.tenant.trial_ends_at|date:"N j, Y" }}</p>
+      <div class="flex items-center gap-3">
+        <i data-lucide="clock" class="h-4 w-4" style="color: hsl(var(--muted-foreground));"></i>
+        <div>
+          <p class="text-sm font-medium">14-Day Free Colony Trial</p>
+          <p class="text-xs mt-0.5" style="color: hsl(var(--muted-foreground));">Expires on {{ user.tenant.trial_ends_at|date:"N j, Y" }}</p>
+        </div>
       </div>
       {% if user.tenant.status == 'active' %}
         <span class="badge badge-active">Active</span>
@@ -106,10 +120,13 @@
   {% endif %}
 
   <div class="flex flex-wrap gap-3">
-    <a href="{% url 'course-list' %}" class="btn btn-primary">Open courses</a>
+    <a href="{% url 'course-list' %}" class="btn btn-primary">
+      <i data-lucide="book-open" class="h-4 w-4"></i>
+      Open courses
+    </a>
   </div>
 
 {% else %}
-  <div class="alert-error max-w-md">Your account has no valid tenant assignment. Contact a platform administrator.</div>
+  <div class="alert-error max-w-md">Your account has no valid colony assignment. Contact a platform administrator.</div>
 {% endif %}
 {% endblock %}

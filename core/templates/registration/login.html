@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Log in · LearnTenant{% endblock %}
+{% block title %}Log in · Learnant{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[75vh] items-center justify-center">
@@ -8,19 +8,32 @@
 
     <!-- Header -->
     <div class="mb-6 text-center">
-      <div class="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl" style="background: hsl(221.2 83.2% 53.3%)">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center border" style="border-color: hsl(var(--border));">
+        <!-- Ant emblem -->
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="2" ry="1.8"/>
+          <ellipse cx="12" cy="11" rx="1.8" ry="2.2"/>
+          <ellipse cx="12" cy="18" rx="2.5" ry="3"/>
+          <path d="M10.5 3.5 8 1"/>
+          <path d="M13.5 3.5 16 1"/>
+          <path d="M9.5 10 5 8"/>
+          <path d="M14.5 10 19 8"/>
+          <path d="M9.5 12 4 13"/>
+          <path d="M14.5 12 20 13"/>
+          <path d="M10 15 5 19"/>
+          <path d="M14 15 19 19"/>
+        </svg>
       </div>
-      <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Welcome back</h1>
-      <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Sign in to your LearnTenant account</p>
+      <h1 class="text-xl font-semibold tracking-tight">Enter your colony</h1>
+      <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Sign in to your Learnant workspace</p>
     </div>
 
     <div class="card p-6">
       {% if form.errors %}
         <div class="alert-error mb-5">
           <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            Invalid username or password. Please try again.
+            <i data-lucide="alert-circle" class="h-4 w-4 flex-shrink-0"></i>
+            <span>Invalid username or password. Please try again.</span>
           </div>
         </div>
       {% endif %}
@@ -35,7 +48,7 @@
             name="username"
             id="{{ form.username.id_for_label }}"
             class="form-input"
-            placeholder="your_username"
+            placeholder="e.g. colony_admin"
             autocomplete="username"
             autofocus
             value="{{ form.username.value|default:'' }}"
@@ -54,14 +67,21 @@
           >
         </div>
 
-        <button class="btn btn-primary w-full" type="submit" id="login-submit">Log in</button>
+        <button class="btn btn-primary w-full" type="submit" id="login-submit">
+          <i data-lucide="log-in" class="h-4 w-4"></i>
+          Sign in
+        </button>
       </form>
     </div>
 
-    <p class="mt-5 text-center text-sm" style="color: hsl(215.4 16.3% 46.9%)">
-      New to LearnTenant?
-      <a href="{% url 'signup' %}" class="font-medium" style="color: hsl(221.2 83.2% 53.3%)">Create a free account</a>
-    </p>
+    <div class="mt-6 border p-4 text-center" style="border-color: hsl(var(--border));">
+      <p class="text-xs" style="color: hsl(var(--muted-foreground));">
+        Are you an institute or training academy?
+      </p>
+      <a href="{% url 'signup' %}" class="mt-1 inline-block text-xs font-medium underline underline-offset-4" style="color: hsl(var(--foreground));">
+        Sign up your organization colony here →
+      </a>
+    </div>
 
   </div>
 </div>

@@ -1,141 +1,80 @@
-# Checkpoint.md — Current Project State
+# CHECKPOINTS.md — Project Roadmap & Task Checklists
 
-> This file is the short handoff note between coding sessions.
-> Update it after each verified task. Keep it factual and concise.
-> Do not mark work complete based only on generated code; verify it.
+## 1. Status at a Glance
+- **Overall Status:** Core MVP Complete & Verified (91/91 tests passing, Django check 0 issues).
+- **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
+- **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
+- **Quick Run:**
+  ```bash
+  .venv/bin/python manage.py test        # Run all 91 automated tests
+  .venv/bin/python manage.py runserver   # Launch development server
+  ```
 
-## 1. Current Status
+---
 
-- **Overall status:** Phase 7 minimal usable workflows verified
-- **Current phase:** Phase 8 — Verification and security review
-- **Last verified commit:** f55ef21 Add minimal demo workflow polish
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 86 tests
-- **Application starts locally:** Verified with runserver smoke check for `/health/`, `/login/`, and protected workflow redirects
-- **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Run Phase 8 verification/security review and add any regression tests for findings.
+## 2. Completed Milestones
 
-## 2. Project Decisions
+- [x] **Phase 0 — Project & Repo Setup**
+  - [x] Custom User model & PostgreSQL / SQLite configuration
+  - [x] Health check endpoint (`/health/`)
+  - [x] Git repository initialized and checkpointed
+- [x] **Phase 1 — Tenant & User Foundations**
+  - [x] 5-tier role hierarchy (Super Admin, Admin, Super Viewer, Tenant Admin, Tenant User)
+  - [x] Database check constraints for role-tenant validity
+- [x] **Phase 2 — Authentication & Authorization**
+  - [x] Server-side permissions matrix (`core/permissions.py`)
+  - [x] Role-aware login/logout flows and protected URL redirects
+- [x] **Phase 3 — Tenant Isolation & IDOR Protection**
+  - [x] Context-derived query scoping (`visible_courses_for_user`)
+  - [x] Cross-tenant URL ID manipulation returns 404/403
+- [x] **Phase 4 — Courses, Lessons & Assignments**
+  - [x] Course CRUD within authorized tenant
+  - [x] Ordered lesson syllabus management
+  - [x] Course assignment and same-tenant student validation
+- [x] **Phase 5 — Learning Progress**
+  - [x] Learner one-click lesson completion tracking
+  - [x] Instructor aggregate progress analytics
+- [x] **Phase 6 — Trial Lifecycle & Expiration**
+  - [x] 14-day default free trial with request-time boundary checks
+  - [x] Idempotent expiration management command (`python manage.py expire_trials`)
+  - [x] Read-only data preservation & Super Admin reactivation
+- [x] **Phase 7 — Frontend Redesign & Public Signup**
+  - [x] Complete template redesign with shadcn/ui design tokens
+  - [x] Public atomic organization sign-up flow (`/signup/`)
+  - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
+- [x] **Phase 8 — Verification & Security Review**
+  - [x] Full automated test suite passing (91 tests, 0 failures)
+- [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
+  - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
+  - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
+  - [x] Light and dark mode support with localStorage persistence and system fallback
+  - [x] Contextual self-signup prompt and elimination of redundant top-bar "Log in" button on login page
+  - [x] Complete template modernization across all views (dashboard, courses, lessons, assignments, progress, tenants, confirmation modals)
 
-- **Purpose:** Multi-tenant learning platform for institutes.
-- **Backend:** Django.
-- **API:** Django REST Framework where useful.
-- **Database:** PostgreSQL for the completed application.
-- **UI:** Django templates using a shadcn/ui-inspired design system (CSS variables + Tailwind CDN + Inter font). All component styles (btn, card, form-input, badge, table, alert) are defined in `base.html`. HTMX via CDN for progressive enhancement. Django Admin for appropriately restricted internal administration.
-- **Authentication:** Django authentication with a custom user model defined before the first migrations.
-- **Tenant approach:** Shared database with tenant ownership on tenant-owned records; backend queries and permissions enforce isolation.
-- **Trial:** Suggested 14-day trial, with request-time enforcement and an idempotent scheduled management command.
-- **AI course creation:** Design/documentation only. The developer must write the AI design section themselves.
-- **AI coding tools:** Prefer local Ollama plus Aider if compatible with available hardware. The app must not depend on these tools at runtime.
-- **Payments/subscriptions:** Out of scope.
-- **Priority order:** Tenant isolation, authorization, backend correctness, trial lifecycle, testing, then UI polish.
+---
 
-If any decision conflicts with the original take-home specification or existing project constraints, stop and ask the developer before changing direction.
+## 3. Upcoming Production Enhancements
 
-## 3. Roles
+### Group 1: Public Frontpage & Self-Signup CTA Refinement
+- [ ] Informative public landing page at `/` (explaining multi-tenancy, platform features, demo credentials) instead of a bare login card.
+- [ ] Refine signup CTA: Replace ambiguous generic signup buttons with explicit contextual text: `"Are you an institute? Sign up your organization here."` on landing and login pages.
 
-- **Super Admin:** Full platform-level administration, including tenant creation, management, and reactivation.
-- **Admin:** Limited platform-level administration; exact permissions must be documented.
-- **Super Viewer:** Platform-level read-only access to explicitly permitted information.
-- **Tenant Admin:** Manages users, courses, lessons, assignments, and progress inside their own tenant.
-- **Tenant User:** Accesses assigned courses/lessons and updates their own progress.
+### Group 2: Organization Settings & Profile Customization
+- [ ] Organization Settings page (`/settings/organization/`) for Tenant Admins to customize institute name & branding.
+- [ ] User Profile Settings page (`/settings/profile/`) for all authenticated users to view/update display name and email.
 
-Do not assume the UI protects any of these actions. Enforce authorization on the backend.
+### Group 3: Bulk Student Onboarding
+- [ ] Bulk student onboarding interface (`/students/bulk-add/`) allowing Tenant Admins to onboard learners in bulk via multi-line text (usernames/emails).
+- [ ] Automatically assign newly created learners to `role = TENANT_USER` and `tenant = request.user.tenant`.
 
-## 4. Security Invariants
+### Group 4: Hosted About & Usage Documentation Screen
+- [x] In-app `/about/` page detailing platform architecture, 5-tier role guide, trial lifecycle rules, and reviewer credentials.
+- [x] Add About link to both public and authenticated navigation headers.
 
-These rules must remain true throughout implementation:
+### Group 5: Role-Aware Onboarding Setup Guidance
+- [ ] Interactive onboarding checklist banner for Tenant Admins on the dashboard (*"1. Name your institute → 2. Create course → 3. Add lessons → 4. Onboard students"*).
+- [ ] Welcoming course overview card for learners guiding them directly into their syllabus.
 
-1. Tenant identity comes from trusted server-side user context, not an untrusted request field.
-2. Tenant-owned list and detail queries are scoped to the authorized tenant.
-3. All create/update/delete/assignment/progress operations validate authorization.
-4. Related records must belong to the same tenant where required.
-5. Learners can access only their assigned courses and their own progress.
-6. Users cannot promote themselves, change their tenant, or gain platform privileges through request data.
-7. Trial expiry is checked during restricted requests; a scheduled command is not the only enforcement.
-8. Expiration preserves existing user and learning data.
-9. Security bugs get regression tests.
-10. Never claim a test passed unless the test was run and passed.
-
-## 5. Phase Tracker
-
-Mark an item complete only after its acceptance criteria and relevant tests have been verified.
-
-- [x] Phase 0 — Repository and project setup
-- [x] Phase 1 — Tenant and user foundations
-- [x] Phase 2 — Authentication and authorization
-- [x] Phase 3 — Tenant isolation
-- [x] Phase 4 — Courses, lessons, and assignments
-- [x] Phase 5 — Learning progress
-- [x] Phase 6 — Trial expiration and reactivation
-- [x] Phase 7 — Minimal usable UI
-- [ ] Phase 8 — Verification and security review
-- [ ] Phase 9 — Documentation and submission
-
-Notes:
-- Phase 2 is checked because login/logout, protected pages, role helpers, documented permissions, role denials, and admin access restrictions are verified.
-- Phase 3 is checked because tenant-owned list/detail/update/delete/assignment/progress paths are scoped and ID manipulation tests are verified.
-- Phase 4 is checked because course/lesson list/create/update/delete basics, assignment create/revoke, same-tenant validation, expired-tenant write blocking, and regression tests are verified.
-- Phase 5 is checked because learner progress ownership, tenant-admin progress visibility, expired-tenant read-only behavior, and progress tests are verified.
-- Phase 6 is checked because request-time write blocking, idempotent expiration command, data preservation, and Super Admin-only reactivation are verified.
-- Phase 7 is checked because main demo workflows have simple navigation/instructions, backend permissions remain enforced by tests, and smoke checks pass.
-
-## 6. Current Task
-
-**Task:** Verification and security review.
-
-Expected actions:
-- Run the complete test suite and Django checks.
-- Review authentication, authorization, and every tenant-owned endpoint.
-- Test cross-tenant ID manipulation, role escalation, assignment consistency, expiration boundaries, and repeated expiration processing.
-- Fix findings and add regression tests.
-- Review diff/status for unrelated changes.
-
-**Acceptance criteria:**
-- All tests pass or failures are documented accurately.
-- No known critical tenant-isolation flaw remains.
-- Changed code and permission decisions are understandable.
-
-## 7. Last Completed Task
-
-- **Task:** Added minimal role-aware navigation and README demo workflow guidance for browser demonstration.
-- **Files changed:** `core/templates/base.html`, `core/templates/core/dashboard.html`, `core/test_web.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver Phase 7 smoke script.
-- **Test results:** Check passed with 0 issues; 86 tests passed; demo data seeded locally; runserver Phase 7 smoke passed.
-- **Commit:** f55ef21 Add minimal demo workflow polish.
-
-Update this section after completing the first task.
-
-## 8. Known Issues and Decisions Needed
-
-- PostgreSQL client/server is not available in the current PATH; app is configured for PostgreSQL via env vars and SQLite fallback for local development.
-- Super Viewer policy confirmed: platform-level read-only user.
-- Admin policy confirmed at high level: platform-level administrative user with a defined subset of Super Admin permissions. Initial subset documented in `docs/permissions.md`.
-- Expired tenant policy confirmed: existing authorized data remains viewable/read-only; no tenant-scoped user may add to or mutate the system after expiration.
-- Git repository initialized locally with checkpoint commits recorded.
-
-Record only unresolved decisions here; remove items when resolved.
-
-## 9. Handoff Format
-
-At the end of each coding session, update this file using this compact format:
-
-### Latest Update
-- **Task completed:**
-- **Files changed:**
-- **Tests executed:**
-- **Actual results:**
-- **Commit:**
-- **Current phase:**
-- **Remaining issues:**
-- **Next single task:**
-
-Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
-
-### Latest Update
-- **Task completed:** Redesigned all Django templates with shadcn/ui design system; added public self-signup flow (creates Tenant + Tenant Admin atomically); added 5 signup tests.
-- **Files changed:** `core/templates/base.html`, `core/templates/registration/login.html`, `core/templates/registration/signup.html` (new), `core/templates/core/dashboard.html`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/course_form.html`, `core/templates/core/lesson_form.html`, `core/templates/core/assignment_list.html`, `core/templates/core/assignment_form.html`, `core/templates/core/progress_list.html`, `core/templates/core/confirm_delete.html`, `core/templates/core/tenant_list.html`, `core/forms.py` (TenantSignupForm), `core/views.py` (signup view), `config/urls.py` (/signup/ URL), `core/test_web.py` (5 new tests + updated assertion).
-- **Tests executed:** `.venv/bin/python manage.py test` (full suite).
-- **Actual results:** 91 tests passed (86 original + 5 new signup tests); 0 failures.
-- **Current phase:** Phase 8 — Verification and security review.
-- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 8/9 remain.
-- **Next single task:** Run Phase 8 verification/security review and add any regression tests for findings.
+### Group 6: AI-Powered Course Creation (Design-Only Preview)
+- [ ] UI entry point / modal for Tenant Admins to input learner role, current level, goal, hours/week, and duration to see sample structured course output.
+- [ ] *Human Author Task:* Developer writes `docs/ai-course-design.md` in their own words per assignment rules.

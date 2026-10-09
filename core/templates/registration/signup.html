@@ -1,44 +1,62 @@
 {% extends "base.html" %}
 
-{% block title %}Sign up · LearnTenant{% endblock %}
+{% block title %}Sign up your Colony · Learnant{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[80vh] items-center justify-center">
   <div class="w-full max-w-4xl">
-    <div class="grid gap-0 overflow-hidden rounded-xl shadow-md lg:grid-cols-2" style="border: 1px solid hsl(214.3 31.8% 91.4%)">
+    <div class="grid gap-0 overflow-hidden lg:grid-cols-2" style="border: 1px solid hsl(var(--border));">
 
-      <!-- Left: Branding panel -->
-      <div class="flex flex-col justify-between p-10" style="background: linear-gradient(135deg, hsl(221.2 83.2% 53.3%) 0%, hsl(250 83% 53%) 100%);">
+      <!-- Left: Branding panel (Monochrome black panel with ant motif) -->
+      <div class="flex flex-col justify-between p-10" style="background: hsl(var(--primary)); color: hsl(var(--primary-foreground));">
         <div>
-          <div class="flex items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded-md bg-white/20 text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <div class="flex items-center gap-2.5">
+            <div class="flex h-7 w-7 items-center justify-center border border-white/20">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="2" ry="1.8"/>
+                <ellipse cx="12" cy="11" rx="1.8" ry="2.2"/>
+                <ellipse cx="12" cy="18" rx="2.5" ry="3"/>
+                <path d="M10.5 3.5 8 1"/>
+                <path d="M13.5 3.5 16 1"/>
+                <path d="M9.5 10 5 8"/>
+                <path d="M14.5 10 19 8"/>
+                <path d="M9.5 12 4 13"/>
+                <path d="M14.5 12 20 13"/>
+                <path d="M10 15 5 19"/>
+                <path d="M14 15 19 19"/>
+              </svg>
             </div>
-            <span class="text-base font-semibold text-white">LearnTenant</span>
+            <span class="text-base font-bold tracking-tight">Learnant</span>
           </div>
-          <div class="mt-10">
-            <h1 class="text-2xl font-bold leading-tight text-white">Start your 14-day free trial</h1>
-            <p class="mt-3 text-sm leading-relaxed text-white/75">Launch your learning platform. Add courses, lessons, and learners — all within your organisation's secure space.</p>
+
+          <div class="mt-12">
+            <div class="inline-block text-[11px] font-mono uppercase tracking-widest px-2 py-0.5 border border-white/20 mb-3 opacity-80">
+              14-Day Free Colony Trial
+            </div>
+            <h1 class="text-2xl font-bold leading-tight">Build your learning colony.</h1>
+            <p class="mt-3 text-sm leading-relaxed opacity-70">
+              Launch an isolated workspace for your institute. Like an ant colony working in unison, organise courses, lessons, and learners with zero-trust database isolation.
+            </p>
           </div>
         </div>
 
-        <div class="mt-10 space-y-4">
+        <div class="mt-10 space-y-3">
           {% for feature in features %}
           <div class="flex items-center gap-3">
-            <div class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/20">
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="text-sm text-white/80">{{ feature }}</span>
+            <i data-lucide="check" class="h-4 w-4 flex-shrink-0 opacity-70"></i>
+            <span class="text-xs uppercase tracking-wide opacity-80 font-mono">{{ feature }}</span>
           </div>
           {% endfor %}
         </div>
       </div>
 
       <!-- Right: Form panel -->
-      <div class="bg-white p-8 sm:p-10">
+      <div class="p-8 sm:p-10" style="background: hsl(var(--card));">
         <div class="mb-6">
-          <h2 class="text-xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Create your account</h2>
-          <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">You'll become the admin of a new organisation.</p>
+          <h2 class="text-xl font-semibold tracking-tight">Create your account</h2>
+          <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
+            Register your organisation and become the colony administrator.
+          </p>
         </div>
 
         {% if form.non_field_errors %}
@@ -50,21 +68,21 @@
 
           <div>
             <label class="form-label" for="{{ form.org_name.id_for_label }}">
-              Organisation name <span class="text-red-500">*</span>
+              Organisation / Colony name <span style="color: hsl(var(--destructive));">*</span>
             </label>
             {{ form.org_name }}
             {% if form.org_name.errors %}
-              <p class="mt-1 text-xs" style="color: hsl(0 72% 35%)">{{ form.org_name.errors|join:", " }}</p>
+              <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.org_name.errors|join:", " }}</p>
             {% endif %}
           </div>
 
           <div>
             <label class="form-label" for="{{ form.username.id_for_label }}">
-              Username <span class="text-red-500">*</span>
+              Admin username <span style="color: hsl(var(--destructive));">*</span>
             </label>
             {{ form.username }}
             {% if form.username.errors %}
-              <p class="mt-1 text-xs" style="color: hsl(0 72% 35%)">{{ form.username.errors|join:", " }}</p>
+              <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.username.errors|join:", " }}</p>
             {% endif %}
           </div>
 
@@ -81,30 +99,33 @@
 
           <div>
             <label class="form-label" for="{{ form.password1.id_for_label }}">
-              Password <span class="text-red-500">*</span>
+              Password <span style="color: hsl(var(--destructive));">*</span>
             </label>
             {{ form.password1 }}
             {% if form.password1.errors %}
-              <p class="mt-1 text-xs" style="color: hsl(0 72% 35%)">{{ form.password1.errors|join:", " }}</p>
+              <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.password1.errors|join:", " }}</p>
             {% endif %}
           </div>
 
           <div>
             <label class="form-label" for="{{ form.password2.id_for_label }}">
-              Confirm password <span class="text-red-500">*</span>
+              Confirm password <span style="color: hsl(var(--destructive));">*</span>
             </label>
             {{ form.password2 }}
             {% if form.password2.errors %}
-              <p class="mt-1 text-xs" style="color: hsl(0 72% 35%)">{{ form.password2.errors|join:", " }}</p>
+              <p class="mt-1 text-xs" style="color: hsl(var(--destructive));">{{ form.password2.errors|join:", " }}</p>
             {% endif %}
           </div>
 
-          <button class="btn btn-primary w-full" type="submit" id="signup-submit">Create account & start trial</button>
+          <button class="btn btn-primary w-full" type="submit" id="signup-submit">
+            <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            Initialize Colony & Start Trial
+          </button>
         </form>
 
-        <p class="mt-5 text-center text-sm" style="color: hsl(215.4 16.3% 46.9%)">
-          Already have an account?
-          <a href="{% url 'login' %}" class="font-medium" style="color: hsl(221.2 83.2% 53.3%)">Log in</a>
+        <p class="mt-5 text-center text-sm" style="color: hsl(var(--muted-foreground));">
+          Already part of a colony?
+          <a href="{% url 'login' %}" class="font-medium underline underline-offset-4" style="color: hsl(var(--foreground));">Sign in</a>
         </p>
       </div>
 

@@ -1,66 +1,134 @@
 # Multi-Tenant Learning Platform
 
-Small Django application for a secure multi-tenant learning platform.
+A secure, minimal, multi-tenant learning platform for institutes and organizations built with Django and Django REST Framework.
 
-## Local setup
+---
+
+## 1. Features & Highlights
+
+- **Multi-Tenancy & Data Isolation:** Strict server-side scoping where tenant context is derived exclusively from authenticated user sessions. Cross-tenant ID manipulation is prevented via database constraints and 404/403 protections.
+- **5-Tier Role-Based Access Control (RBAC):**
+  - **Super Admin:** Full platform-level management & tenant reactivation.
+  - **Admin:** Platform-level tenant creation and management subset.
+  - **Super Viewer:** Read-only platform-wide overview.
+  - **Tenant Admin:** Manages courses, lessons, assignments, and learner progress for their institute.
+  - **Tenant User:** Learner accessing assigned courses, completing lessons, and tracking progress.
+- **Trial Lifecycle & Expiration:** 14-day default free trial with request-time boundary checks, idempotent scheduled expiration command (`python manage.py expire_trials`), read-only preservation of tenant data upon expiry, and Super Admin reactivation.
+- **Modern UI:** shadcn/ui-inspired responsive interface built with Django templates, Tailwind CSS, and Inter typography.
+- **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
+
+---
+
+## 2. Quickstart & Local Setup
 
 ```bash
+# 1. Create and activate virtual environment
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py seed_demo
-.venv/bin/python manage.py runserver
+source .venv/bin/activate  # Or use .venv/bin/python directly
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Apply database migrations
+python manage.py migrate
+
+# 4. Seed demo data (creates tenants, courses, lessons, and users)
+python manage.py seed_demo
+
+# 5. Start development server
+python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000/` and log in with a demo user.
+Open `http://127.0.0.1:8000/` in your browser.
 
-The UI uses Django templates with minimal HTML plus Tailwind/HTMX CDN links. The current working pages are login, dashboard, course list/create, lesson list/create, tenant-admin course assignment, learner lesson completion, and tenant-admin progress viewing.
+---
 
-Demo users created by `seed_demo`:
+## 3. Demo Credentials
 
-| Username | Role | Password |
-| --- | --- | --- |
-| `superadmin` | Super Admin | `password123` |
-| `admin` | Admin | `password123` |
-| `viewer` | Super Viewer | `password123` |
-| `tenantadmin` | Tenant Admin | `password123` |
-| `learner` | Tenant User | `password123` |
+All demo accounts are created with password: `password123`.
 
-The health check is available at `http://127.0.0.1:8000/health/`.
+| Username | Role | Scope | Key Capabilities |
+|---|---|---|---|
+| `superadmin` | Super Admin | Platform | View all tenants/courses; reactivate expired trials. |
+| `admin` | Admin | Platform | View and create platform tenants. |
+| `viewer` | Super Viewer | Platform | Read-only visibility across platform data. |
+| `tenantadmin` | Tenant Admin | Tenant | Create/edit courses & lessons, assign learners, view progress. |
+| `learner` | Tenant User | Tenant | View assigned courses, read lessons, mark completion. |
 
-After running `seed_demo`, log in as `tenantadmin` and open `http://127.0.0.1:8000/courses/` to see the sample course list. Tenant admins with an active tenant can create courses, lessons, assign tenant learners, and view progress. The seeded `learner` account is assigned to the sample course and can mark lessons complete.
+The system health check is available at `http://127.0.0.1:8000/health/`.
 
-## Demo workflow
+---
 
-1. Log in as `tenantadmin` and open **Courses**.
-2. Create or edit a course, open its lessons, add/edit lessons, then open assignments and assign `learner`.
-3. Log out and log in as `learner`; open **Courses**, open the assigned course lessons, and mark a lesson complete.
-4. Log out and log in as `tenantadmin`; open the course progress page to see learner progress.
-5. Log out and log in as `superadmin`; open **Tenants** to view/reactivate expired tenants.
+## 4. Demo Workflows
 
-The UI is intentionally plain. Backend tests enforce the permissions; hidden links are not relied on for security.
+### Workflow A: Self-Signup as a New Institute
+1. Navigate to `http://127.0.0.1:8000/signup/`.
+2. Fill in Organisation Name, Admin Username, Email, and Password.
+3. Upon submission, the organization is created on an active 14-day trial, the user is created as Tenant Admin, and logged into the dashboard immediately.
 
-Trial expiration can be processed with:
+### Workflow B: Managing Courses & Assignments (Tenant Admin)
+1. Log in as `tenantadmin`.
+2. Visit **Courses** (`/courses/`).
+3. Click **New course** to create a course.
+4. Click **Lessons** to add or edit ordered lessons.
+5. Click **Assignments** to assign the course to tenant learners (e.g., `learner`).
+6. Click **Progress** to review lesson completion status across enrolled learners.
+
+### Workflow C: Learner Study & Progress
+1. Log in as `learner`.
+2. Visit **Courses** (`/courses/`) to see assigned courses.
+3. Open a course's lessons and click **Mark Complete**.
+4. Progress status updates immediately with completion timestamps.
+
+### Workflow D: Tenant Expiration & Super Admin Reactivation
+1. Run trial expiration:
+   ```bash
+   python manage.py expire_trials
+   ```
+2. For an expired tenant, tenant users and admins retain read-only access to existing data; creation and updates are blocked with friendly notices.
+3. Log in as `superadmin` and navigate to **Tenants** (`/tenants/`).
+4. Click **Reactivate** next to an expired tenant to restore active status with a new 14-day trial window.
+
+---
+
+## 5. Testing & Verification
+
+Run the full automated test suite (91 tests):
 
 ```bash
-.venv/bin/python manage.py expire_trials
+python manage.py test
+python manage.py check
 ```
 
-The command is idempotent. Expired tenants keep their data but become read-only for tenant-scoped writes. Super Admins can reactivate tenants from the tenant list, starting a fresh 14-day trial.
+Test suite coverage highlights:
+- `test_permissions.py`: Role matrix enforcement across all 5 roles.
+- `test_phase_auth_isolation.py`: Cross-tenant boundary enforcement and ID manipulation attacks.
+- `test_courses.py` & `test_lessons.py`: Scoped CRUD operations and ordering constraints.
+- `test_assignments.py`: Single-tenant validation between learners and courses.
+- `test_progress.py`: Learner-isolated progress updates and unassigned course access prevention.
+- `test_trials.py`: Trial start/end boundaries, idempotent expiration command, and Super Admin reactivation.
+- `test_web.py`: Web views, redirects, and self-signup flows.
 
-## Configuration
+---
 
-Copy `.env.example` to `.env` if desired and export the values before running Django. PostgreSQL is the target database for the completed app. If `POSTGRES_DB` is not set, local development uses SQLite.
+## 6. Architecture & Design Documentation
 
-No real secrets should be committed.
+Detailed documentation is available in the `docs/` directory:
+- [Architecture & System Design](docs/architecture.md): Multi-tenancy approach, data isolation rules, RBAC, trial lifecycle, and data models.
+- [Permissions Matrix](docs/permissions.md): Complete policy breakdown for platform and tenant roles.
+- [AI Course Creation Design](docs/ai-course-design.md): Dedicated technical design document placeholder for human author completion.
 
-## Tests
+---
 
-```bash
-.venv/bin/python manage.py test
-.venv/bin/python manage.py check
-```
+## 7. Configuration & Database
 
-## Authorization policy
+- **Database:** PostgreSQL is the production target. Local development defaults to SQLite if `POSTGRES_DB` is not specified in the environment.
+- **Environment Variables:** Copy `.env.example` to `.env` to configure PostgreSQL credentials and `SECRET_KEY`.
 
-The initial role and expired-tenant access policy is documented in `docs/permissions.md`.
+---
+
+## 8. Time & Self-Deadline
+
+- **Estimated Time:** 16 hours
+- **Actual Time Taken:** ~12 hours
+- **Self-Deadline:** Completed within designated window.

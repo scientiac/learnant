@@ -19,6 +19,11 @@ def health_check(request):
     return JsonResponse({'status': 'ok'})
 
 
+def about(request):
+    """Hosted documentation & platform architecture details."""
+    return render(request, 'core/about.html')
+
+
 def signup(request):
     """Public sign-up: creates a new Tenant and a Tenant Admin account."""
     if request.user.is_authenticated:

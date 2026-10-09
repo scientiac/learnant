@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Tenants · LearnTenant{% endblock %}
+{% block title %}Colonies · Learnant Platform{% endblock %}
 {% block nav_tenants %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
   <div>
-    <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Tenants</h1>
-    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">All organisations registered on the platform.</p>
+    <h1 class="text-2xl font-semibold tracking-tight">Colonies</h1>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
+      All tenant organisations registered across the Learnant platform.
+    </p>
   </div>
 </div>
 
@@ -15,39 +17,55 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Organisation</th>
+          <th>Colony Name</th>
           <th>Status</th>
-          <th>Trial ends</th>
-          <th>Created</th>
-          {% if can_reactivate_tenants %}<th></th>{% endif %}
+          <th>Trial Expiry</th>
+          <th>Created Date</th>
+          {% if can_reactivate_tenants %}<th class="text-right">Actions</th>{% endif %}
         </tr>
       </thead>
       <tbody>
         {% for tenant in tenants %}
           <tr>
             <td>
-              <span class="font-medium" style="color: hsl(222.2 84% 4.9%)">{{ tenant.name }}</span>
+              <div class="flex items-center gap-2">
+                <i data-lucide="building-2" class="h-4 w-4" style="color: hsl(var(--muted-foreground));"></i>
+                <span class="font-medium">{{ tenant.name }}</span>
+              </div>
             </td>
             <td>
               {% if tenant.status == 'active' %}
-                <span class="badge badge-active">Active</span>
+                <span class="badge badge-active">
+                  <i data-lucide="check" class="h-3 w-3"></i>
+                  Active
+                </span>
               {% elif tenant.status == 'expired' %}
-                <span class="badge badge-expired">Expired</span>
+                <span class="badge badge-expired">
+                  <i data-lucide="x" class="h-3 w-3"></i>
+                  Expired
+                </span>
               {% else %}
                 <span class="badge badge-suspended">{{ tenant.get_status_display }}</span>
               {% endif %}
             </td>
-            <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">{{ tenant.trial_ends_at|date:"N j, Y" }}</td>
-            <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">{{ tenant.created_at|date:"N j, Y" }}</td>
+            <td class="text-sm font-mono text-xs" style="color: hsl(var(--muted-foreground));">
+              {{ tenant.trial_ends_at|date:"Y-m-d" }}
+            </td>
+            <td class="text-sm font-mono text-xs" style="color: hsl(var(--muted-foreground));">
+              {{ tenant.created_at|date:"Y-m-d" }}
+            </td>
             {% if can_reactivate_tenants %}
-              <td>
+              <td class="text-right">
                 {% if tenant.status == 'expired' %}
                   <form method="post" action="{% url 'tenant-reactivate' tenant.id %}" class="inline" id="reactivate-{{ tenant.id }}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-secondary btn-sm">Reactivate</button>
+                    <button type="submit" class="btn btn-secondary btn-sm">
+                      <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                      Reactivate
+                    </button>
                   </form>
                 {% else %}
-                  <span class="text-xs" style="color: hsl(215.4 16.3% 46.9%)">—</span>
+                  <span class="text-xs" style="color: hsl(var(--muted-foreground));">—</span>
                 {% endif %}
               </td>
             {% endif %}
@@ -58,11 +76,11 @@
   </div>
 {% else %}
   <div class="card p-10 text-center">
-    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full" style="background: hsl(210 40% 96.1%)">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: hsl(215.4 16.3% 46.9%)"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center border" style="border-color: hsl(var(--border));">
+      <i data-lucide="building-2" class="h-5 w-5" style="color: hsl(var(--muted-foreground));"></i>
     </div>
-    <p class="text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">No tenants yet</p>
-    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Organisations will appear here when they sign up.</p>
+    <p class="text-sm font-medium">No colonies registered yet</p>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Colonies will appear here as institutes self-signup.</p>
   </div>
 {% endif %}
 {% endblock %}

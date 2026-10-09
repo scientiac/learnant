@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}About Learnant · Colony Architecture{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-10">
+
+  <!-- Hero Header -->
+  <div class="border p-8" style="border-color: hsl(var(--border)); background: hsl(var(--card));">
+    <div class="flex items-center gap-2.5 mb-3">
+      <div class="flex h-7 w-7 items-center justify-center border" style="border-color: hsl(var(--border)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground));">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="2" ry="1.8"/>
+          <ellipse cx="12" cy="11" rx="1.8" ry="2.2"/>
+          <ellipse cx="12" cy="18" rx="2.5" ry="3"/>
+          <path d="M10.5 3.5 8 1"/>
+          <path d="M13.5 3.5 16 1"/>
+          <path d="M9.5 10 5 8"/>
+          <path d="M14.5 10 19 8"/>
+          <path d="M9.5 12 4 13"/>
+          <path d="M14.5 12 20 13"/>
+          <path d="M10 15 5 19"/>
+          <path d="M14 15 19 19"/>
+        </svg>
+      </div>
+      <span class="text-xs font-mono uppercase tracking-widest px-2 py-0.5 border" style="border-color: hsl(var(--border)); color: hsl(var(--muted-foreground));">System Architecture</span>
+    </div>
+
+    <h1 class="text-3xl font-bold tracking-tight">Learnant Platform</h1>
+    <p class="mt-2 text-base leading-relaxed" style="color: hsl(var(--muted-foreground));">
+      A multi-tenant Learning Platform conceptualized around autonomous <strong>Colonies</strong>. Designed with zero-trust database isolation, strict 5-tier role hierarchy, and production usability.
+    </p>
+
+    <div class="mt-6 flex flex-wrap gap-3">
+      {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+          <i data-lucide="log-in" class="h-3.5 w-3.5"></i>
+          Sign in
+        </a>
+        <a href="{% url 'signup' %}" class="btn btn-outline btn-sm">
+          <i data-lucide="building-2" class="h-3.5 w-3.5"></i>
+          Sign up organisation
+        </a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm">
+          <i data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i>
+          Return to Dashboard
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Reviewer Credentials Grid -->
+  <div class="card p-6">
+    <div class="mb-4">
+      <div class="flex items-center gap-2">
+        <i data-lucide="key-round" class="h-4 w-4"></i>
+        <h2 class="text-sm font-semibold uppercase tracking-wider font-mono">Demo Evaluation Accounts</h2>
+      </div>
+      <p class="text-xs mt-1" style="color: hsl(var(--muted-foreground));">
+        Password for all pre-seeded evaluation accounts: <code class="px-1.5 py-0.5 border font-mono text-xs" style="border-color: hsl(var(--border));">password123</code>
+      </p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Username</th>
+            <th>Colony Scope</th>
+            <th>Primary Capabilities</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-active">Super Admin</span></td>
+            <td class="font-mono text-xs font-semibold">superadmin</td>
+            <td class="text-xs">Platform-wide</td>
+            <td class="text-xs">Reactivate expired colonies, full access</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-role">Admin</span></td>
+            <td class="font-mono text-xs font-semibold">admin</td>
+            <td class="text-xs">Platform-wide</td>
+            <td class="text-xs">Manage colonies, inspect courses</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-suspended">Super Viewer</span></td>
+            <td class="font-mono text-xs font-semibold">viewer</td>
+            <td class="text-xs">Platform-wide</td>
+            <td class="text-xs">Read-only platform inspection & metrics</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-role">Tenant Admin</span></td>
+            <td class="font-mono text-xs font-semibold">institute_admin</td>
+            <td class="text-xs">Demo Institute</td>
+            <td class="text-xs">Manage courses, syllabus, enrollments</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-role">Tenant User</span></td>
+            <td class="font-mono text-xs font-semibold">learner</td>
+            <td class="text-xs">Demo Institute</td>
+            <td class="text-xs">Study assigned courses, mark progress</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Key Architecture Principles -->
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-wider">
+        <i data-lucide="shield-check" class="h-4 w-4"></i>
+        Zero-Trust Isolation
+      </div>
+      <p class="text-xs leading-relaxed" style="color: hsl(var(--muted-foreground));">
+        Every query scopes by authenticated tenant. Foreign URL manipulation directly yields HTTP 404/403.
+      </p>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-wider">
+        <i data-lucide="clock" class="h-4 w-4"></i>
+        14-Day Free Trials
+      </div>
+      <p class="text-xs leading-relaxed" style="color: hsl(var(--muted-foreground));">
+        Self-signup initiates a 14-day trial. Expired colonies become read-only with non-destructive preservation.
+      </p>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-wider">
+        <i data-lucide="layers" class="h-4 w-4"></i>
+        Monochrome Sera
+      </div>
+      <p class="text-xs leading-relaxed" style="color: hsl(var(--muted-foreground));">
+        Minimalist shadcn/ui Sera aesthetic: sharp 0px corners, high typographic contrast, and native theme toggle.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

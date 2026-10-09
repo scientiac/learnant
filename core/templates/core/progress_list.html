@@ -1,34 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Progress · {{ course.title }} · LearnTenant{% endblock %}
+{% block title %}Progress · {{ course.title }} · Learnant{% endblock %}
 {% block nav_courses %}active{% endblock %}
 
 {% block content %}
-<div class="mb-1">
-  <a href="{% url 'course-list' %}" class="inline-flex items-center gap-1 text-sm no-underline transition-colors" style="color: hsl(215.4 16.3% 46.9%)" onmouseover="this.style.color='hsl(222.2 84% 4.9%)'" onmouseout="this.style.color='hsl(215.4 16.3% 46.9%)'">
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+<div class="mb-4">
+  <a href="{% url 'course-list' %}" class="inline-flex items-center gap-1.5 text-sm" style="color: hsl(var(--muted-foreground));">
+    <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
     Back to courses
   </a>
 </div>
 
-<div class="mb-6 mt-2">
-  <h1 class="text-2xl font-semibold" style="color: hsl(222.2 84% 4.9%)">Learner progress</h1>
-  <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Progress for <strong>{{ course.title }}</strong>.</p>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold tracking-tight">Colony Progress Tracker</h1>
+  <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
+    Syllabus completion metrics for <strong class="font-medium" style="color: hsl(var(--foreground));">{{ course.title }}</strong>.
+  </p>
 </div>
 
 {% if assignments %}
-  <div class="mb-6">
-    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide" style="color: hsl(215.4 16.3% 46.9%)">Enrolled learners ({{ assignments|length }})</h2>
+  <div class="mb-6 card p-4">
+    <h2 class="text-xs font-mono uppercase tracking-widest mb-3" style="color: hsl(var(--muted-foreground));">
+      Enrolled Colony Learners ({{ assignments|length }})
+    </h2>
     <div class="flex flex-wrap gap-2">
       {% for assignment in assignments %}
-        <span class="badge badge-role">{{ assignment.learner.username }}</span>
+        <span class="badge badge-role font-mono text-xs">
+          <i data-lucide="user" class="h-3 w-3 mr-1"></i>
+          {{ assignment.learner.username }}
+        </span>
       {% endfor %}
     </div>
   </div>
 
   {% if progress_records %}
     <div class="card overflow-hidden">
-      <div class="border-b px-5 py-3" style="border-color: hsl(214.3 31.8% 91.4%)">
-        <h2 class="text-sm font-semibold" style="color: hsl(222.2 84% 4.9%)">Lesson completion records</h2>
+      <div class="border-b px-5 py-3" style="border-color: hsl(var(--border));">
+        <h2 class="text-xs font-mono uppercase tracking-widest" style="color: hsl(var(--muted-foreground));">
+          Lesson Completion Feed
+        </h2>
       </div>
       <table class="table">
         <thead>
@@ -36,28 +45,28 @@
             <th>Learner</th>
             <th>Lesson</th>
             <th>Status</th>
-            <th>Completed</th>
+            <th>Completed At</th>
           </tr>
         </thead>
         <tbody>
           {% for progress in progress_records %}
             <tr>
               <td>
-                <span class="font-medium" style="color: hsl(222.2 84% 4.9%)">{{ progress.assignment.learner.username }}</span>
+                <span class="font-mono text-xs font-semibold">{{ progress.assignment.learner.username }}</span>
               </td>
-              <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">{{ progress.lesson.title }}</td>
+              <td class="text-sm">{{ progress.lesson.title }}</td>
               <td>
                 {% if progress.is_complete %}
                   <span class="badge badge-active">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polyline points="20 6 9 17 4 12"/></svg>
+                    <i data-lucide="check" class="h-3 w-3"></i>
                     Complete
                   </span>
                 {% else %}
-                  <span class="badge" style="background: hsl(210 40% 93%); color: hsl(215.4 16.3% 46.9%)">In progress</span>
+                  <span class="badge badge-suspended">In progress</span>
                 {% endif %}
               </td>
-              <td class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">
-                {% if progress.completed_at %}{{ progress.completed_at|date:"N j, Y" }}{% else %}—{% endif %}
+              <td class="text-sm font-mono text-xs" style="color: hsl(var(--muted-foreground));">
+                {% if progress.completed_at %}{{ progress.completed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
               </td>
             </tr>
           {% endfor %}
@@ -65,19 +74,22 @@
       </table>
     </div>
   {% else %}
-    <div class="card p-6 text-center">
-      <p class="text-sm" style="color: hsl(215.4 16.3% 46.9%)">No lesson completions recorded yet for this course.</p>
+    <div class="card p-8 text-center">
+      <p class="text-sm" style="color: hsl(var(--muted-foreground));">No lesson completions recorded yet for this course.</p>
     </div>
   {% endif %}
 
 {% else %}
   <div class="card p-10 text-center">
-    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full" style="background: hsl(210 40% 96.1%)">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: hsl(215.4 16.3% 46.9%)"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+    <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center border" style="border-color: hsl(var(--border));">
+      <i data-lucide="users" class="h-5 w-5" style="color: hsl(var(--muted-foreground));"></i>
     </div>
-    <p class="text-sm font-medium" style="color: hsl(222.2 84% 4.9%)">No learners enrolled</p>
-    <p class="mt-1 text-sm" style="color: hsl(215.4 16.3% 46.9%)">Assign learners to start tracking progress.</p>
-    <a class="btn btn-primary mt-4 inline-flex" href="{% url 'assignment-list' course.id %}">Go to assignments</a>
+    <p class="text-sm font-medium">No learners enrolled</p>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Assign learners to start tracking progress across your syllabus.</p>
+    <a class="btn btn-primary mt-4 inline-flex" href="{% url 'assignment-list' course.id %}">
+      <i data-lucide="user-plus" class="h-4 w-4"></i>
+      Manage assignments
+    </a>
   </div>
 {% endif %}
 {% endblock %}

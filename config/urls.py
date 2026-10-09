@@ -19,6 +19,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from core.views import (
+    about,
     assignment_create,
     assignment_delete,
     assignment_list,
@@ -41,6 +42,7 @@ from core.views import (
 
 urlpatterns = [
     path('', dashboard, name='dashboard'),
+    path('about/', about, name='about'),
     path('courses/', course_list, name='course-list'),
     path('courses/new/', course_create, name='course-create'),
     path('courses/<int:course_id>/edit/', course_update, name='course-update'),
