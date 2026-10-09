@@ -387,8 +387,16 @@ class ProfileSettingsForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'given-name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'family-name'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
-            'avatar': forms.ClearableFileInput(attrs={'class': 'form-input', 'accept': 'image/png,image/jpeg,image/gif,image/webp'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/png,image/jpeg,image/gif,image/webp'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['remove_avatar'] = forms.BooleanField(
+            required=False,
+            label='Remove current profile image',
+            widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+        )
 
     def clean_avatar(self):
         avatar = self.cleaned_data.get('avatar')

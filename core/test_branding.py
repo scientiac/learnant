@@ -101,6 +101,22 @@ class BrandingUploadTests(TestCase):
         self.assertEqual(avatar_response.status_code, 200)
         self.assertEqual(avatar_response['Content-Type'], 'image/png')
 
+        settings_response = self.client.get(reverse('profile-settings'))
+        self.assertContains(settings_response, 'Current profile image')
+        self.assertContains(settings_response, 'Replace image')
+        remove_response = self.client.post(
+            reverse('profile-settings'),
+            {
+                'first_name': 'Learner',
+                'last_name': 'One',
+                'email': 'learner@example.test',
+                'remove_avatar': 'on',
+            },
+        )
+        self.learner.refresh_from_db()
+        self.assertRedirects(remove_response, reverse('dashboard'))
+        self.assertFalse(self.learner.avatar)
+
     def test_tenant_user_cannot_read_another_users_avatar(self):
         self.tenant_admin.avatar.save(
             'manager.png', SimpleUploadedFile('manager.png', PNG_BYTES, content_type='image/png')

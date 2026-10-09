@@ -3,6 +3,7 @@ import secrets
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
 from django.db import transaction
+from django.core.files.uploadedfile import UploadedFile
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -519,7 +520,13 @@ def profile_settings(request):
     if request.method == 'POST':
         form = ProfileSettingsForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            form.save()
+            updated_user = form.save(commit=False)
+            if (
+                form.cleaned_data.get('remove_avatar')
+                and not isinstance(form.cleaned_data.get('avatar'), UploadedFile)
+            ):
+                updated_user.avatar = ''
+            updated_user.save()
             return redirect('dashboard')
     else:
         form = ProfileSettingsForm(instance=user)
