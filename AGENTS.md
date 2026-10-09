@@ -121,9 +121,9 @@ Every user belongs to a specific tier and must have dedicated, role-appropriate 
 - **Template Export:** Allow Tenant Admins to download a standardized `.csv` template with clear columns (`username`, `email`, `first_name`, `last_name`, optional `courses`).
 - **Resilient Import Parser:** Import processing must validate rows individually without failing the entire batch, skip duplicates safely, automatically bind learners to `role = TENANT_USER` and `request.user.tenant`, and allow enrolling without mandatory course assignments.
 
-### L. Railway Deployment Architecture (Django + PostgreSQL)
-- **Deployment Reference:** Support standard Railway deployment pattern via `https://railway.com/deploy/django-w-postgres`.
-- **Runtime Assets:** Provide `Procfile` (`web: gunicorn config.wsgi`), `railway.toml`, `dj-database-url`, and `whitenoise` for zero-configuration static file serving.
+### L. Portable Container Deployment (Django + PostgreSQL)
+- **Runtime Assets:** Provide a portable Docker image for Django and a separate PostgreSQL service via Docker Compose; do not use SQLite for deployments.
+- **Image Publishing:** GitHub Actions publishes versioned GHCR images and signs immutable digests with keyless Cosign.
 - **Environment Invariants:** Gracefully read `DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`.
 
 ---

@@ -10,17 +10,58 @@ from django.utils.text import slugify
 from .models import Course, CourseAssignment, Tenant, User
 
 
-CSV_HEADERS = ('username', 'email', 'first_name', 'last_name', 'courses')
+CSV_HEADERS = ('username', 'email', 'first_name', 'last_name', 'course_ids')
 REQUIRED_HEADERS = set(CSV_HEADERS[:4])
 MAX_CSV_BYTES = 5 * 1024 * 1024
 MAX_CSV_ROWS = 500
 
 
-def blank_enrollment_csv():
+def blank_enrollment_csv(tenant):
     output = io.StringIO(newline='')
+    tenant_name = tenant.name.replace('\r', ' ').replace('\n', ' ').replace(',', ' ')
+    output.write(f'# Learnant learner roster template for {tenant_name}\n')
+    output.write('# Course IDs for this organization (separate multiple IDs with semicolons):\n')
+    for course in Course.objects.filter(tenant=tenant).order_by('id'):
+        course_title = course.title.replace('\r', ' ').replace('\n', ' ').replace(',', ' ')
+        output.write(f'# {course.id}: {course_title}\n')
+    output.write('\n')
     writer = csv.writer(output)
     writer.writerow(CSV_HEADERS)
     return output.getvalue()
+
+
+def username_from_email(email, reserved_usernames=()):
+    base = (slugify(email.split('@', 1)[0]) or 'learner')[:140]
+    username = base
+    suffix = 1
+    reserved = {value.casefold() for value in reserved_usernames}
+    while username.casefold() in reserved or User.objects.filter(username__iexact=username).exists():
+        suffix += 1
+        username = f'{base[:140 - len(str(suffix))]}{suffix}'
+    return username
+
+
+def create_learner(tenant, *, username, email, first_name, last_name, courses=()):
+    """Create one forced-reset learner and any selected same-tenant assignments."""
+    with transaction.atomic():
+        password = secrets.token_urlsafe(18)
+        learner = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            password=password,
+            role=User.Role.TENANT_USER,
+            tenant=tenant,
+            must_change_password=True,
+        )
+        for course in courses:
+            CourseAssignment.objects.get_or_create(
+                tenant=tenant,
+                course=course,
+                learner=learner,
+            )
+    return {'username': username, 'email': email, 'password': password, 'course_count': len(courses)}
 
 
 def import_student_csv(upload, tenant):
@@ -36,7 +77,11 @@ def import_student_csv(upload, tenant):
         return result
 
     try:
-        reader = csv.DictReader(io.StringIO(text, newline=''))
+        csv_text = '\n'.join(
+            line for line in text.splitlines()
+            if not line.lstrip().startswith('#')
+        ).lstrip('\r\n')
+        reader = csv.DictReader(io.StringIO(csv_text, newline=''))
         headers = reader.fieldnames or []
         normalized_headers = [header.strip().lower() for header in headers]
         if len(set(normalized_headers)) != len(normalized_headers):
@@ -69,14 +114,7 @@ def import_student_csv(upload, tenant):
         result['file_error'] = 'CSV formatting is invalid.'
         return result
 
-    courses = list(Course.objects.filter(tenant=tenant).order_by('id'))
-    courses_by_title = {}
-    for course in courses:
-        title_key = course.title.casefold()
-        if title_key in courses_by_title:
-            courses_by_title[title_key] = None
-        else:
-            courses_by_title[title_key] = course
+    courses_by_id = {str(course.id): course for course in Course.objects.filter(tenant=tenant)}
 
     seen_usernames = set()
     seen_emails = set()
@@ -120,14 +158,12 @@ def import_student_csv(upload, tenant):
                     errors.append(f'username "{username}" is already in use')
 
         course_rows = []
-        courses_text = row.get('courses', '')
-        if courses_text:
-            for title in dict.fromkeys(part.strip() for part in courses_text.split(';') if part.strip()):
-                course = courses_by_title.get(title.casefold(), 'missing')
-                if course == 'missing':
-                    errors.append(f'course "{title}" is not in this organization')
-                elif course is None:
-                    errors.append(f'course title "{title}" is ambiguous in this organization')
+        course_ids_text = row.get('course_ids', '')
+        if course_ids_text:
+            for course_id in dict.fromkeys(part.strip() for part in course_ids_text.split(';') if part.strip()):
+                course = courses_by_id.get(course_id)
+                if course is None:
+                    errors.append(f'course ID "{course_id}" is not in this organization')
                 else:
                     course_rows.append(course)
 
@@ -137,24 +173,14 @@ def import_student_csv(upload, tenant):
             continue
 
         try:
-            with transaction.atomic():
-                password = secrets.token_urlsafe(18)
-                learner = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    password=password,
-                    role=User.Role.TENANT_USER,
-                    tenant=tenant,
-                    must_change_password=True,
-                )
-                for course in course_rows:
-                    CourseAssignment.objects.get_or_create(
-                        tenant=tenant,
-                        course=course,
-                        learner=learner,
-                    )
+            created_student = create_learner(
+                tenant,
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                courses=course_rows,
+            )
         except IntegrityError:
             result['row_errors'].append(
                 {'row': row_number, 'errors': ['account conflicts with an account created concurrently']}
@@ -165,8 +191,6 @@ def import_student_csv(upload, tenant):
         seen_usernames.add(username.casefold())
         if email:
             seen_emails.add(email.casefold())
-        result['created_students'].append(
-            {'username': username, 'email': email, 'password': password, 'course_count': len(course_rows)}
-        )
+        result['created_students'].append(created_student)
 
     return result

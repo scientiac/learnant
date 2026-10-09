@@ -2,7 +2,7 @@ import secrets
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import UploadedFile
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,6 +19,7 @@ from .forms import (
     LessonForm,
     PlatformAccountProvisionForm,
     ProfileSettingsForm,
+    StudentEnrollmentFormSet,
     StudentCsvImportForm,
     TenantSubscriptionForm,
     TenantSettingsForm,
@@ -26,7 +27,12 @@ from .forms import (
     TenantUserManagementForm,
 )
 from .media import classify_lesson_upload, image_mime_type
-from .csv_enrollment import blank_enrollment_csv, import_student_csv
+from .csv_enrollment import (
+    blank_enrollment_csv,
+    create_learner,
+    import_student_csv,
+    username_from_email,
+)
 from .models import Course, CourseAssignment, Lesson, LessonAsset, LessonProgress, Tenant, User
 from .permissions import (
     can_manage_platform,
@@ -553,10 +559,23 @@ def bulk_student_add(request, tenant_id=None):
     created_students = []
     csv_form = StudentCsvImportForm()
     csv_result = None
+    manual_formset = StudentEnrollmentFormSet(
+        prefix='learners',
+        form_kwargs={'tenant': tenant},
+    )
+    manual_result = None
     if request.method == 'POST' and request.POST.get('action') == 'import_csv':
         csv_form = StudentCsvImportForm(request.POST, request.FILES)
         if csv_form.is_valid():
             csv_result = import_student_csv(csv_form.cleaned_data['csv_file'], tenant)
+        form = BulkStudentOnboardingForm(tenant=tenant)
+    elif request.method == 'POST' and request.POST.get('action') == 'manual_rows':
+        manual_formset = StudentEnrollmentFormSet(
+            request.POST,
+            prefix='learners',
+            form_kwargs={'tenant': tenant},
+        )
+        manual_result = import_student_rows(manual_formset, tenant)
         form = BulkStudentOnboardingForm(tenant=tenant)
     elif request.method == 'POST':
         form = BulkStudentOnboardingForm(request.POST, tenant=tenant)
@@ -586,9 +605,77 @@ def bulk_student_add(request, tenant_id=None):
             'created_students': created_students,
             'csv_form': csv_form,
             'csv_result': csv_result,
+            'manual_formset': manual_formset,
+            'manual_result': manual_result,
             'tenant': tenant,
         },
     )
+
+
+def import_student_rows(formset, tenant):
+    result = {'created_students': [], 'row_errors': [], 'skipped_count': 0}
+    if not formset.management_form.is_valid():
+        result['file_error'] = 'The learner rows were submitted incorrectly; reload and try again.'
+        return result
+    if formset.total_form_count() > 100:
+        result['file_error'] = 'You can enroll at most 100 learners at a time.'
+        return result
+
+    seen_usernames = set()
+    seen_emails = set()
+    for row_number, form in enumerate(formset.forms, start=1):
+        if form.is_valid() and form.cleaned_data.get('DELETE'):
+            continue
+        if not form.has_changed():
+            continue
+        if not form.is_valid():
+            errors = [str(error) for error in form.non_field_errors()]
+            for field_name, field_errors in form.errors.items():
+                if field_name != '__all__':
+                    errors.extend(f'{field_name}: {error}' for error in field_errors)
+            result['row_errors'].append({'row': row_number, 'errors': errors})
+            result['skipped_count'] += 1
+            continue
+
+        data = form.cleaned_data
+        username = data['username']
+        email = data['email']
+        errors = []
+        if email:
+            key = email.casefold()
+            if key in seen_emails or User.objects.filter(email__iexact=email).exists():
+                errors.append(f'email "{email}" is already in use')
+        if not username and email:
+            username = username_from_email(email, seen_usernames)
+        if username:
+            key = username.casefold()
+            if key in seen_usernames or User.objects.filter(username__iexact=username).exists():
+                errors.append(f'username "{username}" is already in use')
+        if errors:
+            result['row_errors'].append({'row': row_number, 'errors': errors})
+            result['skipped_count'] += 1
+            continue
+
+        try:
+            created = create_learner(
+                tenant,
+                username=username,
+                email=email,
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                courses=data['courses'],
+            )
+        except IntegrityError:
+            result['row_errors'].append(
+                {'row': row_number, 'errors': ['account conflicts with an existing account']}
+            )
+            result['skipped_count'] += 1
+            continue
+        seen_usernames.add(username.casefold())
+        if email:
+            seen_emails.add(email.casefold())
+        result['created_students'].append(created)
+    return result
 
 
 @login_required
@@ -608,7 +695,7 @@ def download_student_csv_template(request, tenant_id=None):
     if not can_mutate_tenant_data(user, tenant):
         return HttpResponseForbidden('This tenant is read-only.')
 
-    response = HttpResponse(blank_enrollment_csv(), content_type='text/csv; charset=utf-8')
+    response = HttpResponse(blank_enrollment_csv(tenant), content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="learnant-students-template.csv"'
     return response
 

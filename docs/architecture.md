@@ -102,7 +102,7 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 
 ## 6. Testing Strategy
 
-- **Test Suite:** 190 automated test cases spanning:
+- **Test Suite:** 193 automated test cases spanning:
   - Role-based permissions (`test_permissions.py`)
   - Cross-tenant data isolation and ID manipulation (`test_phase_auth_isolation.py`)
   - Course and lesson CRUD boundaries (`test_courses.py`, `test_lessons.py`)
@@ -111,7 +111,7 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
   - Trial expiration boundaries and idempotency (`test_trials.py`)
   - Web flows, signup, and authentication redirects (`test_web.py`)
   - Deployment bootstrap, platform account provisioning, tenant learner management, CSV enrollment, and first-login password reset
-  - Railway environment parsing and production settings
+  - Container environment parsing and production settings
 
 ---
 
@@ -136,9 +136,9 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 ### 5. Resilient Spreadsheet Ingestion
 - CSV template export and fault-tolerant batch importer assigning users to `TENANT_USER` with optional course associations.
 
-### 6. Railway Cloud Architecture (Django + PostgreSQL)
-- Deployment target on Railway (`https://railway.com/deploy/django-w-postgres`) leveraging `dj-database-url`, WhiteNoise, and Gunicorn.
-- `DATABASE_URL` selects PostgreSQL; local debug mode retains SQLite fallback. Production refuses missing/development secrets and missing database/host configuration.
-- `railway.toml` collects static files, runs migrations, starts Gunicorn, and checks `/health/`; `Procfile` provides the standard WSGI command.
-- Uploaded media requires a persistent Railway volume mounted at the configured `MEDIA_ROOT`; static assets are served through WhiteNoise.
-- Railway configuration and static collection are smoke-checked locally; live PostgreSQL connectivity was unavailable for this verification.
+### 6. Portable Container Architecture (Django + PostgreSQL)
+- Docker Compose runs the application and PostgreSQL in separate services, with durable named volumes for relational data and uploads.
+- The application uses PostgreSQL in container deployments; local debug-only SQLite remains available for quick direct development.
+- The image starts with migrations and WhiteNoise static collection, then serves Django via Gunicorn; `/health/` is the container health check.
+- GitHub Actions publishes multi-architecture images to GHCR on branch and version-tag pushes, and signs published image digests with keyless Cosign.
+- Production requires a strong secret, database configuration, and allowed-host list. Live PostgreSQL deployment must be verified against the deployment host's managed or self-hosted service.

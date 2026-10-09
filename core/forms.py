@@ -533,6 +533,63 @@ class StudentCsvImportForm(forms.Form):
         return upload
 
 
+class StudentEnrollmentRowForm(forms.Form):
+    username = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Username'}),
+    )
+    email = forms.EmailField(
+        required=False,
+        max_length=254,
+        widget=forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'learner@example.org'}),
+    )
+    first_name = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'First name'}),
+    )
+    last_name = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Last name'}),
+    )
+    courses = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Course.objects.none(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'course-choice-list'}),
+        label='Assign courses (optional)',
+    )
+
+    def __init__(self, *args, tenant, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['courses'].queryset = Course.objects.filter(tenant=tenant).order_by('id')
+        self.fields['courses'].label_from_instance = lambda course: f'#{course.id} — {course.title}'
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        if username:
+            User._meta.get_field('username').run_validators(username)
+        return username
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get('username') and not cleaned.get('email'):
+            if any(cleaned.get(field) for field in ('first_name', 'last_name', 'courses')):
+                raise ValidationError('Provide a username or email for this learner row.')
+        return cleaned
+
+
+StudentEnrollmentFormSet = forms.formset_factory(
+    StudentEnrollmentRowForm,
+    extra=1,
+    max_num=100,
+    validate_max=True,
+    absolute_max=100,
+    can_delete=True,
+)
+
+
 class CourseAssistantPreviewForm(forms.Form):
     learner_role = forms.CharField(
         max_length=100,

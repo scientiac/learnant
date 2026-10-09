@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Bulk student onboarding · Learnant{% endblock %}
 {% block content %}
-<div class="mx-auto max-w-2xl">
+<div class="mx-auto w-full max-w-5xl px-1 sm:px-0">
   <h1 class="text-2xl font-semibold">Onboard colony members</h1>
-  <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Enter up to 100 usernames or email addresses, one per line. New learners are automatically bound to your organization.</p>
+  <p class="mt-2 text-sm" style="color: hsl(var(--muted-foreground));">Add learner details and optionally select multiple courses. New learners are automatically bound to your organization and receive a temporary password.</p>
 
   <section class="card mt-6 p-5">
     <h2 class="font-semibold">Spreadsheet import</h2>
-    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Import a UTF-8 CSV file. Each row is checked independently; invalid and duplicate rows are skipped while valid learners are enrolled.</p>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Import a UTF-8 CSV file. Each row is checked independently; invalid and duplicate rows are skipped while valid learners are enrolled. Course IDs are listed in the template comments; separate multiple IDs with semicolons.</p>
     <a class="btn btn-outline btn-sm mt-3" href="{% if request.resolver_match.kwargs.tenant_id %}{% url 'tenant-student-csv-template' request.resolver_match.kwargs.tenant_id %}{% else %}{% url 'student-csv-template' %}{% endif %}">Download CSV template</a>
     <form method="post" enctype="multipart/form-data" class="mt-4 space-y-3">
       {% csrf_token %}
@@ -51,14 +51,90 @@
     </section>
   {% endif %}
 
-  <form method="post" class="card mt-6 space-y-4 p-6">
-    {% csrf_token %}
-    <div>
-      <label class="form-label" for="{{ form.students.id_for_label }}">{{ form.students.label }}</label>
-      {{ form.students }}
-      {% for error in form.students.errors %}<p class="alert-error mt-2">{{ error }}</p>{% endfor %}
-    </div>
-    <button class="btn btn-primary" type="submit">Create learner accounts</button>
-  </form>
+  {% if manual_result %}
+    {% if manual_result.file_error %}<p class="alert-error mt-4">{{ manual_result.file_error }}</p>{% endif %}
+    {% if manual_result.created_students %}
+      <section class="alert-info mt-6" aria-live="polite">
+        <h2 class="font-semibold">Created {{ manual_result.created_students|length }} learner account{{ manual_result.created_students|length|pluralize }}</h2>
+        <p class="mt-1 text-sm">Share temporary passwords securely. Learners must reset them before continuing.</p>
+        <div class="mt-3 overflow-x-auto"><table class="table">
+          <thead><tr><th>Username</th><th>Email</th><th>Temporary password</th></tr></thead>
+          <tbody>{% for student in manual_result.created_students %}<tr><td>{{ student.username }}</td><td>{{ student.email|default:'—' }}</td><td class="font-mono">{{ student.password }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
+    {% endif %}
+    {% if manual_result.skipped_count %}<p class="mt-3">Skipped {{ manual_result.skipped_count }} row{{ manual_result.skipped_count|pluralize }}.</p>{% endif %}
+    {% if manual_result.row_errors %}<ul class="mt-2 list-disc pl-5 text-sm">{% for error in manual_result.row_errors %}<li>Row {{ error.row }}: {{ error.errors|join:"; " }}</li>{% endfor %}</ul>{% endif %}
+  {% endif %}
+
+  <section class="card mt-6 p-5">
+    <h2 class="font-semibold">Add learners</h2>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Enter a username or email. Select courses with the checkboxes; leaving all unchecked enrolls the learner without an assignment.</p>
+    {% if form.errors %}<div class="alert-error mt-4">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}{% for error in form.students.errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+    <form method="post" class="mt-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="manual_rows">
+      {{ manual_formset.management_form }}
+      <div id="learner-rows" class="space-y-4">
+        {% for row_form in manual_formset %}
+          <fieldset class="card min-w-0 p-4 sm:p-5" data-learner-card>
+            <legend class="px-2 text-sm font-medium">Learner {{ forloop.counter }}</legend>
+            <span class="sr-only">{{ row_form.DELETE }}</span>
+            <div class="mb-4 flex justify-end"><button class="btn btn-outline btn-sm" type="button" data-remove-learner aria-label="Remove learner {{ forloop.counter }}">Remove learner</button></div>
+            {% if row_form.non_field_errors %}<p class="alert-error mb-3">{{ row_form.non_field_errors }}</p>{% endif %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {% for field in row_form %}
+                {% if field.name != 'DELETE' %}
+                  <div class="min-w-0 {% if field.name == 'courses' %}sm:col-span-2{% endif %}">
+                    {% if field.name == 'courses' %}
+                      <span class="form-label">{{ field.label }}</span>
+                      <div class="course-picker">{{ field }}</div>
+                      <p class="mt-2 text-xs" style="color: hsl(var(--muted-foreground));">Choose any number of courses for this learner.</p>
+                    {% else %}
+                      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                      {{ field }}
+                    {% endif %}
+                    {% for error in field.errors %}<p class="alert-error mt-1">{{ error }}</p>{% endfor %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </fieldset>
+        {% endfor %}
+      </div>
+      <template id="learner-row-template"><fieldset class="card min-w-0 p-4 sm:p-5" data-learner-card><legend class="px-2 text-sm font-medium">Learner</legend><span class="sr-only">{{ manual_formset.empty_form.DELETE }}</span><div class="mb-4 flex justify-end"><button class="btn btn-outline btn-sm" type="button" data-remove-learner>Remove learner</button></div><div class="grid grid-cols-1 gap-4 sm:grid-cols-2">{% for field in manual_formset.empty_form %}{% if field.name != 'DELETE' %}<div class="min-w-0 {% if field.name == 'courses' %}sm:col-span-2{% endif %}">{% if field.name == 'courses' %}<span class="form-label">{{ field.label }}</span><div class="course-picker">{{ field }}</div><p class="mt-2 text-xs" style="color: hsl(var(--muted-foreground));">Choose any number of courses for this learner.</p>{% else %}<label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}</div>{% endif %}{% endfor %}</div></fieldset></template>
+      {% if manual_formset.non_form_errors %}<p class="alert-error mt-3">{{ manual_formset.non_form_errors }}</p>{% endif %}
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button class="btn btn-outline" type="button" id="add-learner-row">Add another learner</button>
+        <button class="btn btn-primary" type="submit">Create learner accounts</button>
+      </div>
+    </form>
+  </section>
 </div>
+<script>
+  document.getElementById('add-learner-row').addEventListener('click', function () {
+    const total = document.getElementById('id_learners-TOTAL_FORMS');
+    const count = Number(total.value);
+    if (count >= 100) return;
+    const row = document.getElementById('learner-row-template').innerHTML.replaceAll('__prefix__', count);
+    const container = document.getElementById('learner-rows');
+    container.insertAdjacentHTML('beforeend', row);
+    container.lastElementChild.querySelector('legend').textContent = `Learner ${count + 1}`;
+    total.value = count + 1;
+  });
+  document.getElementById('learner-rows').addEventListener('click', function (event) {
+    const removeButton = event.target.closest('[data-remove-learner]');
+    if (!removeButton) return;
+    const card = removeButton.closest('[data-learner-card]');
+    const deleteCheckbox = card.querySelector('input[type="checkbox"][name$="-DELETE"]');
+    if (deleteCheckbox) deleteCheckbox.checked = true;
+    card.hidden = true;
+  });
+</script>
+<style>
+  .course-choice-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .5rem; margin: 0; padding: 0; }
+  .course-choice-list label { display: flex; min-height: 2.75rem; align-items: center; gap: .65rem; border: 1px solid hsl(var(--border)); padding: .65rem .75rem; cursor: pointer; overflow-wrap: anywhere; }
+  .course-choice-list label:has(input:checked) { background: hsl(var(--secondary)); border-color: hsl(var(--foreground)); }
+  .course-picker input[type="checkbox"] { width: 1rem; height: 1rem; flex: none; accent-color: hsl(var(--primary)); }
+</style>
 {% endblock %}

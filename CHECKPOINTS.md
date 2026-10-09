@@ -1,8 +1,8 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Railway deployment configuration and environment handling verified (190 tests passing, Django check 0 issues).
-- **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
+- **Overall Status:** Portable Docker deployment and environment handling implemented (193 tests passing, Django check 0 issues).
+- **Architecture:** Multi-Tenant Django Monolith (PostgreSQL in container deployments, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
   ```bash
@@ -118,11 +118,11 @@
 - [x] Robust CSV import parser with independent row validation and duplicate-safe skips.
 - [x] Support enrolling learners with or without immediate same-tenant course assignments.
 
-### Priority 8: Railway Deployment Configuration (PostgreSQL + Django)
-- [x] Production configuration for Railway (`Procfile`, `railway.toml`, `whitenoise`, `dj-database-url`, `gunicorn`).
+### Priority 8: Portable Container Deployment (PostgreSQL + Django)
+- [x] Portable Docker deployment with PostgreSQL Compose service, persistent volumes, Gunicorn, and WhiteNoise.
 - [x] Environment variable specifications (`DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`).
-- [x] Deployment guide based on `https://railway.com/deploy/django-w-postgres`.
-- [ ] PostgreSQL service connectivity could not be exercised locally; verify against the live Railway service at deployment.
+- [x] GitHub Actions multi-architecture GHCR publishing and keyless Cosign image signing.
+- [ ] PostgreSQL service connectivity could not be exercised locally; verify against the target host's PostgreSQL service at deployment.
 
 ### Priority 9: Remaining Take-Home Submission Items
 - [x] Add platform-side tenant creation for Admin/Super Admin with an initial Tenant Admin.

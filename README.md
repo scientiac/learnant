@@ -29,6 +29,22 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 
 ## 2. Quickstart & Local Setup
 
+### Run with Docker Compose (Django + PostgreSQL)
+
+The supported container deployment runs Django and PostgreSQL as separate services, with named persistent volumes for the database and uploads:
+
+```bash
+cp .env.example .env
+# Edit .env and set strong, unique SECRET_KEY and POSTGRES_PASSWORD values.
+docker compose up --build -d
+```
+
+Open `http://localhost:8000/`. Migrations and static collection run when the web container starts. To seed demo data, run `docker compose exec web python manage.py seed_demo`. Create the first production Super Admin using the bootstrap environment credentials and `docker compose exec web python manage.py bootstrap_superadmin`.
+
+The container image is published to `ghcr.io/<owner>/<repository>` on pushes to `main`/`master` and version tags. Pull requests build (but do not publish) the image. Published image digests are automatically signed using keyless Cosign; verify with `cosign verify` and the workflow identity shown in the GitHub Actions run. Use a tag or immutable digest when deploying elsewhere. Configure TLS/reverse proxying and persistent volumes for `/app/uploads` and PostgreSQL on your host.
+
+### Run Django directly (development only)
+
 ```bash
 # 1. Create and activate virtual environment
 python3 -m venv .venv
@@ -128,7 +144,7 @@ Tenant Admins can edit learner names, emails, and active status from **Members**
 2. Enter up to 100 usernames or email addresses, one per line.
 3. Newly created learner usernames and randomly generated initial passwords are shown once after submission; share them with learners securely.
 
-For CSV enrollment, download the template from the same page and fill in `username`, `email`, `first_name`, and `last_name`. Leave `courses` blank for no assignments, or enter same-organization course titles separated by semicolons.
+For CSV enrollment, download the tenant-specific template from the same page. Its comment lines map course IDs to titles. Fill `username`, `email`, `first_name`, and `last_name`; leave `course_ids` blank for no assignments or enter one or more same-tenant IDs separated by semicolons. The manual rows form offers the same fields and multi-course selection.
 
 Tenant Admins can manage learner names, emails, and active status from **Members**. Deactivation preserves assignments and progress records.
 
@@ -138,7 +154,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (190 tests):
+Run the full automated test suite (193 tests):
 
 ```bash
 python manage.py test
@@ -167,25 +183,15 @@ Detailed documentation is available in the `docs/` directory:
 
 ## 7. Configuration & Database
 
-- **Database:** PostgreSQL is the production target. Local development defaults to SQLite unless `DATABASE_URL` or `POSTGRES_DB` is set.
+- **Database:** Deployments use PostgreSQL. Docker Compose starts PostgreSQL and Django together; direct local development without a database URL uses a local SQLite database only for convenience. Set `DATABASE_URL` or the `POSTGRES_*` variables for direct PostgreSQL use.
 - **Environment Variables:** Configure `DATABASE_URL`, `SECRET_KEY`, `DEBUG`, comma-separated `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS`. Django does not auto-load `.env`; export its values in your local shell or configure them in the deployment host.
 - Production requires a strong `SECRET_KEY`, database URL, and host list. SMTP defaults to the standard backend when `DEBUG=false`; configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_USE_TLS` if the app begins sending email.
-- **Static Files:** Railway runs `collectstatic` during build and WhiteNoise serves the collected assets. `Procfile` and `railway.toml` define the WSGI start command, migration step, and health check.
-- **Uploaded Media:** User/organization images and lesson media live under `MEDIA_ROOT` (default `uploads/`). Railway's filesystem is ephemeral, so mount a persistent volume and set `MEDIA_ROOT` to its mount path to retain uploads across deploys.
+- **Static Files:** WhiteNoise serves collected assets from the container. The startup script applies migrations and runs `collectstatic` before starting Gunicorn.
+- **Uploaded Media:** User/organization images and lesson media live under `MEDIA_ROOT` (default `uploads/`). Mount persistent storage at `/app/uploads` (or set `MEDIA_ROOT`) to retain uploads across container replacements.
 
-### Railway deployment
+### Portable container deployment
 
-The repository includes a `Procfile` and `railway.toml` for the Railway Django + PostgreSQL pattern. Connect a Railway PostgreSQL service so Railway provides `DATABASE_URL`, then set:
-
-- `SECRET_KEY`: generated secret (never the development placeholder)
-- `DEBUG=false`
-- `ALLOWED_HOSTS`: comma-separated Railway/custom hostnames
-- `CSRF_TRUSTED_ORIGINS`: comma-separated HTTPS origins
-- `MEDIA_ROOT=/data/uploads` and a persistent volume mounted at `/data` if uploads must survive deployments
-
-`railway.toml` collects static assets with WhiteNoise during build, applies migrations at startup, runs Gunicorn, and uses `/health/` as its health check. Bootstrap the first Super Admin through deployment secrets and `python manage.py bootstrap_superadmin` after the database is available.
-
-Deployment reference: [Railway Django + PostgreSQL](https://railway.com/deploy/django-w-postgres).
+`Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist both the PostgreSQL data directory and `/app/uploads`. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
 
 ---
 

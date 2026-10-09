@@ -31,13 +31,13 @@ class DeploymentSettingsTests(SimpleTestCase):
             text=True,
         )
 
-    def test_railway_environment_configures_postgres_hosts_csrf_and_whitenoise(self):
+    def test_production_environment_configures_postgres_hosts_csrf_and_whitenoise(self):
         result = self.run_settings_probe(
             """
 from config import settings
 assert settings.DEBUG is False
 assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql'
-assert settings.ALLOWED_HOSTS == ['learnant.example.org', 'learnant.up.railway.app']
+assert settings.ALLOWED_HOSTS == ['learnant.example.org', 'learnant.example.net']
 assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant.example.org']
 assert 'whitenoise.middleware.WhiteNoiseMiddleware' in settings.MIDDLEWARE
 assert settings.STORAGES['staticfiles']['BACKEND'] == 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -47,14 +47,14 @@ assert settings.MAILERS['default']['BACKEND'] == 'django.core.mail.backends.smtp
 """,
             DEBUG='false',
             SECRET_KEY='a-secure-test-key-that-is-not-used-for-any-real-data',
-            ALLOWED_HOSTS='learnant.example.org,learnant.up.railway.app',
+            ALLOWED_HOSTS='learnant.example.org,learnant.example.net',
             CSRF_TRUSTED_ORIGINS='https://learnant.example.org',
             DATABASE_URL='postgresql://user:pass@127.0.0.1:5432/learnant',
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_local_defaults_remain_sqlite_and_staticfiles_storage(self):
+    def test_direct_local_development_can_use_sqlite_and_staticfiles_storage(self):
         result = self.run_settings_probe(
             """
 from config import settings
