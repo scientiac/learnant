@@ -8,7 +8,7 @@
 
 - **Overall status:** Course assignment flow verified with same-tenant validation and learner assigned-course access
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** 185636c Add course assignments
+- **Last verified commit:** d6c5bf5 Record assignment checkpoint
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 53 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous assignment-list redirect, and anonymous assignment-create redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -71,25 +71,30 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 - [ ] Phase 8 — Verification and security review
 - [ ] Phase 9 — Documentation and submission
 
+Notes:
+- Phase 2 is not checked yet because broader protected administrative operations still need review.
+- Phase 3 is not checked yet because tenant isolation must be reviewed across every endpoint after progress/trial work is added.
+- Phase 4 is not checked yet because course/lesson/assignment basics exist, but remaining CRUD/revocation and final acceptance review are not complete.
+
 ## 6. Current Task
 
-**Task:** Course assignment model and tenant-admin assignment flow with same-tenant validation.
+**Task:** Lesson progress model and learner progress update flow with ownership validation.
 
 Expected actions:
-- Add CourseAssignment model.
-- Validate assigned course and learner belong to the same tenant.
-- Allow Tenant Admin to assign own tenant learners to own tenant courses.
-- Block assignments for expired/read-only tenants.
-- Let learners see assigned courses and lessons.
+- Add LessonProgress model.
+- Let assigned learners mark their own assigned lessons complete.
+- Prevent learners from updating other learners' progress.
+- Prevent progress updates for unassigned lessons/courses.
+- Block progress writes when tenant is expired/read-only, while keeping reads available.
+- Let Tenant Admin view own-tenant progress.
 - Run migrations, checks, tests, demo seed, and runserver smoke check.
 
 **Acceptance criteria:**
-- CourseAssignment model is migrated with duplicate prevention.
-- Tenant Admin can assign only same-tenant learners to own tenant courses.
-- Cross-tenant learner/course assignment attempts fail.
-- Expired Tenant Admin cannot assign courses.
-- Assigned learners can see assigned courses and lessons.
-- Unassigned learners cannot access course lessons by ID.
+- Progress is saved against the correct assignment and lesson.
+- Learners can update only their own progress for assigned course lessons.
+- Learners cannot access or update another learner's progress.
+- Tenant Admin can view own-tenant progress only.
+- Expired tenants can read existing authorized progress but cannot create/update progress.
 - Tests and runserver smoke check pass.
 
 ## 7. Last Completed Task
