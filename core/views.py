@@ -9,6 +9,7 @@ from .permissions import (
     can_mutate_tenant_data,
     can_read_platform,
     can_reactivate_tenant,
+    is_platform_user,
     is_tenant_admin,
     is_tenant_user,
 )
@@ -49,9 +50,32 @@ def course_list(request):
             'courses': visible_courses,
             'can_create_courses': user.role == User.Role.TENANT_ADMIN
             and user.tenant
-            and user.tenant.status == Tenant.Status.ACTIVE,
+            and can_mutate_tenant_data(user),
         },
     )
+
+
+@login_required
+def tenant_list(request):
+    if not is_platform_user(request.user):
+        return HttpResponseForbidden('Only platform users can view tenants.')
+    tenants = Tenant.objects.all()
+    return render(
+        request,
+        'core/tenant_list.html',
+        {'tenants': tenants, 'can_reactivate_tenants': can_reactivate_tenant(request.user)},
+    )
+
+
+@login_required
+def tenant_reactivate(request, tenant_id):
+    if request.method != 'POST':
+        return HttpResponseForbidden('Reactivation must use POST.')
+    if not can_reactivate_tenant(request.user):
+        return HttpResponseForbidden('Only Super Admin can reactivate tenants.')
+    tenant = get_object_or_404(Tenant, id=tenant_id)
+    tenant.reactivate()
+    return redirect('tenant-list')
 
 
 @login_required
@@ -112,7 +136,7 @@ def lesson_list(request, course_id):
             'assignment': assignment,
             'can_create_lessons': request.user.role == User.Role.TENANT_ADMIN
             and request.user.tenant_id == course.tenant_id
-            and course.tenant.status == Tenant.Status.ACTIVE,
+            and can_mutate_tenant_data(request.user),
             'can_update_progress': bool(
                 assignment and course.tenant.status == Tenant.Status.ACTIVE
             ),
@@ -153,7 +177,7 @@ def assignment_list(request, course_id):
         {
             'course': course,
             'assignments': assignments,
-            'can_create_assignments': course.tenant.status == Tenant.Status.ACTIVE,
+            'can_create_assignments': can_mutate_tenant_data(request.user),
         },
     )
 

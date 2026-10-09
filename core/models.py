@@ -22,6 +22,7 @@ class Tenant(models.Model):
     )
     trial_starts_at = models.DateTimeField(default=timezone.now)
     trial_ends_at = models.DateTimeField()
+    expired_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,6 +51,25 @@ class Tenant(models.Model):
         if self.trial_ends_at and self.trial_starts_at:
             if self.trial_ends_at <= self.trial_starts_at:
                 raise ValidationError('Trial end must be after trial start.')
+
+    def is_trial_expired(self, at_time=None):
+        at_time = at_time or timezone.now()
+        return at_time >= self.trial_ends_at
+
+    def mark_expired(self, at_time=None):
+        at_time = at_time or timezone.now()
+        if self.status != self.Status.EXPIRED:
+            self.status = self.Status.EXPIRED
+            self.expired_at = at_time
+            self.save(update_fields=['status', 'expired_at', 'updated_at'])
+
+    def reactivate(self, at_time=None):
+        at_time = at_time or timezone.now()
+        self.status = self.Status.ACTIVE
+        self.trial_starts_at = at_time
+        self.trial_ends_at = at_time + timedelta(days=getattr(settings, 'DEFAULT_TRIAL_DAYS', 14))
+        self.expired_at = None
+        self.save(update_fields=['status', 'trial_starts_at', 'trial_ends_at', 'expired_at', 'updated_at'])
 
 
 class User(AbstractUser):

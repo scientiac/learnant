@@ -55,7 +55,7 @@ def can_mutate_tenant_data(user):
         return False
     if not user.tenant_id:
         return False
-    return user.tenant.status == Tenant.Status.ACTIVE
+    return user.tenant.status == Tenant.Status.ACTIVE and not user.tenant.is_trial_expired()
 
 
 def can_read_tenant_data(user, tenant):

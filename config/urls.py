@@ -29,6 +29,8 @@ from core.views import (
     lesson_list,
     lesson_mark_complete,
     progress_list,
+    tenant_list,
+    tenant_reactivate,
 )
 
 urlpatterns = [
@@ -40,6 +42,8 @@ urlpatterns = [
     path('courses/<int:course_id>/assignments/', assignment_list, name='assignment-list'),
     path('courses/<int:course_id>/assignments/new/', assignment_create, name='assignment-create'),
     path('courses/<int:course_id>/progress/', progress_list, name='progress-list'),
+    path('tenants/', tenant_list, name='tenant-list'),
+    path('tenants/<int:tenant_id>/reactivate/', tenant_reactivate, name='tenant-reactivate'),
     path(
         'courses/<int:course_id>/lessons/<int:lesson_id>/complete/',
         lesson_mark_complete,

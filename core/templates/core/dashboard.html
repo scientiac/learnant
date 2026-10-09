@@ -17,6 +17,7 @@
               <li>Platform management: {% if can_manage_platform %}enabled{% else %}read-only{% endif %}</li>
               <li>Tenant reactivation: {% if can_reactivate_tenant %}enabled{% else %}not allowed{% endif %}</li>
             </ul>
+            <p class="mt-4"><a href="{% url 'tenant-list' %}">View tenants</a></p>
           {% elif user.tenant %}
             <h2 class="text-lg font-medium">{{ user.tenant.name }}</h2>
             <p>Tenant status: <strong>{{ user.tenant.get_status_display }}</strong></p>

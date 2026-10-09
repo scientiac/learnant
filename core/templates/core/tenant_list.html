@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Tenants · Tenant Learning{% endblock %}
+
+{% block content %}
+  <h1>Tenants</h1>
+  {% if tenants %}
+    <ul>
+      {% for tenant in tenants %}
+        <li>
+          {{ tenant.name }} — {{ tenant.get_status_display }} — trial ends {{ tenant.trial_ends_at }}
+          {% if can_reactivate_tenants and tenant.status == 'expired' %}
+            <form method="post" action="{% url 'tenant-reactivate' tenant.id %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit">Reactivate</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No tenants yet.</p>
+  {% endif %}
+{% endblock %}

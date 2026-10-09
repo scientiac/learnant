@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Lesson progress flow verified with learner ownership checks and expired-tenant read-only enforcement
-- **Current phase:** Phase 6 — Trial Expiration and Reactivation
-- **Last verified commit:** a9ed512 Add learner lesson progress
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 61 tests
-- **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous progress-list redirect, and anonymous lesson-list redirect
+- **Overall status:** Trial expiration command and Super Admin reactivation verified
+- **Current phase:** Phase 4 — Courses, Lessons, and Assignments finalization
+- **Last verified commit:** 3c265b0 Record progress checkpoint
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 67 tests
+- **Application starts locally:** Verified with runserver smoke check for `/health/` and anonymous tenant-list redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Add idempotent trial-expiration command and request-time expiry enforcement/re-activation policy.
+- **Next task:** Close remaining Phase 4 gaps: assignment revocation and minimal course/lesson update/delete permissions.
 
 ## 2. Project Decisions
 
@@ -66,7 +66,7 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 - [ ] Phase 3 — Tenant isolation
 - [ ] Phase 4 — Courses, lessons, and assignments
 - [x] Phase 5 — Learning progress
-- [ ] Phase 6 — Trial expiration and reactivation
+- [x] Phase 6 — Trial expiration and reactivation
 - [ ] Phase 7 — Minimal usable UI
 - [ ] Phase 8 — Verification and security review
 - [ ] Phase 9 — Documentation and submission
@@ -76,32 +76,33 @@ Notes:
 - Phase 3 is not checked yet because tenant isolation must be reviewed across every endpoint after progress/trial work is added.
 - Phase 4 is not checked yet because course/lesson/assignment basics exist, but remaining update/delete/revocation and final acceptance review are not complete.
 - Phase 5 is checked because learner progress ownership, tenant-admin progress visibility, expired-tenant read-only behavior, and progress tests are verified.
+- Phase 6 is checked because request-time write blocking, idempotent expiration command, data preservation, and Super Admin-only reactivation are verified.
 
 ## 6. Current Task
 
-**Task:** Trial expiration and reactivation foundation.
+**Task:** Close remaining Phase 4 course/lesson/assignment gaps.
 
 Expected actions:
-- Enforce trial expiration during protected write requests.
-- Add an idempotent management command to mark expired tenants.
-- Add authorized Super Admin reactivation behavior.
-- Preserve tenant data after expiration.
+- Add assignment revocation for Tenant Admins in their own active tenant.
+- Add minimal course/lesson update/delete where required by Phase 4.
+- Enforce tenant scope and expired-tenant read-only behavior for each write.
+- Add tests for cross-tenant ID manipulation and denied roles.
 - Run checks, tests, demo seed, and smoke checks.
 
 **Acceptance criteria:**
-- Tenants expire at the configured boundary.
-- Expiration command is idempotent and preserves data.
-- Expired tenants are read-only for tenant-scoped writes.
-- Only Super Admin can reactivate tenants.
+- Tenant Admin can update/delete only own-tenant courses/lessons while active.
+- Tenant Admin can revoke only own-tenant assignments while active.
+- Expired tenants cannot update/delete/revoke.
+- Tenant User and Super Viewer cannot mutate tenant learning records.
 - Tests and smoke checks pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Added LessonProgress model, learner mark-complete flow, and tenant-admin progress view with ownership/isolation tests.
-- **Files changed:** `core/models.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0006_lessonprogress.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/progress_list.html`, `core/test_progress.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver progress smoke script; `git diff --check`.
-- **Test results:** Migration created and applied; check passed with 0 issues; 61 tests passed; demo data seeded locally; runserver progress smoke passed; whitespace diff check passed.
-- **Commit:** a9ed512 Add learner lesson progress.
+- **Task:** Added `expired_at`, request-time trial write blocking, idempotent `expire_trials` command, tenant list, and Super Admin-only tenant reactivation.
+- **Files changed:** `core/models.py`, `core/permissions.py`, `core/views.py`, `config/urls.py`, `core/migrations/0007_tenant_expired_at.py`, `core/management/commands/expire_trials.py`, `core/templates/core/dashboard.html`, `core/templates/core/tenant_list.html`, `core/test_trials.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver trial smoke script; `git diff --check`.
+- **Test results:** Migration created and applied; check passed with 0 issues; 67 tests passed; demo data seeded locally; runserver trial smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -111,7 +112,6 @@ Update this section after completing the first task.
 - Super Viewer policy confirmed: platform-level read-only user.
 - Admin policy confirmed at high level: platform-level administrative user with a defined subset of Super Admin permissions. Initial subset documented in `docs/permissions.md`.
 - Expired tenant policy confirmed: existing authorized data remains viewable/read-only; no tenant-scoped user may add to or mutate the system after expiration.
-- Decide the reactivation policy and document it.
 - Git repository initialized locally with checkpoint commits recorded.
 
 Record only unresolved decisions here; remove items when resolved.
@@ -133,11 +133,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Added LessonProgress model and learner progress update flow with ownership validation.
-- **Files changed:** `core/models.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0006_lessonprogress.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/progress_list.html`, `core/test_progress.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver progress smoke script; `git diff --check`.
-- **Actual results:** Migration created and applied; check passed with 0 issues; 61 tests passed; demo data seeded locally; runserver progress smoke passed; whitespace diff check passed.
-- **Commit:** a9ed512 Add learner lesson progress.
-- **Current phase:** Phase 6 — Trial Expiration and Reactivation.
-- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; Phase 4 update/delete/revocation acceptance still needs final pass.
-- **Next single task:** Add idempotent trial-expiration command and request-time expiry enforcement/reactivation policy.
+- **Task completed:** Added idempotent trial expiration command and Super Admin reactivation.
+- **Files changed:** `core/models.py`, `core/permissions.py`, `core/views.py`, `config/urls.py`, `core/migrations/0007_tenant_expired_at.py`, `core/management/commands/expire_trials.py`, `core/templates/core/dashboard.html`, `core/templates/core/tenant_list.html`, `core/test_trials.py`, `docs/permissions.md`, `README.md`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver trial smoke script; `git diff --check`.
+- **Actual results:** Migration created and applied; check passed with 0 issues; 67 tests passed; demo data seeded locally; runserver trial smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
+- **Current phase:** Phase 4 — Courses, Lessons, and Assignments finalization.
+- **Remaining issues:** PostgreSQL unavailable in PATH; Phase 4 update/delete/revocation acceptance still needs final pass; Phase 2/3 need final authorization/isolation review before ticking.
+- **Next single task:** Add assignment revocation and minimal course/lesson update/delete permissions.
