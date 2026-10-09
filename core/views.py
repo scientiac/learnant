@@ -2,8 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import CourseForm, LessonForm
-from .models import Course, Lesson, Tenant, User
+from .forms import CourseAssignmentForm, CourseForm, LessonForm
+from .models import Course, CourseAssignment, Lesson, Tenant, User
 from .permissions import (
     can_manage_platform,
     can_mutate_tenant_data,
@@ -39,14 +39,7 @@ def dashboard(request):
 @login_required
 def course_list(request):
     user = request.user
-    courses = Course.objects.select_related('tenant', 'creator')
-
-    if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
-        visible_courses = courses
-    elif user.role == User.Role.TENANT_ADMIN and user.tenant_id:
-        visible_courses = courses.filter(tenant=user.tenant)
-    else:
-        visible_courses = Course.objects.none()
+    visible_courses = visible_courses_for_user(user)
 
     return render(
         request,
@@ -88,6 +81,8 @@ def visible_courses_for_user(user):
         return courses
     if user.role == User.Role.TENANT_ADMIN and user.tenant_id:
         return courses.filter(tenant=user.tenant)
+    if user.role == User.Role.TENANT_USER and user.tenant_id:
+        return courses.filter(assignments__learner=user).distinct()
     return Course.objects.none()
 
 
@@ -127,3 +122,42 @@ def lesson_create(request, course_id):
         form = LessonForm()
 
     return render(request, 'core/lesson_form.html', {'course': course, 'form': form})
+
+
+@login_required
+def assignment_list(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can view course assignments.')
+    assignments = CourseAssignment.objects.select_related('learner').filter(course=course)
+    return render(
+        request,
+        'core/assignment_list.html',
+        {
+            'course': course,
+            'assignments': assignments,
+            'can_create_assignments': course.tenant.status == Tenant.Status.ACTIVE,
+        },
+    )
+
+
+@login_required
+def assignment_create(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can assign their own courses.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    if request.method == 'POST':
+        form = CourseAssignmentForm(request.POST, tenant=request.user.tenant)
+        if form.is_valid():
+            assignment = form.save(commit=False)
+            assignment.tenant = request.user.tenant
+            assignment.course = course
+            assignment.save()
+            return redirect('assignment-list', course_id=course.id)
+    else:
+        form = CourseAssignmentForm(tenant=request.user.tenant)
+
+    return render(request, 'core/assignment_form.html', {'course': course, 'form': form})

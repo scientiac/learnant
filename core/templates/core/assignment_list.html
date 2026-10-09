@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Assignments · {{ course.title }}{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'course-list' %}">Back to courses</a></p>
+  <h1>Assignments for {{ course.title }}</h1>
+  {% if can_create_assignments %}
+    <p><a href="{% url 'assignment-create' course.id %}">Assign learner</a></p>
+  {% endif %}
+  {% if assignments %}
+    <ul>
+      {% for assignment in assignments %}
+        <li>{{ assignment.learner.username }} assigned at {{ assignment.assigned_at }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No learners assigned yet.</p>
+  {% endif %}
+{% endblock %}

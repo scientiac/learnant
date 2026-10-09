@@ -23,6 +23,9 @@
                 <h2 class="font-medium text-slate-950">{{ course.title }}</h2>
                 <p class="mt-1 text-sm text-slate-600">{{ course.description|default:"No description yet." }}</p>
                 <a class="mt-2 inline-block text-sm text-slate-700 underline hover:text-slate-950" href="{% url 'lesson-list' course.id %}">View lessons</a>
+                {% if user.role == 'tenant_admin' %}
+                  <a class="ml-3 mt-2 inline-block text-sm text-slate-700 underline hover:text-slate-950" href="{% url 'assignment-list' course.id %}">Assignments</a>
+                {% endif %}
               </div>
               <div class="text-sm text-slate-500 sm:text-right">
                 <div>{{ course.tenant.name }}</div>

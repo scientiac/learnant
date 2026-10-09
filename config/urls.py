@@ -18,7 +18,16 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from core.views import course_create, course_list, dashboard, health_check, lesson_create, lesson_list
+from core.views import (
+    assignment_create,
+    assignment_list,
+    course_create,
+    course_list,
+    dashboard,
+    health_check,
+    lesson_create,
+    lesson_list,
+)
 
 urlpatterns = [
     path('', dashboard, name='dashboard'),
@@ -26,6 +35,8 @@ urlpatterns = [
     path('courses/new/', course_create, name='course-create'),
     path('courses/<int:course_id>/lessons/', lesson_list, name='lesson-list'),
     path('courses/<int:course_id>/lessons/new/', lesson_create, name='lesson-create'),
+    path('courses/<int:course_id>/assignments/', assignment_list, name='assignment-list'),
+    path('courses/<int:course_id>/assignments/new/', assignment_create, name='assignment-create'),
     path('health/', health_check, name='health-check'),
     path(
         'login/',

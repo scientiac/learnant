@@ -6,13 +6,13 @@
 
 ## 1. Current Status
 
-- **Overall status:** Lesson list/create flow verified with course-scoped tenant isolation and expired-tenant write blocking
+- **Overall status:** Course assignment flow verified with same-tenant validation and learner assigned-course access
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** 945711a Add tenant lesson management
-- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 43 tests
-- **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous lesson-list redirect, and anonymous lesson-create redirect
+- **Last verified commit:** 1ff3d32 Record lesson management checkpoint
+- **Last verified test run:** `.venv/bin/python manage.py test` — passed, 53 tests
+- **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous assignment-list redirect, and anonymous assignment-create redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
-- **Next task:** Add course assignment model and tenant-admin assignment flow with same-tenant validation.
+- **Next task:** Add lesson progress model and learner progress update flow with ownership validation.
 
 ## 2. Project Decisions
 
@@ -73,32 +73,32 @@ Mark an item complete only after its acceptance criteria and relevant tests have
 
 ## 6. Current Task
 
-**Task:** Lesson model and tenant-admin lesson list/create flow scoped through courses.
+**Task:** Course assignment model and tenant-admin assignment flow with same-tenant validation.
 
 Expected actions:
-- Add Lesson model under Course.
-- Add lesson list and tenant-admin-only lesson creation views.
-- Resolve course access through the authenticated user's allowed scope.
-- Ignore any client-supplied course field when creating lessons.
-- Block lesson creation when the tenant is expired/read-only.
+- Add CourseAssignment model.
+- Validate assigned course and learner belong to the same tenant.
+- Allow Tenant Admin to assign own tenant learners to own tenant courses.
+- Block assignments for expired/read-only tenants.
+- Let learners see assigned courses and lessons.
 - Run migrations, checks, tests, demo seed, and runserver smoke check.
 
 **Acceptance criteria:**
-- Lesson model is migrated with per-course ordering/title uniqueness.
-- Tenant Admin can view/create lessons only for own tenant courses.
-- Tenant Admin cannot access another tenant's course lessons by changing IDs.
-- Tenant User cannot access unassigned course lessons yet.
-- Super Viewer can read lessons.
-- Expired Tenant Admin cannot create lessons.
+- CourseAssignment model is migrated with duplicate prevention.
+- Tenant Admin can assign only same-tenant learners to own tenant courses.
+- Cross-tenant learner/course assignment attempts fail.
+- Expired Tenant Admin cannot assign courses.
+- Assigned learners can see assigned courses and lessons.
+- Unassigned learners cannot access course lessons by ID.
 - Tests and runserver smoke check pass.
 
 ## 7. Last Completed Task
 
-- **Task:** Added Lesson model, lesson list/create views/templates, demo lesson seeding, and course-scoped isolation tests.
-- **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0004_lesson.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/lesson_form.html`, `core/management/commands/seed_demo.py`, `core/test_lessons.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver lesson smoke script; `git diff --check`.
-- **Test results:** Migration created and applied; check passed with 0 issues; 43 tests passed; demo data seeded locally; runserver lesson smoke passed; whitespace diff check passed.
-- **Commit:** 945711a Add tenant lesson management.
+- **Task:** Added CourseAssignment model, assignment list/create views, demo assignment seeding, and learner assigned-course access.
+- **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0005_courseassignment.py`, `core/templates/core/course_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/assignment_form.html`, `core/management/commands/seed_demo.py`, `core/test_assignments.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver assignment smoke script; `git diff --check`.
+- **Test results:** Migration created and applied; check passed with 0 issues; 53 tests passed; demo data seeded locally; runserver assignment smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 
 Update this section after completing the first task.
 
@@ -130,11 +130,11 @@ At the end of each coding session, update this file using this compact format:
 Do not paste full source files, long logs, or the entire conversation into this checkpoint. Keep detailed reasoning in the relevant documentation or Git history and retain only the facts needed to resume efficiently.
 
 ### Latest Update
-- **Task completed:** Added Lesson model and tenant-admin lesson list/create flow scoped through courses.
-- **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0004_lesson.py`, `core/templates/core/course_list.html`, `core/templates/core/lesson_list.html`, `core/templates/core/lesson_form.html`, `core/management/commands/seed_demo.py`, `core/test_lessons.py`, `README.md`, `CHECKPOINTS.md`.
-- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver lesson smoke script; `git diff --check`.
-- **Actual results:** Migration created and applied; check passed with 0 issues; 43 tests passed; demo data seeded locally; runserver lesson smoke passed; whitespace diff check passed.
-- **Commit:** 945711a Add tenant lesson management.
+- **Task completed:** Added CourseAssignment model and tenant-admin assignment flow with same-tenant validation.
+- **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0005_courseassignment.py`, `core/templates/core/course_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/assignment_form.html`, `core/management/commands/seed_demo.py`, `core/test_assignments.py`, `README.md`, `CHECKPOINTS.md`.
+- **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver assignment smoke script; `git diff --check`.
+- **Actual results:** Migration created and applied; check passed with 0 issues; 53 tests passed; demo data seeded locally; runserver assignment smoke passed; whitespace diff check passed.
+- **Commit:** Pending.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
-- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; assignment/progress flows not implemented yet.
-- **Next single task:** Add course assignment model and tenant-admin assignment flow with same-tenant validation.
+- **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; progress flow not implemented yet.
+- **Next single task:** Add lesson progress model and learner progress update flow with ownership validation.

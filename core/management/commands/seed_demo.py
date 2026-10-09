@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from core.models import Course, Lesson, Tenant, User
+from core.models import Course, CourseAssignment, Lesson, Tenant, User
 
 
 class Command(BaseCommand):
@@ -44,5 +44,7 @@ class Command(BaseCommand):
                 'content': 'This is the first demo lesson.',
             },
         )
+        learner = User.objects.get(username='learner')
+        CourseAssignment.objects.get_or_create(tenant=tenant, course=course, learner=learner)
 
         self.stdout.write(self.style.SUCCESS('Demo data ready. Password for all demo users: password123'))

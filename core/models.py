@@ -168,3 +168,36 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CourseAssignment(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='course_assignments')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='assignments')
+    learner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_assignments')
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-assigned_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant', 'course', 'learner'],
+                name='unique_course_assignment_per_learner',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.learner} assigned to {self.course}'
+
+    def clean(self):
+        super().clean()
+        if self.course_id and self.tenant_id and self.course.tenant_id != self.tenant_id:
+            raise ValidationError('Assigned course must belong to the assignment tenant.')
+        if self.learner_id:
+            if self.learner.role != User.Role.TENANT_USER:
+                raise ValidationError('Only tenant users can be assigned to courses.')
+            if self.tenant_id and self.learner.tenant_id != self.tenant_id:
+                raise ValidationError('Assigned learner must belong to the assignment tenant.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

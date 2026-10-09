@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Course, Lesson
+from .models import Course, CourseAssignment, Lesson, User
 
 
 class CourseForm(forms.ModelForm):
@@ -49,3 +49,19 @@ class LessonForm(forms.ModelForm):
                 }
             ),
         }
+
+
+class CourseAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = CourseAssignment
+        fields = ['learner']
+
+    def __init__(self, *args, tenant, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['learner'].queryset = User.objects.filter(
+            role=User.Role.TENANT_USER,
+            tenant=tenant,
+        ).order_by('username')
+        self.fields['learner'].widget.attrs.update(
+            {'class': 'w-full rounded-md border border-slate-300 px-3 py-2'}
+        )
