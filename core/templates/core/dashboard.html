@@ -129,11 +129,7 @@
         {% for step in onboarding_steps %}
           <li class="flex items-center justify-between gap-4 border-t py-3" style="border-color: hsl(var(--border));">
             <div class="flex items-center gap-3">
-              {% if step.complete %}
-                <span class="badge badge-active" aria-label="Complete">✓</span>
-              {% else %}
-                <span class="badge badge-role font-mono">{{ forloop.counter }}</span>
-              {% endif %}
+              <span class="badge badge-role font-mono">{{ forloop.counter }}</span>
               <span class="text-sm">{{ step.label }}</span>
             </div>
             <a class="btn btn-outline btn-sm" href="{{ step.url }}">{{ step.action }}</a>

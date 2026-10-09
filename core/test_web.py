@@ -64,6 +64,7 @@ class WebFlowTests(TestCase):
         self.assertContains(response, 'No course has been assigned yet')
 
     def test_tenant_admin_dashboard_shows_actionable_setup_checklist(self):
+        self.learner.delete()
         tenant_admin = User.objects.create_user(
             username='manager', password='test', role=User.Role.TENANT_ADMIN, tenant=self.tenant
         )
@@ -76,13 +77,24 @@ class WebFlowTests(TestCase):
 
         course = Course.objects.create(tenant=self.tenant, title='First Course', creator=tenant_admin)
         course_response = self.client.get(reverse('dashboard'))
+        self.assertNotContains(course_response, 'Create your first course')
         self.assertContains(course_response, 'Add your first lesson')
         self.assertContains(course_response, reverse('lesson-create', args=[course.id]))
 
         Lesson.objects.create(course=course, title='First Lesson', content='Read this', order=1)
+        learner_step_response = self.client.get(reverse('dashboard'))
+        self.assertNotContains(learner_step_response, 'Add your first lesson')
+        self.assertContains(learner_step_response, reverse('bulk-student-add'))
+        self.assertContains(learner_step_response, 'Onboard your first learner')
+
+        User.objects.create_user(
+            username='first-learner',
+            password='test',
+            role=User.Role.TENANT_USER,
+            tenant=self.tenant,
+        )
         completed_response = self.client.get(reverse('dashboard'))
-        self.assertContains(completed_response, reverse('bulk-student-add'))
-        self.assertContains(completed_response, 'Onboard your first learner')
+        self.assertNotContains(completed_response, 'Set up your colony')
 
     def test_assigned_learner_dashboard_links_to_assigned_syllabus(self):
         tenant_admin = User.objects.create_user(

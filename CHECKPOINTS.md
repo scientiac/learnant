@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Lesson ordering collision prevention and transactional reorder verified (135 tests passing, Django check 0 issues).
+- **Overall Status:** Lesson sequencing/reordering and dynamic role-aware onboarding verified (135 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -89,11 +89,11 @@
 - [x] Introduce lesson reordering controls with transactional buffer ordering to prevent intermediate unique collisions.
 
 ### Priority 2: Dynamic Colony Onboarding Checklist ("Set up your colony")
-- [ ] Short onboarding checklist on Tenant Admin dashboard:
-  - [ ] "Name your institute" (Review settings link) — auto-hides once institute name is customized.
-  - [ ] "Create your first course" (View course link) — auto-hides once course count >= 1.
-  - [ ] "Add your first lesson" (View lessons link) — auto-hides once lesson count >= 1.
-  - [ ] "Onboard your first learner" — auto-hides once learner count >= 1.
+- [x] Short onboarding checklist on Tenant Admin dashboard:
+  - [x] Organization naming is complete at required organization signup; settings remain linked when the name is missing.
+  - [x] "Create your first course" — auto-hides once a course exists.
+  - [x] "Add your first lesson" — auto-hides once a lesson exists in the tenant.
+  - [x] "Onboard your first learner" — auto-hides once a learner exists.
 
 ### Priority 3: Dedicated Lesson Study View & Rich Content (GFM + LaTeX + Video)
 - [ ] Dedicated individual lesson study page (`/courses/<course_id>/lessons/<lesson_id>/`) with syllabus navigation.

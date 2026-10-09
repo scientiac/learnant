@@ -96,43 +96,48 @@ def dashboard(request):
                 tenant=user.tenant,
                 role=User.Role.TENANT_USER,
             ).count()
-            first_course_has_lessons = bool(
-                first_course and first_course.lessons.exists()
-            )
-            context['onboarding_steps'] = [
-                {
-                    'label': 'Name your institute',
-                    'complete': True,
-                    'url': reverse('organization-settings'),
-                    'action': 'Review settings',
-                },
-                {
-                    'label': 'Create your first course',
-                    'complete': first_course is not None,
-                    'url': reverse('course-update', args=[first_course.id])
-                    if first_course
-                    else reverse('course-create'),
-                    'action': 'View course' if first_course else 'Create course',
-                },
-                {
-                    'label': 'Add your first lesson',
-                    'complete': first_course_has_lessons,
-                    'url': reverse('lesson-list', args=[first_course.id])
-                    if first_course_has_lessons
-                    else reverse('lesson-create', args=[first_course.id])
-                    if first_course
-                    else reverse('course-create'),
-                    'action': 'View lessons' if first_course_has_lessons else 'Add lesson'
-                    if first_course
-                    else 'Create a course first',
-                },
-                {
-                    'label': 'Onboard your first learner',
-                    'complete': learner_count > 0,
-                    'url': reverse('bulk-student-add'),
-                    'action': 'Manage learners' if learner_count else 'Enroll students',
-                },
-            ]
+            has_lessons = Lesson.objects.filter(course__tenant=user.tenant).exists()
+            onboarding_steps = []
+
+            # Tenant signup requires an organization name, so valid tenants have
+            # already completed the naming step and do not see it repeatedly.
+            if not user.tenant.name.strip():
+                onboarding_steps.append(
+                    {
+                        'label': 'Name your institute',
+                        'url': reverse('organization-settings'),
+                        'action': 'Review settings',
+                    }
+                )
+            if first_course is None:
+                onboarding_steps.append(
+                    {
+                        'label': 'Create your first course',
+                        'url': reverse('course-create'),
+                        'action': 'Create course',
+                    }
+                )
+            if not has_lessons and first_course:
+                course_without_lessons = next(
+                    (course for course in tenant_courses if not course.lessons.exists()),
+                    first_course,
+                )
+                onboarding_steps.append(
+                    {
+                        'label': 'Add your first lesson',
+                        'url': reverse('lesson-create', args=[course_without_lessons.id]),
+                        'action': 'Add lesson',
+                    }
+                )
+            if learner_count == 0:
+                onboarding_steps.append(
+                    {
+                        'label': 'Onboard your first learner',
+                        'url': reverse('bulk-student-add'),
+                        'action': 'Enroll students',
+                    }
+                )
+            context['onboarding_steps'] = onboarding_steps
         elif is_tenant_user(user):
             assigned_courses = visible_courses_for_user(user)
             context['assigned_course_count'] = assigned_courses.count()
