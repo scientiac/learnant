@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Core MVP with platform-admin tenant content management and hierarchical permissions verified (127 tests passing, Django check 0 issues).
+- **Overall Status:** Lesson ordering collision prevention and transactional reorder verified (135 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL ready, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -43,7 +43,7 @@
   - [x] Public atomic organization sign-up flow (`/signup/`)
   - [x] Comprehensive documentation (`docs/WHATISIT.md`, `docs/architecture.md`, `README.md`)
 - [x] **Phase 8 — Verification & Security Review**
-  - [x] Full automated test suite passing (127 tests, 0 failures)
+  - [x] Full automated test suite passing (135 tests, 0 failures)
 - [x] **Phase 9 — Brand Identity & shadcn Sera Monochrome Overhaul**
   - [x] **Learnant** branding (Learner + Tenant + Ant Colony metaphor) with custom geometric line-art Ant emblem
   - [x] shadcn/ui Sera aesthetic: monochrome (black & white), sharp 0px corners, Inter font, official Lucide icons
@@ -78,3 +78,47 @@
 ### Group 6: AI-Powered Course Creation (Design-Only Preview)
 - [x] UI entry point / preview for Tenant Admins to input learner role, current level, goal, hours/week, and duration to see static sample structured course output.
 - [ ] *Human Author Task:* Developer writes `docs/ai-course-design.md` in their own words per assignment rules.
+
+---
+
+## 4. Next Milestones & Production Upgrades
+
+### Priority 1: Lesson Unique Order Collision Bug Fix & Reorder Mode
+- [x] Fix `IntegrityError (UNIQUE constraint failed: core_lesson.course_id, core_lesson.order)` on `/courses/<id>/lessons/new/`.
+- [x] Automatically assign next sequence position (`max(order) + 1`) by default on lesson creation.
+- [x] Introduce lesson reordering controls with transactional buffer ordering to prevent intermediate unique collisions.
+
+### Priority 2: Dynamic Colony Onboarding Checklist ("Set up your colony")
+- [ ] Short onboarding checklist on Tenant Admin dashboard:
+  - [ ] "Name your institute" (Review settings link) — auto-hides once institute name is customized.
+  - [ ] "Create your first course" (View course link) — auto-hides once course count >= 1.
+  - [ ] "Add your first lesson" (View lessons link) — auto-hides once lesson count >= 1.
+  - [ ] "Onboard your first learner" — auto-hides once learner count >= 1.
+
+### Priority 3: Dedicated Lesson Study View & Rich Content (GFM + LaTeX + Video)
+- [ ] Dedicated individual lesson study page (`/courses/<course_id>/lessons/<lesson_id>/`) with syllabus navigation.
+- [ ] Rich document support: GitHub-Flavored Markdown (GFM) with images and LaTeX math equations (KaTeX).
+- [ ] Attach 1 video per lesson (video URL embed / upload player).
+
+### Priority 4: Student First-Login Password Reset
+- [ ] Add `must_change_password` flag to User model (default `True` for new learners).
+- [ ] Redirect newly onboarded students to set a secure password upon their first login.
+
+### Priority 5: Flexible Subscription & Expiration Control (Super Admin)
+- [ ] Super Admin ability to switch tenant between `trial` and `subscribed` status.
+- [ ] Granular time adjustments: grant or reduce time (e.g. +10 minutes, +10 months, or decrease duration even while trial is active).
+
+### Priority 6: User Avatars & Extended Organization Details
+- [ ] Profile image upload for user profiles.
+- [ ] Organization logo / branding image upload.
+- [ ] Organization public details for students (address, contact number, support email, website).
+
+### Priority 7: Fail-Proof Spreadsheet Bulk Enrollment (CSV/Excel)
+- [ ] Exportable sample spreadsheet template (`.csv`).
+- [ ] Robust spreadsheet import parser to batch-enroll learners without duplicate crashes.
+- [ ] Support enrolling learners with or without immediate course assignments.
+
+### Priority 8: Railway Deployment Configuration (PostgreSQL + Django)
+- [ ] Production configuration for Railway (`Procfile`, `railway.toml`, `whitenoise`, `dj-database-url`, `gunicorn`).
+- [ ] Environment variable specifications (`DATABASE_URL`, `SECRET_KEY`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`).
+- [ ] Deployment guide based on `https://railway.com/deploy/django-w-postgres`.

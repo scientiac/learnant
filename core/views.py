@@ -5,6 +5,7 @@ from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.db.models import Max
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
@@ -462,7 +463,10 @@ def lesson_create(request, course_id):
             lesson.save()
             return redirect('lesson-list', course_id=course.id)
     else:
-        form = LessonForm()
+        next_order = (
+            Lesson.objects.filter(course=course).aggregate(max_order=Max('order'))['max_order'] or 0
+        ) + 1
+        form = LessonForm(initial={'order': next_order})
 
     return render(request, 'core/lesson_form.html', {'course': course, 'form': form})
 
@@ -487,6 +491,53 @@ def lesson_update(request, course_id, lesson_id):
         form = LessonForm(instance=lesson)
 
     return render(request, 'core/lesson_form.html', {'course': course, 'lesson': lesson, 'form': form})
+
+
+@login_required
+def lesson_reorder(request, course_id):
+    if request.method != 'POST':
+        return HttpResponseForbidden('Lesson reordering must use POST.')
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not can_manage_tenant(request.user, course.tenant):
+        return HttpResponseForbidden('You cannot reorder lessons for this tenant course.')
+    if not can_mutate_tenant_data(request.user, course.tenant):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    try:
+        lesson_id = int(request.POST.get('lesson_id', ''))
+    except (TypeError, ValueError):
+        return HttpResponseForbidden('Invalid lesson selection.')
+    direction = request.POST.get('direction')
+    if direction not in {'up', 'down'}:
+        return HttpResponseForbidden('Invalid reorder direction.')
+
+    with transaction.atomic():
+        Course.objects.select_for_update().get(pk=course.pk)
+        lessons = list(
+            Lesson.objects.select_for_update().filter(course=course).order_by('order', 'id')
+        )
+        current_index = next(
+            (index for index, lesson in enumerate(lessons) if lesson.id == lesson_id),
+            None,
+        )
+        if current_index is None:
+            return HttpResponseForbidden('Lesson does not belong to this course.')
+
+        target_index = current_index - 1 if direction == 'up' else current_index + 1
+        if 0 <= target_index < len(lessons):
+            lessons[current_index], lessons[target_index] = lessons[target_index], lessons[current_index]
+            max_order = max(lesson.order for lesson in lessons)
+
+            # Move every row into unique temporary buffer positions first. This
+            # avoids transient collisions with the immediate unique constraint
+            # while assigning the final contiguous 1..N positions.
+            buffer_start = max_order + len(lessons) + 1
+            for index, lesson in enumerate(lessons):
+                Lesson.objects.filter(pk=lesson.pk).update(order=buffer_start + index)
+            for index, lesson in enumerate(lessons, start=1):
+                Lesson.objects.filter(pk=lesson.pk).update(order=index)
+
+    return redirect('lesson-list', course_id=course.id)
 
 
 @login_required

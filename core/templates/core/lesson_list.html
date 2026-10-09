@@ -49,6 +49,18 @@
             {% if can_create_lessons %}
               <a class="btn btn-ghost btn-sm" href="{% url 'lesson-update' course.id item.lesson.id %}">Edit</a>
               <a class="btn btn-ghost btn-sm" style="color: hsl(var(--destructive));" href="{% url 'lesson-delete' course.id item.lesson.id %}">Delete</a>
+              <form method="post" action="{% url 'lesson-reorder' course.id %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="lesson_id" value="{{ item.lesson.id }}">
+                <input type="hidden" name="direction" value="up">
+                <button class="btn btn-outline btn-sm" type="submit" {% if forloop.first %}disabled{% endif %} aria-label="Move {{ item.lesson.title }} up">↑</button>
+              </form>
+              <form method="post" action="{% url 'lesson-reorder' course.id %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="lesson_id" value="{{ item.lesson.id }}">
+                <input type="hidden" name="direction" value="down">
+                <button class="btn btn-outline btn-sm" type="submit" {% if forloop.last %}disabled{% endif %} aria-label="Move {{ item.lesson.title }} down">↓</button>
+              </form>
             {% endif %}
           </div>
         </div>

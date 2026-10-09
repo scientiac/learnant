@@ -5,7 +5,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Max, Q
 from django.utils import timezone
 
 
@@ -194,6 +195,30 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            with transaction.atomic():
+                # Serialize lesson inserts/reorders for this course on databases
+                # that support row-level locks. The unique constraint remains
+                # the final guard against duplicate order values.
+                Course.objects.select_for_update().get(pk=self.course_id)
+                current_max = (
+                    Lesson.objects.filter(course_id=self.course_id).aggregate(max_order=Max('order'))['max_order']
+                    or 0
+                )
+                order_taken = Lesson.objects.filter(
+                    course_id=self.course_id,
+                    order=self.order,
+                ).exists()
+                if self.order is None or self.order <= 0 or order_taken:
+                    self.order = current_max + 1
+                self.full_clean()
+                super().save(*args, **kwargs)
+            return
+
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class CourseAssignment(models.Model):

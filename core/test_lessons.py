@@ -103,6 +103,45 @@ class LessonViewTests(TestCase):
         lesson = Lesson.objects.get(title='New Lesson')
         self.assertEqual(lesson.course, self.course)
 
+    def test_lesson_create_form_suggests_next_order(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.get(reverse('lesson-create', args=[self.course.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form']['order'].value(), 2)
+
+    def test_blank_lesson_order_is_assigned_next_sequence(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-create', args=[self.course.id]),
+            {'title': 'Auto Ordered Lesson', 'content': 'Content', 'order': ''},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        lesson = Lesson.objects.get(title='Auto Ordered Lesson')
+        self.assertEqual(lesson.order, 2)
+
+    def test_model_auto_appends_when_default_order_would_collide(self):
+        lesson = Lesson.objects.create(
+            course=self.course,
+            title='Model Auto Ordered Lesson',
+            content='Content',
+        )
+
+        self.assertEqual(lesson.order, 2)
+
+    def test_duplicate_new_lesson_order_is_safely_appended(self):
+        lesson = Lesson.objects.create(
+            course=self.course,
+            title='Duplicate Order Lesson',
+            content='Content',
+            order=1,
+        )
+
+        self.assertEqual(lesson.order, 2)
+
     def test_posted_course_id_is_ignored_when_creating_lesson(self):
         self.client.login(username='tenant-admin', password='test')
 
@@ -193,3 +232,58 @@ class LessonViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Lesson.objects.filter(id=self.lesson.id).exists())
+
+    def test_tenant_admin_can_reorder_lessons_without_order_collisions(self):
+        second = Lesson.objects.create(
+            course=self.course, title='Second Lesson', content='Second', order=2
+        )
+        third = Lesson.objects.create(
+            course=self.course, title='Third Lesson', content='Third', order=3
+        )
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-reorder', args=[self.course.id]),
+            {'lesson_id': third.id, 'direction': 'up'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        ordered = list(Lesson.objects.filter(course=self.course).order_by('order'))
+        self.assertEqual([lesson.title for lesson in ordered], [
+            'Tenant A Lesson', 'Third Lesson', 'Second Lesson'
+        ])
+        self.assertEqual([lesson.order for lesson in ordered], [1, 2, 3])
+
+    def test_tenant_admin_cannot_reorder_foreign_course(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-reorder', args=[self.other_course.id]),
+            {'lesson_id': self.other_lesson.id, 'direction': 'up'},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.other_lesson.order, 1)
+
+    def test_expired_tenant_cannot_reorder_lessons(self):
+        self.tenant.status = Tenant.Status.EXPIRED
+        self.tenant.save()
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-reorder', args=[self.course.id]),
+            {'lesson_id': self.lesson.id, 'direction': 'down'},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.lesson.order, 1)
+
+    def test_reorder_rejects_invalid_direction(self):
+        self.client.login(username='tenant-admin', password='test')
+
+        response = self.client.post(
+            reverse('lesson-reorder', args=[self.course.id]),
+            {'lesson_id': self.lesson.id, 'direction': 'sideways'},
+        )
+
+        self.assertEqual(response.status_code, 403)

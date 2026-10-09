@@ -11,7 +11,7 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
   - **Super Admin:** Platform control plus tenant-admin course, lesson, assignment, enrollment, and organization operations across active tenants; exclusive tenant reactivation.
   - **Admin:** The same tenant learning operations across active tenants, but no Super Admin grants, tenant deletion, or trial reactivation.
   - **Super Viewer:** Read-only platform-wide overview.
-  - **Tenant Admin:** Manages courses, lessons, assignments, and learner progress for their institute.
+- **Tenant Admin:** Manages courses, ordered lessons, assignments, and learner progress for their institute.
   - **Tenant User:** Learner accessing assigned courses, completing lessons, and tracking progress.
 - **Trial Lifecycle & Expiration:** 14-day default free trial with request-time boundary checks, idempotent scheduled expiration command (`python manage.py expire_trials`), read-only preservation of tenant data upon expiry, and Super Admin reactivation.
 - **Modern UI:** shadcn/ui-inspired responsive interface built with Django templates, Tailwind CSS, and Inter typography.
@@ -112,7 +112,7 @@ The system health check is available at `http://127.0.0.1:8000/health/`.
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (127 tests):
+Run the full automated test suite (135 tests):
 
 ```bash
 python manage.py test

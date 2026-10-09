@@ -48,6 +48,14 @@ class CourseForm(forms.ModelForm):
 
 
 class LessonForm(forms.ModelForm):
+    order = forms.IntegerField(
+        required=False,
+        min_value=1,
+        widget=forms.NumberInput(
+            attrs={'class': 'form-input', 'min': 1, 'step': 1}
+        ),
+    )
+
     class Meta:
         model = Lesson
         fields = ['title', 'content', 'order']
@@ -72,6 +80,12 @@ class LessonForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Creation may leave order blank to request automatic append ordering;
+        # editing must keep an explicit positive position.
+        self.fields['order'].required = bool(self.instance.pk)
 
 
 class CourseAssignmentForm(forms.ModelForm):
