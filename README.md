@@ -193,6 +193,8 @@ Detailed documentation is available in the `docs/` directory:
 
 `Dockerfile`, `docker-compose.yml`, and `.github/workflows/publish-container.yml` provide a host-independent Django + PostgreSQL deployment and GHCR publishing. Configure `SECRET_KEY`, database credentials, `ALLOWED_HOSTS`, and `CSRF_TRUSTED_ORIGINS` on the target host. The application image does not bundle a database; deploy it alongside PostgreSQL and persist both the PostgreSQL data directory and `/app/uploads`. Gunicorn's optional control socket is disabled in the container because the service account has no login home and the HTTP app does not need the administrative socket. The workflow signs pushed image digests with keyless Cosign, so signatures are verifiable without distributing a private signing key.
 
+On Railway, add a PostgreSQL service and expose its `DATABASE_URL` to the app service (for example, with Railway's variable reference `${{Postgres.DATABASE_URL}}`, using your actual database service name). Railway's `RAILWAY_PUBLIC_DOMAIN` is included automatically in host and HTTPS origin validation. Railway runs now default to `DEBUG=false` and refuse to start without PostgreSQL instead of silently creating ephemeral SQLite data. Existing data in an old container-local SQLite database is not automatically migrated; it must be exported from that old database while it still exists and imported into PostgreSQL.
+
 ---
 
 ## 8. Time & Self-Deadline

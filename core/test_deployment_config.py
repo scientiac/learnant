@@ -15,7 +15,7 @@ def settings_environment(**values):
         'DEBUG', 'DJANGO_DEBUG', 'SECRET_KEY', 'DJANGO_SECRET_KEY', 'ALLOWED_HOSTS',
         'DJANGO_ALLOWED_HOSTS', 'CSRF_TRUSTED_ORIGINS', 'DATABASE_URL', 'POSTGRES_DB',
         'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST', 'POSTGRES_PORT',
-        'RAILWAY_PUBLIC_DOMAIN',
+        'RAILWAY_PUBLIC_DOMAIN', 'RAILWAY_ENVIRONMENT',
     ):
         env.pop(key, None)
     env.update(values)
@@ -83,6 +83,18 @@ assert settings.CSRF_TRUSTED_ORIGINS == ['https://learnant-production.up.railway
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_railway_without_database_fails_instead_of_falling_back_to_sqlite(self):
+        result = self.run_settings_probe(
+            'from config import settings',
+            RAILWAY_ENVIRONMENT='production',
+            RAILWAY_PUBLIC_DOMAIN='learnant-production.up.railway.app',
+            SECRET_KEY='a-secure-test-key-that-is-not-used-for-any-real-data',
+            ALLOWED_HOSTS='learnant-production.up.railway.app',
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Railway deployments require PostgreSQL', result.stderr)
 
     def test_production_refuses_development_secret_or_missing_database(self):
         no_secret = self.run_settings_probe(

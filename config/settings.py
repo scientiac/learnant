@@ -25,8 +25,13 @@ MEDIA_URL = '/media/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
+# Railway injects at least one of these deployment-specific variables. Default
+# its runtime to production settings instead of silently choosing SQLite.
+_on_railway = bool(os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PUBLIC_DOMAIN'))
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', os.environ.get('DJANGO_DEBUG', 'true')).lower() == 'true'
+_default_debug = 'false' if _on_railway else 'true'
+DEBUG = os.environ.get('DEBUG', os.environ.get('DJANGO_DEBUG', _default_debug)).lower() == 'true'
 
 SECRET_KEY = os.environ.get('SECRET_KEY') or os.environ.get('DJANGO_SECRET_KEY')
 if not SECRET_KEY:
@@ -127,6 +132,10 @@ elif os.environ.get('POSTGRES_DB'):
         }
     }
 else:
+    if _on_railway:
+        raise ImproperlyConfigured(
+            'Railway deployments require PostgreSQL. Attach a PostgreSQL service and set DATABASE_URL.'
+        )
     if not DEBUG:
         raise ImproperlyConfigured('Set DATABASE_URL or POSTGRES_DB for non-debug deployments.')
     DATABASES = {
