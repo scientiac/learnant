@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from core.models import Course, Tenant, User
+from core.models import Course, Lesson, Tenant, User
 
 
 class Command(BaseCommand):
@@ -28,12 +28,20 @@ class Command(BaseCommand):
             user.save()
 
         tenant_admin = User.objects.get(username='tenantadmin')
-        Course.objects.get_or_create(
+        course, _ = Course.objects.get_or_create(
             tenant=tenant,
             title='Getting Started',
             defaults={
                 'description': 'A sample course for the demo institute.',
                 'creator': tenant_admin,
+            },
+        )
+        Lesson.objects.get_or_create(
+            course=course,
+            order=1,
+            defaults={
+                'title': 'Welcome',
+                'content': 'This is the first demo lesson.',
             },
         )
 

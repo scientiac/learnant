@@ -1,9 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import CourseForm
-from .models import Course, Tenant, User
+from .forms import CourseForm, LessonForm
+from .models import Course, Lesson, Tenant, User
 from .permissions import (
     can_manage_platform,
     can_mutate_tenant_data,
@@ -80,3 +80,50 @@ def course_create(request):
         form = CourseForm()
 
     return render(request, 'core/course_form.html', {'form': form})
+
+
+def visible_courses_for_user(user):
+    courses = Course.objects.select_related('tenant', 'creator')
+    if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
+        return courses
+    if user.role == User.Role.TENANT_ADMIN and user.tenant_id:
+        return courses.filter(tenant=user.tenant)
+    return Course.objects.none()
+
+
+@login_required
+def lesson_list(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    lessons = Lesson.objects.filter(course=course)
+    return render(
+        request,
+        'core/lesson_list.html',
+        {
+            'course': course,
+            'lessons': lessons,
+            'can_create_lessons': request.user.role == User.Role.TENANT_ADMIN
+            and request.user.tenant_id == course.tenant_id
+            and course.tenant.status == Tenant.Status.ACTIVE,
+        },
+    )
+
+
+@login_required
+def lesson_create(request, course_id):
+    course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
+    if not is_tenant_admin(request.user) or request.user.tenant_id != course.tenant_id:
+        return HttpResponseForbidden('Only tenant admins can create lessons for their own courses.')
+    if not can_mutate_tenant_data(request.user):
+        return HttpResponseForbidden('This tenant is read-only.')
+
+    if request.method == 'POST':
+        form = LessonForm(request.POST)
+        if form.is_valid():
+            lesson = form.save(commit=False)
+            lesson.course = course
+            lesson.save()
+            return redirect('lesson-list', course_id=course.id)
+    else:
+        form = LessonForm()
+
+    return render(request, 'core/lesson_form.html', {'course': course, 'form': form})

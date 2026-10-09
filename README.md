@@ -14,7 +14,7 @@ python3 -m venv .venv
 
 Visit `http://127.0.0.1:8000/` and log in with a demo user.
 
-The UI uses Django templates with Tailwind CSS and HTMX loaded from CDNs for a minimal interface. The current working pages are the login page, dashboard, course list, and tenant-admin course creation form.
+The UI uses Django templates with Tailwind CSS and HTMX loaded from CDNs for a minimal interface. The current working pages are the login page, dashboard, course list, tenant-admin course creation form, lesson list, and tenant-admin lesson creation form.
 
 Demo users created by `seed_demo`:
 
@@ -28,7 +28,7 @@ Demo users created by `seed_demo`:
 
 The health check is available at `http://127.0.0.1:8000/health/`.
 
-After running `seed_demo`, log in as `tenantadmin` and open `http://127.0.0.1:8000/courses/` to see the sample course list. Tenant admins with an active tenant can create courses at `http://127.0.0.1:8000/courses/new/`.
+After running `seed_demo`, log in as `tenantadmin` and open `http://127.0.0.1:8000/courses/` to see the sample course list. Tenant admins with an active tenant can create courses at `http://127.0.0.1:8000/courses/new/`, then open a course's lessons page to add lessons.
 
 ## Configuration
 

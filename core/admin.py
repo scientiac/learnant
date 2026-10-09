@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Course, Tenant, User
+from .models import Course, Lesson, Tenant, User
 
 
 @admin.register(Tenant)
@@ -25,3 +25,10 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ('title', 'tenant', 'creator', 'created_at')
     list_filter = ('tenant',)
     search_fields = ('title', 'description', 'tenant__name')
+
+
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ('title', 'course', 'order', 'created_at')
+    list_filter = ('course__tenant', 'course')
+    search_fields = ('title', 'content', 'course__title')

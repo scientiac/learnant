@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Lessons · {{ course.title }}{% endblock %}
+
+{% block content %}
+  <div class="mb-6 flex items-start justify-between gap-4">
+    <div>
+      <a class="text-sm text-slate-600 hover:text-slate-950" href="{% url 'course-list' %}">← Back to courses</a>
+      <h1 class="mt-2 text-2xl font-semibold">{{ course.title }}</h1>
+      <p class="text-slate-600">Lessons for {{ course.tenant.name }}.</p>
+    </div>
+    {% if can_create_lessons %}
+      <a class="rounded-md bg-slate-950 px-3 py-2 text-sm text-white hover:bg-slate-800" href="{% url 'lesson-create' course.id %}">New lesson</a>
+    {% endif %}
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    {% if lessons %}
+      <ol class="divide-y divide-slate-200">
+        {% for lesson in lessons %}
+          <li class="p-5">
+            <div class="text-sm text-slate-500">Lesson {{ lesson.order }}</div>
+            <h2 class="font-medium text-slate-950">{{ lesson.title }}</h2>
+            <p class="mt-2 whitespace-pre-line text-sm text-slate-700">{{ lesson.content }}</p>
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <div class="p-6 text-slate-600">No lessons have been added yet.</div>
+    {% endif %}
+  </div>
+{% endblock %}
