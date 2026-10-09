@@ -8,7 +8,7 @@
 
 - **Overall status:** Course assignment flow verified with same-tenant validation and learner assigned-course access
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments
-- **Last verified commit:** 1ff3d32 Record lesson management checkpoint
+- **Last verified commit:** 185636c Add course assignments
 - **Last verified test run:** `.venv/bin/python manage.py test` — passed, 53 tests
 - **Application starts locally:** Verified with runserver smoke check for `/health/`, anonymous assignment-list redirect, and anonymous assignment-create redirect
 - **Database/migrations:** `.venv/bin/python manage.py migrate` — applied successfully with local SQLite
@@ -98,7 +98,7 @@ Expected actions:
 - **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0005_courseassignment.py`, `core/templates/core/course_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/assignment_form.html`, `core/management/commands/seed_demo.py`, `core/test_assignments.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests run:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver assignment smoke script; `git diff --check`.
 - **Test results:** Migration created and applied; check passed with 0 issues; 53 tests passed; demo data seeded locally; runserver assignment smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 185636c Add course assignments.
 
 Update this section after completing the first task.
 
@@ -134,7 +134,7 @@ Do not paste full source files, long logs, or the entire conversation into this 
 - **Files changed:** `core/models.py`, `core/forms.py`, `core/admin.py`, `core/views.py`, `config/urls.py`, `core/migrations/0005_courseassignment.py`, `core/templates/core/course_list.html`, `core/templates/core/assignment_list.html`, `core/templates/core/assignment_form.html`, `core/management/commands/seed_demo.py`, `core/test_assignments.py`, `README.md`, `CHECKPOINTS.md`.
 - **Tests executed:** `.venv/bin/python manage.py makemigrations core`; `.venv/bin/python manage.py migrate`; `.venv/bin/python manage.py check`; `.venv/bin/python manage.py test`; `.venv/bin/python manage.py seed_demo`; runserver assignment smoke script; `git diff --check`.
 - **Actual results:** Migration created and applied; check passed with 0 issues; 53 tests passed; demo data seeded locally; runserver assignment smoke passed; whitespace diff check passed.
-- **Commit:** Pending.
+- **Commit:** 185636c Add course assignments.
 - **Current phase:** Phase 4 — Courses, Lessons, and Assignments.
 - **Remaining issues:** PostgreSQL unavailable in PATH; reactivation duration policy still undecided; progress flow not implemented yet.
 - **Next single task:** Add lesson progress model and learner progress update flow with ownership validation.
