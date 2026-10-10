@@ -1,5 +1,13 @@
 # Learnant
 
+<p align="center">
+  <img src="core/static/core/learnant-ant.svg" width="88" alt="Learnant ant emblem">
+</p>
+
+Learnant is a secure learning workspace where each institute manages its own courses, lessons, and learners.
+
+**Deployed site:** [learnant.3o14.com](https://learnant.3o14.com)
+
 ## Deploy
 
 ### Railway with GHCR
