@@ -1,7 +1,7 @@
 # Learnant
 
 <p align="center">
-  <img src="core/static/core/learnant-ant.svg" width="88" alt="Learnant ant emblem">
+  <img src="core/static/core/learnant-ant-circle.svg" width="88" alt="Learnant ant emblem on a white circle">
 </p>
 
 Learnant is a secure learning workspace where each institute manages its own courses, lessons, and learners.
