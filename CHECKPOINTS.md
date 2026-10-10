@@ -140,7 +140,7 @@
 - [x] Add self-service password changes in account settings for platform and tenant users.
 - [x] Add tenant-scoped search for courses, lessons, member rosters, assignments, and progress; add platform search for colonies, owners, and all colony members.
 - [x] Show Tenant Admin/owner accounts to platform roles in colony and read-only member directories.
-- [x] Redeploy Railway from GHCR after successful pushes to the production branch (requires Railway project token and service variable in GitHub).
+- [x] Document the manual Railway redeploy step after GHCR publishing; no Railway token is required.
 - [x] Reconcile architecture/permissions docs and test counts with current implementation.
 - [ ] Record the original self-deadline if known; it cannot be reconstructed from the repository.
 - [ ] Human developer completes `docs/ai-course-design.md`; do not generate its content.
