@@ -102,7 +102,7 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 
 ## 6. Testing Strategy
 
-- **Test Suite:** 199 automated test cases spanning:
+- **Test Suite:** 207 automated test cases spanning:
   - Role-based permissions (`test_permissions.py`)
   - Cross-tenant data isolation and ID manipulation (`test_phase_auth_isolation.py`)
   - Course and lesson CRUD boundaries (`test_courses.py`, `test_lessons.py`)
@@ -141,4 +141,5 @@ The first Super Admin is created with `python manage.py bootstrap_superadmin` us
 - The application uses PostgreSQL in container deployments; local debug-only SQLite remains available for quick direct development.
 - The image starts with migrations and WhiteNoise static collection, then serves Django via Gunicorn; `/health/` is the container health check.
 - GitHub Actions publishes multi-architecture images to GHCR on branch and version-tag pushes, and signs published image digests with keyless Cosign.
+- On production-branch pushes, GitHub Actions invokes the Railway CLI to redeploy the configured GHCR image service.
 - Production requires a strong secret, database configuration, and allowed-host list. Live PostgreSQL deployment must be verified against the deployment host's managed or self-hosted service.

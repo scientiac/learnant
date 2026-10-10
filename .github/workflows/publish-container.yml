@@ -69,3 +69,15 @@ jobs:
           DIGEST: ${{ steps.build.outputs.digest }}
           IMAGE: ghcr.io/${{ github.repository }}
         run: cosign sign --yes "${IMAGE}@${DIGEST}"
+
+      - name: Redeploy the GHCR image on Railway
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_NAME" ]; then
+            echo "Set the RAILWAY_TOKEN secret and RAILWAY_SERVICE_NAME repository variable." >&2
+            exit 1
+          fi
+          npx -y @railway/cli@latest redeploy --service "$RAILWAY_SERVICE_NAME" --yes

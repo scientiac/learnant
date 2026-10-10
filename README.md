@@ -19,6 +19,8 @@ A secure, minimal, multi-tenant learning platform for institutes and organizatio
 - **Modern UI:** shadcn/ui-inspired responsive interface built with Django templates, Tailwind CSS, and Inter typography.
 - **Self-Service Onboarding:** Atomic tenant registration at `/signup/` creating an institute and Tenant Admin user in a single transaction.
 - **Organization & Profile Settings:** Active Tenant Admins can update their own organization name/brand color; signed-in users can update their own display name and email.
+- **Account Security:** Every signed-in role can change its password from Profile settings; the current password and Django password policy are checked.
+- **Searchable Directories:** Search courses, lessons, colony members, assignments, progress, colonies, and a platform-wide Tenant Admin/learner directory. Platform results remain role-gated, and tenant-scoped results stay within the selected organization.
 - **Bulk Student Onboarding:** Tenant Admins can create up to 100 tenant-bound learner accounts in one submission.
 - **Spreadsheet Enrollment:** Tenant Admins can download a CSV template and import up to 500 learners with row-level validation, duplicate skipping, and optional same-tenant course assignments.
 - **Temporary Learner Credentials:** Bulk-enrolled learners must replace their generated initial password before using the platform; seeded demo accounts remain ready to use.
@@ -41,7 +43,7 @@ docker compose up --build -d
 
 Open `http://localhost:8000/`. Migrations and static collection run when the web container starts. To seed demo data, run `docker compose exec web python manage.py seed_demo`. Create the first production Super Admin using the bootstrap environment credentials and `docker compose exec web python manage.py bootstrap_superadmin`.
 
-The container image is published to `ghcr.io/<owner>/<repository>` on pushes to `main`/`master` and version tags. Pull requests build (but do not publish) the image. Published image digests are automatically signed using keyless Cosign; verify with `cosign verify` and the workflow identity shown in the GitHub Actions run. Use a tag or immutable digest when deploying elsewhere. Configure TLS/reverse proxying and persistent volumes for `/app/uploads` and PostgreSQL on your host.
+The container image is published to `ghcr.io/<owner>/<repository>` on pushes to `main`/`master` and version tags. Branch tags such as `:master` are mutable and suitable for CI-triggered Railway redeploys. Pull requests build (but do not publish) the image. Published image digests are automatically signed using keyless Cosign; verify with `cosign verify` and the workflow identity shown in the GitHub Actions run. Use a tag or immutable digest when deploying elsewhere. Configure TLS/reverse proxying and persistent volumes for `/app/uploads` and PostgreSQL on your host.
 
 ### Run Django directly (development only)
 
@@ -132,12 +134,13 @@ The new Super Admin must change the temporary password on first login. The comma
 2. Create a tenant with its initial Tenant Admin, or select **Courses**, **Members**, **Organization**, or **Enroll** on an active institute to administer its workspace.
 3. Super Admin can additionally reactivate expired institutes and provision Admin/Super Viewer platform accounts.
 4. Provisioned platform accounts must replace their temporary password before accessing platform pages. Super Viewer can open tenant courses but has no management actions.
+5. Platform users can search all colony members and see Tenant Admin/owner accounts in the colony directory; Super Viewer access is read-only.
 
 Tenant Admins can edit learner names, emails, and active status from **Members**. Deactivation preserves assignments and progress records.
 
 ### Workflow E: Organization & Profile Settings
 1. As an active `tenant_admin`, use **Organization** to update the institute name, brand color, contact details, and logo.
-2. Any signed-in user can open **Profile** to update their own first name, last name, email, and avatar. Role and tenant membership are not editable there.
+2. Any signed-in user can open **Profile** to update their own first name, last name, email, avatar, and password. Role and tenant membership are not editable there.
 
 ### Workflow F: Bulk Student Onboarding
 1. Log in as `tenant_admin` (or `institute_admin`) and open **Enroll students** (`/students/bulk-add/`).
@@ -154,7 +157,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (199 tests):
+Run the full automated test suite (207 tests):
 
 ```bash
 python manage.py test
@@ -195,13 +198,15 @@ Detailed documentation is available in the `docs/` directory:
 
 ### Step-by-step Railway deployment
 
-1. **Publish the app image.** Push to `master` (or a version tag) and wait for the GitHub Actions **Build and publish container** workflow to complete. It publishes `ghcr.io/<github-owner>/<repository>:latest` for the default branch and signs the image digest with Cosign.
+1. **Publish the app image.** Push to `master` (or a version tag) and wait for the GitHub Actions **Build and publish container** workflow to complete. It publishes `ghcr.io/<github-owner>/<repository>:master` for the `master` branch (and `:latest` for the default branch) and signs the image digest with Cosign.
 2. **Create PostgreSQL.** In Railway, create a PostgreSQL service in your project. Keep this service and its volume when redeploying the app; database contents do not live in the Django container.
-3. **Deploy the image.** Add an app service using the published GHCR image. If the package is private, configure Railway with permission to pull it. Expose port `8000` (or configure the service's target port as `8000`).
+3. **Deploy the image.** Add an app service using `ghcr.io/<github-owner>/<repository>:master`. If the package is private, configure Railway with permission to pull it. Expose port `8000` (or configure the service's target port as `8000`). Keep Railway's image source pointed at this mutable branch tag so CI redeploys pick up the digest pushed by GitHub Actions.
 4. **Link the database.** In the app service's Variables, set `DATABASE_URL` to a Railway reference to the Postgres service, such as `${{Postgres.DATABASE_URL}}` (replace `Postgres` with your service's exact name). Do not copy a URL for a different database or environment.
 5. **Set app configuration.** Add `SECRET_KEY` as a strong, private random value; set `DEBUG=false`. `learnant.3o14.com` is already allowed. Railway's `RAILWAY_PUBLIC_DOMAIN` is also added automatically to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`. If using another custom domain or host, add it to `ALLOWED_HOSTS` and its full HTTPS origin to `CSRF_TRUSTED_ORIGINS`.
 
    Generate a secret locally with `python -c "import secrets; print(secrets.token_urlsafe(50))"`, then paste the output into Railway's `SECRET_KEY` variable. Do not commit it or share it. The app deliberately refuses to start on Railway if its secret or PostgreSQL configuration is missing; it will not silently use SQLite.
+
+   **Enable CI auto-deploy:** Create a Railway project token scoped to the production environment. In GitHub repository **Settings → Secrets and variables → Actions**, add `RAILWAY_TOKEN` as a secret and `RAILWAY_SERVICE_NAME` as a repository variable (the exact Railway app service name or ID). After a successful push to `main` or `master`, the workflow publishes and signs the GHCR image, then runs Railway CLI `redeploy` for that service. Pull requests do not deploy. The Railway service must be configured to pull the matching GHCR branch tag.
 
 6. **Deploy and check startup logs.** The container applies migrations and collects static files before starting Gunicorn. Confirm migrations complete and the service becomes healthy.
 7. **Configure first Super Admin credentials.** In the app service's Variables, set `LEARNANT_SUPERADMIN_USERNAME`, `LEARNANT_SUPERADMIN_EMAIL`, and `LEARNANT_SUPERADMIN_PASSWORD`. Use a unique, strong password. Apply the variables/redeploy so they are available to the app's shell.

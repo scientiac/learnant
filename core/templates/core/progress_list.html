@@ -17,6 +17,8 @@
   </p>
 </div>
 
+{% include "core/partials/search_form.html" with search_label="Search progress" search_placeholder="Learner name, username, email, or lesson" %}
+
 {% if assignments %}
   <div class="mb-6 card p-4">
     <h2 class="text-xs font-mono uppercase tracking-widest mb-3" style="color: hsl(var(--muted-foreground));">
@@ -84,7 +86,7 @@
     <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center border" style="border-color: hsl(var(--border));">
       <i data-lucide="users" class="h-5 w-5" style="color: hsl(var(--muted-foreground));"></i>
     </div>
-    <p class="text-sm font-medium">No learners enrolled</p>
+      <p class="text-sm font-medium">{% if search_query %}No learners match this search{% else %}No learners enrolled{% endif %}</p>
     <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Assign learners to start tracking progress across your syllabus.</p>
     <a class="btn btn-primary mt-4 inline-flex" href="{% url 'assignment-list' course.id %}">
       <i data-lucide="user-plus" class="h-4 w-4"></i>

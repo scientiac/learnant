@@ -6,6 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import validate_email
+from django.db.models import Q
 from django.utils.text import slugify
 
 from .models import Course, CourseAssignment, Lesson, Tenant, User
@@ -101,12 +102,21 @@ class CourseAssignmentForm(forms.ModelForm):
         model = CourseAssignment
         fields = ['learner']
 
-    def __init__(self, *args, tenant, **kwargs):
+    def __init__(self, *args, tenant, search='', **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['learner'].queryset = User.objects.filter(
+        learners = User.objects.filter(
             role=User.Role.TENANT_USER,
             tenant=tenant,
-        ).order_by('username')
+        )
+        search = search.strip()
+        if search:
+            learners = learners.filter(
+                Q(username__icontains=search)
+                | Q(email__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+            )
+        self.fields['learner'].queryset = learners.order_by('username')
         self.fields['learner'].widget.attrs.update(
             {'class': 'form-input'}
         )

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}All colony members · Learnant{% endblock %}
+{% block nav_tenants %}active{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold tracking-tight">All colony members</h1>
+  <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Search Tenant Admins and learners across organizations. Results are read-only here; manage members from their colony.</p>
+</div>
+
+{% include "core/partials/search_form.html" with search_label="Search all members" search_placeholder="Name, username, email, or organization" %}
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead><tr><th>Organization</th><th>Role</th><th>Username</th><th>Name</th><th>Email</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for member in members %}
+          <tr>
+            <td><a class="underline" href="{% url 'platform-tenant-users' member.tenant_id %}">{{ member.tenant.name }}</a></td>
+            <td><span class="badge {% if member.role == 'tenant_admin' %}badge-active{% else %}badge-role{% endif %}">{{ member.get_role_display }}</span></td>
+            <td class="font-mono">{{ member.username }}</td>
+            <td>{{ member.get_full_name|default:'—' }}</td>
+            <td>{{ member.email|default:'—' }}</td>
+            <td>{% if member.is_active %}Active{% else %}Deactivated{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">{% if search_query %}No colony members match this search.{% else %}No colony members found.{% endif %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

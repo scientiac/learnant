@@ -89,12 +89,19 @@ class TenantUserManagementTests(TestCase):
         self.assertEqual(self.learner_b.first_name, 'Platform Edited')
         self.assertEqual(self.learner_b.tenant, self.tenant_b)
 
-    def test_superviewer_cannot_open_platform_tenant_roster(self):
+    def test_superviewer_can_read_but_not_edit_platform_tenant_roster(self):
         self.client.login(username='viewer', password='test')
 
         response = self.client.get(reverse('platform-tenant-users', args=[self.tenant_a.id]))
+        update_response = self.client.post(
+            reverse('platform-tenant-user-update', args=[self.tenant_a.id, self.learner_a.id]),
+            {'first_name': 'Viewer Edit', 'last_name': '', 'email': '', 'is_active': 'on'},
+        )
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'manager-a')
+        self.assertContains(response, 'learner-a')
+        self.assertEqual(update_response.status_code, 403)
 
     def test_expired_tenant_roster_is_read_only(self):
         self.tenant_a.status = Tenant.Status.EXPIRED

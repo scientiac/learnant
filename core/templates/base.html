@@ -259,6 +259,7 @@
                 {% endif %}
                 {% if user.role == 'super_admin' or user.role == 'admin' or user.role == 'super_viewer' %}
                   <a class="nav-link {% block nav_tenants %}{% endblock %}" href="{% url 'tenant-list' %}">Colonies</a>
+                  <a class="nav-link" href="{% url 'platform-member-list' %}">Members</a>
                 {% endif %}
               </div>
               <details class="relative sm:hidden">
@@ -275,6 +276,7 @@
                   {% endif %}
                   {% if user.role == 'super_admin' or user.role == 'admin' or user.role == 'super_viewer' %}
                     <a class="nav-link py-2" href="{% url 'tenant-list' %}">Colonies</a>
+                    <a class="nav-link py-2" href="{% url 'platform-member-list' %}">Members</a>
                   {% endif %}
                 </div>
               </details>

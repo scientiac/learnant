@@ -9,6 +9,27 @@
   {% if can_edit_users %}<a class="btn btn-primary" href="{% if request.resolver_match.kwargs.tenant_id %}{% url 'tenant-bulk-student-add' tenant.id %}{% else %}{% url 'bulk-student-add' %}{% endif %}">Enroll learners</a>{% endif %}
 </div>
 
+{% include "core/partials/search_form.html" with search_label="Search colony members" search_placeholder="Name, username, or email" %}
+
+{% if show_tenant_admins %}
+  <section class="card mb-5 overflow-hidden" id="tenant-admins">
+    <div class="border-b p-4" style="border-color: hsl(var(--border));">
+      <h2 class="font-semibold">Organization admins</h2>
+      <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Tenant owners and administrators for {{ tenant.name }}.</p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for admin in tenant_admins %}
+            <tr><td class="font-mono">{{ admin.username }}</td><td>{{ admin.get_full_name|default:'—' }}</td><td>{{ admin.email|default:'—' }}</td><td>{% if admin.is_active %}Active{% else %}Deactivated{% endif %}</td></tr>
+          {% empty %}<tr><td colspan="4">{% if search_query %}No organization admins match this search.{% else %}No organization admins found.{% endif %}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
+
 <div class="card overflow-hidden">
   <table class="table">
     <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Status</th>{% if can_edit_users %}<th>Actions</th>{% endif %}</tr></thead>
@@ -23,8 +44,8 @@
             <td><a class="btn btn-outline btn-sm" href="{% if request.resolver_match.kwargs.tenant_id %}{% url 'platform-tenant-user-update' tenant.id learner.id %}{% else %}{% url 'tenant-user-update' learner.id %}{% endif %}">Edit</a></td>
           {% endif %}
         </tr>
-      {% empty %}
-        <tr><td colspan="5">No learners have been enrolled yet.</td></tr>
+        {% empty %}
+        <tr><td colspan="5">{% if search_query %}No learners match this search.{% else %}No learners have been enrolled yet.{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

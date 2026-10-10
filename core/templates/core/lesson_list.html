@@ -23,6 +23,8 @@
   {% endif %}
 </div>
 
+{% include "core/partials/search_form.html" with search_label="Search lessons" search_placeholder="Lesson title, description, or content" %}
+
 {% if lesson_items %}
   <div class="space-y-3">
     {% for item in lesson_items %}

@@ -11,10 +11,13 @@
     </p>
   </div>
   <div class="flex gap-2">
+    {% if can_view_tenant_members %}<a class="btn btn-outline" href="{% url 'platform-member-list' %}">All members</a>{% endif %}
     {% if can_create_tenants %}<a class="btn btn-primary" href="{% url 'platform-tenant-create' %}">Create tenant</a>{% endif %}
     {% if can_reactivate_tenants %}<a class="btn btn-outline" href="{% url 'platform-account-create' %}">Provision platform account</a>{% endif %}
   </div>
 </div>
+
+{% include "core/partials/search_form.html" with search_label="Search colonies" search_placeholder="Organization, Tenant Admin name, username, or email" %}
 
 {% if tenants %}
   <div class="card overflow-hidden">
@@ -23,6 +26,7 @@
       <thead>
         <tr>
           <th>Colony Name</th>
+          <th>Tenant Admin / Owner</th>
           <th>Status</th>
           <th>Plan</th>
           <th>Trial Expiry</th>
@@ -38,6 +42,14 @@
                 <i data-lucide="building-2" class="h-4 w-4" style="color: hsl(var(--muted-foreground));"></i>
                 <span class="font-medium">{{ tenant.name }}</span>
               </div>
+            </td>
+            <td>
+              {% for owner in tenant.tenant_admins %}
+                <div class="text-sm font-medium">{{ owner.get_full_name|default:owner.username }}</div>
+                <div class="font-mono text-xs" style="color: hsl(var(--muted-foreground));">@{{ owner.username }}{% if owner.email %} · {{ owner.email }}{% endif %}</div>
+              {% empty %}
+                <span class="text-xs" style="color: hsl(var(--muted-foreground));">No Tenant Admin</span>
+              {% endfor %}
             </td>
             <td>
               {% if tenant.status == 'active' %}
@@ -64,8 +76,10 @@
             <td class="text-right">
               <div class="flex flex-wrap justify-end gap-1.5">
                 <a class="btn btn-outline btn-sm" href="{% url 'tenant-course-list' tenant.id %}">Courses</a>
-                {% if can_manage_tenant_content and tenant.id in mutable_tenant_ids %}
+                {% if can_view_tenant_members %}
                   <a class="btn btn-outline btn-sm" href="{% url 'platform-tenant-users' tenant.id %}">Members</a>
+                {% endif %}
+                {% if can_manage_tenant_content and tenant.id in mutable_tenant_ids %}
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-organization-settings' tenant.id %}">Organization</a>
                   <a class="btn btn-outline btn-sm" href="{% url 'tenant-bulk-student-add' tenant.id %}">Enroll</a>
                 {% endif %}
@@ -96,8 +110,8 @@
     <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center border" style="border-color: hsl(var(--border));">
       <i data-lucide="building-2" class="h-5 w-5" style="color: hsl(var(--muted-foreground));"></i>
     </div>
-    <p class="text-sm font-medium">No colonies registered yet</p>
-    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Colonies will appear here as institutes self-signup.</p>
+    <p class="text-sm font-medium">{% if search_query %}No colonies match this search{% else %}No colonies registered yet{% endif %}</p>
+    <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">{% if search_query %}Try a different organization or Tenant Admin name, username, or email.{% else %}Colonies will appear here as institutes self-signup.{% endif %}</p>
   </div>
 {% endif %}
 {% endblock %}

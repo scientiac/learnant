@@ -1,0 +1,11 @@
+<form method="get" action="{{ request.path }}" role="search" class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end">
+  {% if tenant_filter %}<input type="hidden" name="tenant_id" value="{{ tenant_filter.id }}">{% endif %}
+  <div class="w-full max-w-xl">
+    <label class="form-label" for="list-search">{{ search_label }}</label>
+    <input class="form-input" id="list-search" type="search" name="q" value="{{ search_query }}" placeholder="{{ search_placeholder|default:'Search…' }}">
+  </div>
+  <div class="flex gap-2">
+    <button class="btn btn-secondary" type="submit"><i data-lucide="search" class="h-4 w-4"></i>Search</button>
+    {% if search_query %}<a class="btn btn-outline" href="{{ request.path }}{% if tenant_filter %}?tenant_id={{ tenant_filter.id }}{% endif %}">Clear</a>{% endif %}
+  </div>
+</form>

@@ -16,6 +16,8 @@
   {% endif %}
 </div>
 
+{% include "core/partials/search_form.html" with search_label="Search courses" search_placeholder="Course title, description, institute, or author" %}
+
 {% if courses %}
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for course in courses %}
@@ -46,7 +48,7 @@
 {% else %}
   <div class="card p-10 text-center">
     <i data-lucide="book-open" class="mx-auto h-8 w-8" style="color: hsl(var(--muted-foreground));"></i>
-    <p class="mt-3 text-sm font-medium">No courses are available</p>
+    <p class="mt-3 text-sm font-medium">{% if search_query %}No courses match this search{% else %}No courses are available{% endif %}</p>
     <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">
       {% if can_create_courses %}
         Get started by creating your first course.

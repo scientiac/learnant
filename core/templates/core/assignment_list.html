@@ -25,6 +25,8 @@
   {% endif %}
 </div>
 
+{% include "core/partials/search_form.html" with search_label="Search assigned learners" search_placeholder="Name, username, or email" %}
+
 {% if assignments %}
   <div class="card overflow-hidden">
     <table class="table">
@@ -72,7 +74,7 @@
     <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center border" style="border-color: hsl(var(--border));">
       <i data-lucide="users" class="h-5 w-5" style="color: hsl(var(--muted-foreground));"></i>
     </div>
-    <p class="text-sm font-medium">No learners assigned</p>
+    <p class="text-sm font-medium">{% if search_query %}No assigned learners match this search{% else %}No learners assigned{% endif %}</p>
     <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Enroll learners from your colony to grant them access to this syllabus.</p>
     {% if can_create_assignments %}
       <a class="btn btn-primary mt-4 inline-flex" href="{% url 'assignment-create' course.id %}">

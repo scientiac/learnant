@@ -2,6 +2,8 @@ import secrets
 from pathlib import PurePath
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.views import PasswordChangeView
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -9,7 +11,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.db.models import Max
+from django.db.models import Max, Prefetch, Q
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
@@ -135,14 +137,14 @@ def platform_account_create(request):
 
 def tenant_selected_for_user(user, tenant_id=None):
     if tenant_id is not None:
-        if not is_platform_admin(user):
+        if not is_platform_user(user):
             return None
         tenant = get_object_or_404(Tenant, id=tenant_id)
     elif is_tenant_admin(user) and user.tenant_id:
         tenant = user.tenant
     else:
         return None
-    return tenant if can_manage_tenant(user, tenant) else None
+    return tenant if can_manage_tenant(user, tenant) or is_platform_user(user) else None
 
 
 @login_required
@@ -151,14 +153,51 @@ def tenant_user_list(request, tenant_id=None):
     if tenant is None:
         return HttpResponseForbidden('You cannot view learners for this organization.')
     learners = User.objects.filter(tenant=tenant, role=User.Role.TENANT_USER).order_by('username')
+    tenant_admins = User.objects.filter(tenant=tenant, role=User.Role.TENANT_ADMIN).order_by('username')
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        member_query = (
+            Q(username__icontains=search_query)
+            | Q(first_name__icontains=search_query)
+            | Q(last_name__icontains=search_query)
+            | Q(email__icontains=search_query)
+        )
+        learners = learners.filter(member_query)
+        tenant_admins = tenant_admins.filter(member_query)
     return render(
         request,
         'core/tenant_user_list.html',
         {
             'tenant': tenant,
             'learners': learners,
+            'tenant_admins': tenant_admins,
+            'show_tenant_admins': is_platform_user(request.user),
+            'search_query': search_query,
             'can_edit_users': can_mutate_tenant_data(request.user, tenant),
         },
+    )
+
+
+@login_required
+def platform_member_list(request):
+    if not is_platform_user(request.user):
+        return HttpResponseForbidden('Only platform users can view the cross-colony member directory.')
+    members = User.objects.filter(role__in=User.TENANT_ROLES).select_related('tenant').order_by(
+        'tenant__name', 'role', 'username'
+    )
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        members = members.filter(
+            Q(username__icontains=search_query)
+            | Q(first_name__icontains=search_query)
+            | Q(last_name__icontains=search_query)
+            | Q(email__icontains=search_query)
+            | Q(tenant__name__icontains=search_query)
+        )
+    return render(
+        request,
+        'core/platform_member_list.html',
+        {'members': members, 'search_query': search_query},
     )
 
 
@@ -331,6 +370,16 @@ def course_list(request, tenant_id=None):
     if selected_tenant_id:
         tenant_filter = get_object_or_404(Tenant, id=selected_tenant_id)
         visible_courses = visible_courses.filter(tenant=tenant_filter)
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        visible_courses = visible_courses.filter(
+            Q(title__icontains=search_query)
+            | Q(description__icontains=search_query)
+            | Q(tenant__name__icontains=search_query)
+            | Q(creator__username__icontains=search_query)
+            | Q(creator__first_name__icontains=search_query)
+            | Q(creator__last_name__icontains=search_query)
+        ).distinct()
     manageable_course_ids = [
         course.id
         for course in visible_courses
@@ -356,6 +405,7 @@ def course_list(request, tenant_id=None):
             'can_create_courses': can_create_courses,
             'manageable_course_ids': manageable_course_ids,
             'tenant_filter': tenant_filter,
+            'search_query': search_query,
         },
     )
 
@@ -364,7 +414,25 @@ def course_list(request, tenant_id=None):
 def tenant_list(request):
     if not is_platform_user(request.user):
         return HttpResponseForbidden('Only platform users can view tenants.')
-    tenants = Tenant.objects.all()
+    search_query = request.GET.get('q', '').strip()
+    tenants = Tenant.objects.prefetch_related(
+        Prefetch(
+            'users',
+            queryset=User.objects.filter(role=User.Role.TENANT_ADMIN).order_by('username'),
+            to_attr='tenant_admins',
+        )
+    )
+    if search_query:
+        tenants = tenants.filter(
+            Q(name__icontains=search_query)
+            | Q(users__role=User.Role.TENANT_ADMIN)
+            & (
+                Q(users__username__icontains=search_query)
+                | Q(users__first_name__icontains=search_query)
+                | Q(users__last_name__icontains=search_query)
+                | Q(users__email__icontains=search_query)
+            )
+        ).distinct()
     mutable_tenant_ids = [
         tenant.id for tenant in tenants if can_mutate_tenant_data(request.user, tenant)
     ]
@@ -377,6 +445,8 @@ def tenant_list(request):
             'can_create_tenants': can_manage_platform(request.user),
             'can_manage_tenant_content': is_platform_admin(request.user),
             'mutable_tenant_ids': mutable_tenant_ids,
+            'search_query': search_query,
+            'can_view_tenant_members': is_platform_user(request.user),
         },
     )
 
@@ -490,23 +560,46 @@ def organization_settings(request, tenant_id=None):
 @login_required
 def profile_settings(request):
     user = request.user
-    if user.role in User.TENANT_ROLES and not can_mutate_tenant_data(user):
-        return HttpResponseForbidden('This tenant is read-only.')
+    profile_read_only = user.role in User.TENANT_ROLES and not can_mutate_tenant_data(user)
+    profile_form = ProfileSettingsForm(instance=user)
+    password_form = PasswordChangeForm(user)
+    for field in password_form.fields.values():
+        field.widget.attrs['class'] = 'form-input'
 
-    if request.method == 'POST':
-        form = ProfileSettingsForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            updated_user = form.save(commit=False)
+    if request.method == 'POST' and request.POST.get('action') == 'change_password':
+        password_form = PasswordChangeForm(user, request.POST)
+        for field in password_form.fields.values():
+            field.widget.attrs['class'] = 'form-input'
+        if password_form.is_valid():
+            password_form.save()
+            if user.must_change_password:
+                user.must_change_password = False
+                user.save(update_fields=['must_change_password'])
+            update_session_auth_hash(request, user)
+            return redirect(f"{reverse('profile-settings')}?password_changed=1")
+    elif request.method == 'POST':
+        if profile_read_only:
+            return HttpResponseForbidden('This tenant is read-only; password changes are still available.')
+        profile_form = ProfileSettingsForm(request.POST, request.FILES, instance=user)
+        if profile_form.is_valid():
+            updated_user = profile_form.save(commit=False)
             if (
-                form.cleaned_data.get('remove_avatar')
-                and not isinstance(form.cleaned_data.get('avatar'), UploadedFile)
+                profile_form.cleaned_data.get('remove_avatar')
+                and not isinstance(profile_form.cleaned_data.get('avatar'), UploadedFile)
             ):
                 updated_user.avatar = ''
             updated_user.save()
             return redirect('dashboard')
-    else:
-        form = ProfileSettingsForm(instance=user)
-    return render(request, 'core/profile_settings.html', {'form': form})
+    return render(
+        request,
+        'core/profile_settings.html',
+        {
+            'form': profile_form,
+            'password_form': password_form,
+            'profile_read_only': profile_read_only,
+            'password_changed': request.GET.get('password_changed') == '1',
+        },
+    )
 
 
 @login_required
@@ -750,6 +843,13 @@ def visible_courses_for_user(user):
 def lesson_list(request, course_id):
     course = get_object_or_404(visible_courses_for_user(request.user), id=course_id)
     lessons = Lesson.objects.filter(course=course)
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        lessons = lessons.filter(
+            Q(title__icontains=search_query)
+            | Q(description__icontains=search_query)
+            | Q(content__icontains=search_query)
+        )
     assignment = None
     progress_by_lesson = {}
     if is_tenant_user(request.user):
@@ -772,6 +872,7 @@ def lesson_list(request, course_id):
             'can_manage_course': can_manage_tenant(request.user, course.tenant),
             'can_create_lessons': can_manage_tenant_learning(request.user, course.tenant),
             'can_update_progress': bool(assignment and can_mutate_tenant_data(request.user)),
+            'search_query': search_query,
         },
     )
 
@@ -1013,6 +1114,14 @@ def assignment_list(request, course_id):
     if not can_manage_tenant(request.user, course.tenant):
         return HttpResponseForbidden('You cannot manage assignments for this tenant course.')
     assignments = CourseAssignment.objects.select_related('learner').filter(course=course)
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        assignments = assignments.filter(
+            Q(learner__username__icontains=search_query)
+            | Q(learner__email__icontains=search_query)
+            | Q(learner__first_name__icontains=search_query)
+            | Q(learner__last_name__icontains=search_query)
+        )
     return render(
         request,
         'core/assignment_list.html',
@@ -1020,6 +1129,7 @@ def assignment_list(request, course_id):
             'course': course,
             'assignments': assignments,
             'can_create_assignments': can_manage_tenant_learning(request.user, course.tenant),
+            'search_query': search_query,
         },
     )
 
@@ -1033,7 +1143,7 @@ def assignment_create(request, course_id):
         return HttpResponseForbidden('This tenant is read-only.')
 
     if request.method == 'POST':
-        form = CourseAssignmentForm(request.POST, tenant=course.tenant)
+        form = CourseAssignmentForm(request.POST, tenant=course.tenant, search=request.GET.get('q', ''))
         if form.is_valid():
             assignment = form.save(commit=False)
             assignment.tenant = course.tenant
@@ -1041,9 +1151,18 @@ def assignment_create(request, course_id):
             assignment.save()
             return redirect('assignment-list', course_id=course.id)
     else:
-        form = CourseAssignmentForm(tenant=course.tenant)
+        form = CourseAssignmentForm(tenant=course.tenant, search=request.GET.get('q', ''))
 
-    return render(request, 'core/assignment_form.html', {'course': course, 'form': form})
+    return render(
+        request,
+        'core/assignment_form.html',
+        {
+            'course': course,
+            'form': form,
+            'search_query': request.GET.get('q', '').strip(),
+            'has_eligible_learners': form.fields['learner'].queryset.exists(),
+        },
+    )
 
 
 @login_required
@@ -1091,8 +1210,28 @@ def progress_list(request, course_id):
     progress_records = LessonProgress.objects.select_related('assignment__learner', 'lesson').filter(
         assignment__course=course
     )
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        assignments = assignments.filter(
+            Q(learner__username__icontains=search_query)
+            | Q(learner__email__icontains=search_query)
+            | Q(learner__first_name__icontains=search_query)
+            | Q(learner__last_name__icontains=search_query)
+        )
+        progress_records = progress_records.filter(
+            Q(assignment__learner__username__icontains=search_query)
+            | Q(assignment__learner__email__icontains=search_query)
+            | Q(assignment__learner__first_name__icontains=search_query)
+            | Q(assignment__learner__last_name__icontains=search_query)
+            | Q(lesson__title__icontains=search_query)
+        )
     return render(
         request,
         'core/progress_list.html',
-        {'course': course, 'assignments': assignments, 'progress_records': progress_records},
+        {
+            'course': course,
+            'assignments': assignments,
+            'progress_records': progress_records,
+            'search_query': search_query,
+        },
     )

@@ -80,3 +80,47 @@ class RequiredPasswordChangeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.user.must_change_password)
         self.assertEqual(self.client.get(reverse('course-list')).url, reverse('password-change'))
+
+    def test_all_roles_can_change_password_from_profile_settings(self):
+        self.user.must_change_password = False
+        self.user.save(update_fields=['must_change_password'])
+        tenant = self.user.tenant
+        expired_tenant = Tenant.objects.create(name='Expired Institute', status=Tenant.Status.EXPIRED)
+        accounts = [
+            self.user,
+            User.objects.create_user(
+                username='tenant-manager', password='Temporary!Password123',
+                role=User.Role.TENANT_ADMIN, tenant=tenant,
+            ),
+            User.objects.create_user(
+                username='platform-root', password='Temporary!Password123', role=User.Role.SUPER_ADMIN,
+            ),
+            User.objects.create_user(
+                username='platform-operator', password='Temporary!Password123', role=User.Role.ADMIN,
+            ),
+            User.objects.create_user(
+                username='platform-reader', password='Temporary!Password123', role=User.Role.SUPER_VIEWER,
+            ),
+            User.objects.create_user(
+                username='expired-member', password='Temporary!Password123',
+                role=User.Role.TENANT_USER, tenant=expired_tenant, must_change_password=False,
+            ),
+        ]
+
+        for account in accounts:
+            with self.subTest(role=account.role, tenant=account.tenant_id):
+                self.client.force_login(account)
+                response = self.client.post(
+                    reverse('profile-settings'),
+                    {
+                        'action': 'change_password',
+                        'old_password': 'Temporary!Password123',
+                        'new_password1': 'Another!VerySecurePassword938',
+                        'new_password2': 'Another!VerySecurePassword938',
+                    },
+                )
+                account.refresh_from_db()
+                self.assertRedirects(response, reverse('profile-settings') + '?password_changed=1')
+                self.assertTrue(account.check_password('Another!VerySecurePassword938'))
+                self.assertContains(self.client.get(reverse('profile-settings')), 'Change password')
+                self.client.logout()

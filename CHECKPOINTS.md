@@ -1,7 +1,7 @@
 # CHECKPOINTS.md — Project Roadmap & Task Checklists
 
 ## 1. Status at a Glance
-- **Overall Status:** Portable Docker deployment and environment handling implemented (199 tests passing, Django check 0 issues).
+- **Overall Status:** Portable Docker deployment and environment handling implemented (207 tests passing, Django check 0 issues).
 - **Architecture:** Multi-Tenant Django Monolith (PostgreSQL in container deployments, local SQLite fallback).
 - **Design System:** shadcn/ui-inspired responsive interface (Tailwind CDN + Inter typography).
 - **Quick Run:**
@@ -137,6 +137,10 @@
 - [x] Add Super Admin single-account provisioning for Admin/Super Viewer with forced password change.
 - [x] Add the missing organization admin email field to self-signup and correct signup guidance.
 - [x] Replace production demo-account details on About with product overview, workflow, role guide, and production access information.
+- [x] Add self-service password changes in account settings for platform and tenant users.
+- [x] Add tenant-scoped search for courses, lessons, member rosters, assignments, and progress; add platform search for colonies, owners, and all colony members.
+- [x] Show Tenant Admin/owner accounts to platform roles in colony and read-only member directories.
+- [x] Redeploy Railway from GHCR after successful pushes to the production branch (requires Railway project token and service variable in GitHub).
 - [x] Reconcile architecture/permissions docs and test counts with current implementation.
 - [ ] Record the original self-deadline if known; it cannot be reconstructed from the repository.
 - [ ] Human developer completes `docs/ai-course-design.md`; do not generate its content.
