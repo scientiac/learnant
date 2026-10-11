@@ -87,6 +87,22 @@ After the DB is successfully updated the file is then removed. (Even if the file
 ***
 ***
 
+## OpenCode Stats
+
+```
+77 prompts · 1.2k steps · 430.2m tokens
+96.0% tool success · 3 active days · best streak 3 days
+```
+[Prompts](prompts.txt)
+
+The file above contains the prompts I gave in opencode. This is the main harness I used for agentic development with GPT 5.5 for base design, then gpt 6 luna for refinements.
+
+Most parts of AGENTS.md, CHECKPOINTS.md and docs/*.md are written by utilizing a free session of Antigravity with claude sonnet and gemini 3.8 flash. It also wrote the initial base.html styles inspired by shadcn/sera UI. 
+
+In antigravity my prompts were mostly about: 
+
+- What a multi tenant system should work, and what are the best practices for it and how different kinds of such systems are deployed and function in real life. And prompting it with different questions for it to write docs/WHATITIS.md which became the base for forming AGENTS.md and CHECKPOINTS.md
+
 ## Deploy
 
 ### Railway with GHCR

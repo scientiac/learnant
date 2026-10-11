@@ -1,0 +1,255 @@
+Ok follow agents.md and start building, firstly determine system specs and OS and package managers and start from installing dependencies. Each installed dependency must be documented in DOCUMENT.sh. Then start building until consequitive checkpoints are reached.
+
+continue
+
+Super Viewer — platform-level read-only user.   Admin — platform-level administrative user with a defined subset of Super Admin permissions. When a tenant expires, access to the tenant's learning functionality should be restricted appropriately. Allow viewing and using whatevery they have allready gotten but dont allow to add on to the system, basically after expriation their data is read only to them. And yes initialize it as git repo.
+
+Reach a version where I can see the app running on web and then according to the usage requirements add features, so lets reach the login flow. And initial dashboard.
+
+add to the implementation plan to use HTMX and Tailwind for Frontend UI framework that looks clean and minimal, and continue building according to it and move to next task. But prariotize working application instead of good looking UI at first though.
+
+continue
+
+continue
+
+I dont care about UI for now, just complete the working version of the application with all the permissions and everything in place, keep the frontend in just easy html for now , so i can convert it to a clean framework later maybe with shadcn so continue 
+
+hmm are you checking the checkpoints and ticking them? follow that pleasse
+
+continue
+
+why did you skip phase 2, 3 and 4 complete them, then continue everything
+
+continue
+
+continue
+
+continue
+
+continue
+
+continue
+
+continue
+
+continue
+
+continue
+
+continue
+
+properly understand docs/WHATISIT.md then start implementing the steps from the CHECKPOINTS.md go!
+
+I cannot log into test account as tenant_admin or institute_admin properly fix the text accounts and continue to the next task on checkpoints
+
+continue to next item
+
+go to next task
+
+Superadmin:
+No actions to perform in colonies.
+Should the superadmin not have all the permissions to edit, add , remove assign and everything that the lower permissioned user can do.
+
+THen admin has lesser and permissions than superadmin and all the ability of lower permissioned user
+
+and similar for others
+
+learner is the user with least permission
+
+and superviewer can view everything but cannot change things 
+
+this in my opinion isnt properly managed (at least it doesnt seem to be the case in the UI) 
+
+new checkpoints are added get to work on those now!
+
+continue
+
+next tasj
+
+continue
+
+in lesson lists show description and in add lession menu give a field called description too also add the ability to upload  images and videos in the markdown file itself  too and don't put extra video url box because markdown will handle it itself
+
+then continue to next task
+
+continue 5 and 6
+
+next task
+
+instead of a seperate profile tab make the username on left side of the headerbar clickable button and that gives you profile settings and logout as options on a floationg box and you can click there to edit user profile
+
+sorry i meant it should be on the right 
+
+both profile setting and logout button should be buttons while logout being in red text but should have the same style of buttons for consistence
+
+look at task,pdf and determine if evverything is satisfied
+
+I added github, you  fix the incomplete issues by first adding them to the checkpoints.md also make a way to add superadmin during deployment which the user should change pass on first login then superadmin should be able to assign new admin/superviewer accounts like how tenant admin can enroll learners, but this one dont require bulk enroll and finish those incomplete things and dont do Priority 8 for now just fix the remains
+
+except ai course design  make changes and finish the incomplete/needs correction bits also make a way to add superadmin during deployment which the user should change pass on first login then superadmin should be able to assign new admin/superviewer accounts like how tenant admin can enroll learners, but this one dont require bulk enroll and finish those incomplete things and dont do Priority 8 for now just fix the remains  now go do it by adding them to the checkpoints.md then doing the task to fix those issues and incompleteness
+
+[Image 1] fix this ui
+
+in the profile settings, for avatar make the ui for adding and removing avatar more clean and intuitive
+
+add learnant logo as favicon and footer and header logo/icon same
+
+nooooooooooooo use the ant logo what you used previously what did you dooooooooooo
+
+no need to keep testing on each change for now on
+
+ok now lets do priority 8
+
+Spreadsheet import
+
+Import a UTF-8 CSV file. Each row is checked independently; invalid and duplicate rows are skipped while valid learners are enrolled.
+
+
+here in the csv instead of courses , use course id and assign an id to each course when created automatically, then in csv template put in comments all the courses and their id so that it is easy to know what id is for which course and there should be able to assign multiple courses to one person as well.
+
+and in the ui too put the same features as of csv and not just username and emailaddresses in a proper input UI 
+
+[Image 1] make this UI mobile friendly it isnt right now,
+
+instead of railway (remove railway configs) instead make posgres and everythign django and everything into a docker container and make github action to upload it to the ghcr.io, i can use cosign to sign it aand i can just use that docker container to host it anywhere and not just railway but it must be posgres + django not sqlite like it is currently
+
+[Image 1] the course selection ui is not good, and only put one unit form initially with button to add more, and also add the ability to delete a unit form and replace the selection UI with a better one
+
+commit and push to github
+
+Starting Container
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, core, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying core.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying core.0002_alter_user_options_and_more... OK
+  Applying core.0003_course... OK
+  Applying core.0004_lesson... OK
+  Applying core.0005_courseassignment... OK
+  Applying core.0006_lessonprogress... OK
+  Applying core.0007_tenant_expired_at... OK
+  Applying core.0008_tenant_brand_color... OK
+  Applying core.0009_lesson_video_url... OK
+  Applying core.0010_user_must_change_password... OK
+  Applying core.0011_lesson_description_lessonasset... OK
+  Applying core.0012_tenant_subscription_status... OK
+  Applying core.0013_tenant_address_tenant_contact_phone_tenant_logo_and_more... OK
+  Applying core.0014_alter_user_managers... OK
+  Applying sessions.0001_initial... OK
+158 static files copied to '/app/staticfiles'.
+[2026-10-09 16:16:14 +0000] [1] [INFO] Starting gunicorn 26.2.0
+[2026-10-09 16:16:14 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+[2026-10-09 16:16:14 +0000] [1] [INFO] Using worker: sync
+[2026-10-09 16:16:14 +0000] [4] [INFO] Booting worker with pid: 4
+[2026-10-09 16:16:14 +0000] [5] [INFO] Booting worker with pid: 5
+[2026-10-09 16:16:14 +0000] [6] [INFO] Booting worker with pid: 6
+[2026-10-09 16:16:14 +0000] [1] [ERROR] Control server error: [Errno 13] Permission denied: '/nonexistent' 
+
+DisallowedHost at /
+
+Invalid HTTP_HOST header: 'learnant-production.up.railway.app'. You may need to add 'learnant-production.up.railway.app' to ALLOWED_HOSTS.
+
+Request Method: 	GET
+Request URL: 	https://learnant-production.up.railway.app/
+Django Version: 	6.1.2
+Exception Type: 	DisallowedHost
+Exception Value: 	
+
+Invalid HTTP_HOST header: 'learnant-production.up.railway.app'. You may need to add 'learnant-production.up.railway.app' to ALLOWED_HOSTS.
+
+Exception Location: 	/usr/local/lib/python3.13/site-packages/django/http/request.py, line 210, in get_host
+Raised during: 	core.views.landing
+Python Executable: 	/usr/local/bin/python3.13
+Python Version: 	3.13.16
+Python Path: 	
+
+['/app',
+ '/usr/local/bin',
+ '/usr/local/lib/python313.zip',
+ '/usr/local/lib/python3.13',
+ '/usr/local/lib/python3.13/lib-dynload',
+ '/usr/local/lib/python3.13/site-packages']
+
+Server time: 	Fri, 09 Oct 2026 16:21:58 +0000 
+
+well it is deployed but I don't know what the superuser acc and pass is .. how is it configured?
+
+well there is an issue, i did all that and then i redeployed by it doesnt show any tenant account i recently made what happened to it, doesnt the database persist on the docker container where did i go wrong
+
+root@450c74124ed9:/app# ^[[200~python manage.py shell -c "from django.conf import settings; from django.db import connection; from core.models import Tenant; print('engine:', settings.DATABASES['default']['ENGINE']); print('database:', connection.settings_dict['NAME']); print('host:', connection.settings_dict['HOST']); print('tenants:', Tenant.objects.count())"^C
+root@450c74124ed9:/app# python manage.py shell -c "from django.conf import settings; from django.db import connection; from core.models import Tenant; print('engine:', settings.DATABASES['default']['ENGINE']); print('database:', connection.settings_dict['NAME']); print('host:', connection.settings_dict['HOST']); print('tenants:', Tenant.objects.count())"
+18 objects imported automatically (use -v 2 for details).
+
+engine: django.db.backends.sqlite3
+database: /app/db.sqlite3
+host: 
+tenants: 0 why is it using sqlite still i said to use posgres
+
+2026-10-09T16:47:20.493129470Z [err]    File "/usr/local/lib/python3.13/site-packages/django/utils/functional.py", line 47, in __get__
+2026-10-09T16:47:20.493136209Z [err]      res = instance.__dict__[self.name] = self.func(instance)
+2026-10-09T16:47:20.493148827Z [err]                                           ~~~~~~~~~^^^^^^^^^^
+2026-10-09T16:47:20.493157310Z [err]    File "/usr/local/lib/python3.13/site-packages/django/utils/connection.py", line 45, in settings
+2026-10-09T16:47:20.493163732Z [err]      self._settings = self.configure_settings(self._settings)
+2026-10-09T16:47:20.493170688Z [err]                       ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+2026-10-09T16:47:20.493177356Z [err]    File "/usr/local/lib/python3.13/site-packages/django/db/utils.py", line 151, in configure_settings
+2026-10-09T16:47:20.493185505Z [err]      databases = super().configure_settings(databases)
+.
+.
+.
+2026-10-09T16:50:16.116628042Z [err]  [2026-10-09 16:50:16 +0000] [1] [INFO] Starting gunicorn 26.2.0
+2026-10-09T16:50:16.116633352Z [err]  [2026-10-09 16:50:16 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+2026-10-09T16:50:16.116637592Z [err]  [2026-10-09 16:50:16 +0000] [1] [INFO] Using worker: sync
+2026-10-09T16:50:16.116640812Z [err]  [2026-10-09 16:50:16 +0000] [36] [INFO] Booting worker with pid: 36
+2026-10-09T16:50:16.175876658Z [err]  [2026-10-09 16:50:16 +0000] [37] [INFO] Booting worker with pid: 37
+2026-10-09T16:50:16.197251353Z [err]  [2026-10-09 16:50:16 +0000] [38] [INFO] Booting worker with pid: 38 the last 5 lines are in red in railway why?
+
+i am putting id and password that i set on envvar during deployment but it isnt working what happened??
+
+Ok! document the above changes in readme so i can deploy it easily step by step
+
+Now add final touch updates and also add to checkpoints:
+
+in the list of lessons dont show the content preview only show the title and the desc , then in option of upload image or video, it should be an add button, so the video/image that is uploaded is linked in the markdown text and after adding that video it stays as a markdown link in the text field and you should be able to add more and more images and videos one by one it is kind of a wysiwyg image/video inserter not a single off image/video input, also how are the images stored/videos will that remain when the deployment is rebuilt ??
+
+also add learnant.3o14.com to the allow list
+
+change the about page because there are no more demo eval accounts in prod , so add information about what it is and how it works on the about page there
+
+when editing lessons and saving changes it doesnt save and take to lessons view it is sutck in edit view
+
+is there any way we can save those media on posgres as well instead of on a media folder because the data is lost each time the deployment triggers and new version is updated during redeployment, all the media on the db side and no on the deployed django side
+
+yes i want the database backed approach instead of persistent volume, so every data is in the db and also, make the top header and bottom footer responsive on mobile so the user doesnt get inferior experience on mobile
+
+there is a volume option in railway instead i want to use that for persistent volume isntead of storing videos and images in posgres so i changed my mind, help me set the volume up by telling mount path and how to use it and fix the code
+
+Allow each and every user to change their password from their account settings. (Add that to the checkpoints as well), Add search option in courses and colonies and everywhere where search could be of use since it is a multi tenant system, it's to have many things and many courses, especially superadmin will have a plethora of lists of students and courses and everything, also the owner/tenant_admins of orgs arent seen by the superadmin or admin or superviewer anywhere so fix that issue too, also add auto deploy after the image is published in registry - in railway
+
+I have no railway token , so i will manually redeply , because i am using the free plan so revert that auto deploy change.
+
+Ok move the current README.md to docs/ and write a new readme where thre is only step by step deployment information and local development setup and testing information. with minimal intro title:
+
+add a little intro in the beginning and use that ant icon in there with deployed demo link learnant.3o14.com 
+
+the ant should have a white circular background
+
+make the background square since it is the whole desing language for that logo and also do the same which back with ant square for the favicon too
+
+When in dark mode, or even in light mode, while switching pages from one html to another there is a loading flash of white screen , it isn't noticed in light mode but in dark mode it is kind of a problem, so can you please fix it my maybe putting something on the header that paints the background the first thing it loads another page to hide the white flashing
