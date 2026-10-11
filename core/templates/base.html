@@ -4,6 +4,32 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff" id="learnant-theme-color">
+    <style>
+      html { background-color: #ffffff; color-scheme: light; }
+      html.dark { background-color: #0a0a0a; color-scheme: dark; }
+    </style>
+    <script>
+      (function () {
+        let preference = null;
+        try { preference = localStorage.getItem('theme'); } catch (_error) {}
+        const dark = preference === 'dark' ||
+          (!preference && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const root = document.documentElement;
+        root.classList.toggle('dark', dark);
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        const themeColor = document.getElementById('learnant-theme-color');
+        if (themeColor) themeColor.content = dark ? '#0a0a0a' : '#ffffff';
+
+        window.toggleTheme = function () {
+          const useDark = !root.classList.contains('dark');
+          root.classList.toggle('dark', useDark);
+          root.style.colorScheme = useDark ? 'dark' : 'light';
+          if (themeColor) themeColor.content = useDark ? '#0a0a0a' : '#ffffff';
+          try { localStorage.setItem('theme', useDark ? 'dark' : 'light'); } catch (_error) {}
+        };
+      })();
+    </script>
     <meta name="description" content="Learnant — Colony-scale multi-tenant learning platform for institutes">
     <title>{% block title %}Learnant · Colony-Scale Learning{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'core/learnant-ant.svg' %}">
@@ -208,16 +234,6 @@
       /* --- Separator --- */
       .separator { height: 1px; background: hsl(var(--border)); width: 100%; }
     </style>
-    <script>
-      // Dark mode: check preference
-      if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
-      function toggleTheme() {
-        document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      }
-    </script>
   </head>
   <body class="min-h-screen antialiased flex flex-col justify-between">
     <div>

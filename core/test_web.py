@@ -89,6 +89,16 @@ class WebFlowTests(TestCase):
         self.assertContains(response, 'Open navigation menu')
         self.assertContains(response, 'flex-col items-start gap-3 px-4 text-xs sm:flex-row')
 
+    def test_theme_is_applied_before_external_scripts_and_sets_initial_canvas_background(self):
+        response = self.client.get(reverse('home'))
+
+        content = response.content.decode()
+        theme_bootstrap = content.index("preference = localStorage.getItem('theme')")
+        tailwind_script = content.index('https://cdn.tailwindcss.com')
+        self.assertLess(theme_bootstrap, tailwind_script)
+        self.assertContains(response, 'html.dark { background-color: #0a0a0a; color-scheme: dark; }')
+        self.assertContains(response, "root.style.colorScheme = dark ? 'dark' : 'light';")
+
     def test_learner_can_login_and_view_tenant_dashboard(self):
         logged_in = self.client.login(username='learner', password='password123')
 

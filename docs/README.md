@@ -157,7 +157,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
 
-Run the full automated test suite (207 tests):
+Run the full automated test suite (208 tests):
 
 ```bash
 python manage.py test
