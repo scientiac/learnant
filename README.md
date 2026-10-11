@@ -9,6 +9,10 @@ Learnant is a secure learning workspace where each institute manages its own cou
 **Deployed site:** [learnant.3o14.com](https://learnant.3o14.com)
 
 ***
+***
+***
+***
+
 
 # AI-Powered Course Creation Design
 
@@ -21,11 +25,11 @@ For example, a Tenant Admin provides:
 - Duration: 6 weeks
 ```
 
-## Prompt Setup:
+## Prompt Setup
 
 Firstly I will craft a proper prompt that properly explains the AI on what is to be made. Which will be the default prompt that the AI receives each time a course creation request is made. This shall ensure the AI will not derail from the actual task of creating content.
 
-Then I will attach/cat the information that the Tenant admin provides to build the course. (The information here is the above example.)
+Then I will attach/cat the information that the Tenant admin provides to build the course. (The information here is the above example.) Except for the 
 
 The AI will be instructed to output the course structure in a fixed schema structured output format in JSON.
 
@@ -35,7 +39,7 @@ I will instruct the AI to write the output to a File in the container (not to th
 
 ## Deployment to DB
 
-It is never a good thing to allow AI to write directly to the DB. And in our usecase, we only care about writing into a particular table in DB. The only variables to a single database query will be:
+It is never a good thing to allow AI to write directly to the DB. And in our use case, we only care about writing into a particular table in DB. The only variables to a single database query will be:
 
 - Tenant Organization
 - Course Content
@@ -52,7 +56,7 @@ After the DB is successfully updated the file is then removed. (Even if the file
 
 **How you would structure and validate the AI response?**
 - Fixed Output Schema for AI
-- A script to check if the schema is corrrectly designed and filled.
+- A script to check if the schema is correctly designed and filled.
 
 **How you would personalize courses for different users?**
 - Personalization is dependent on the selections of the prompter. But, the general fixed structure is preferred for the course. As per the user feedback new teacher personas/tones (Default Prompt Falvors) can be added on the options.
@@ -64,18 +68,23 @@ After the DB is successfully updated the file is then removed. (Even if the file
 - A structured input flow only allowing tenant's to select from a given list of options where applicable (like with level, goal, time, duration, etc.). 
 
 ### Inconsistent Outputs
-- Define a fixed schema for output in json, which is validated with a script before executing the database queries script.
+- Define a fixed schema for output in JSON, which is validated with a script before executing the database queries script.
 
 ### Token Cost Limits
 - A token quota system that limits usage as per their subscribed plan.
 
 ### Privacy
-- Uses the same queries that a manual course imput would use, as per individual tenant hence it only makes it editable by the tenant admin and the superior roles (superadmin, admin).
+- Uses the same queries that a manual course input would use, as per individual tenant hence it only makes it editable by the tenant admin and the superior roles (superadmin, admin).
 
 ### Prompt Injection
 - Only allow for a limited number of character for titles.
-- AI runs on a seperate script that is configured with it's own user/group which do not have read write or execute permissions beyond what it explicitely has to run and write to. (i.e. execute[DB Entry Script] + read/write[JSON structured Output])
+- AI runs on a separate script that is configured with it's own user/group which do not have read write or execute permissions beyond what it explicitely has to run and write to. (i.e. execute[DB Entry Script] + read/write[JSON structured Output])
 
+> Course Creation is the only thing handled by AI, Deletion is upon the tenan't admin to execute as it is on manual entry of courses.
+
+***
+***
+***
 ***
 
 ## Deploy
