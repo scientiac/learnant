@@ -87,7 +87,7 @@ After the DB is successfully updated the file is then removed. (Even if the file
 ***
 ***
 
-## OpenCode Stats
+### OpenCode Stats
 
 ```
 77 prompts · 1.2k steps · 430.2m tokens
@@ -95,7 +95,11 @@ After the DB is successfully updated the file is then removed. (Even if the file
 ```
 [Prompts](prompts.txt)
 
-The file above contains the prompts I gave in opencode. This is the main harness I used for agentic development with GPT 5.5 for base design, then gpt 6 luna for refinements.
+67~% of weekly token limit (GPT Plus) remained when I completed the project. 
+
+### AI Tooling Usage
+
+The file above contains the prompts I gave to opencode. This is the main harness I used for agentic development with GPT 5.5 for base design, then gpt 6 luna for refinements.
 
 Most parts of AGENTS.md, CHECKPOINTS.md and docs/*.md are written by utilizing a free session of Antigravity with claude sonnet and gemini 3.8 flash. It also wrote the initial base.html styles inspired by shadcn/sera UI. 
 
