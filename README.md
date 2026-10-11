@@ -8,6 +8,76 @@ Learnant is a secure learning workspace where each institute manages its own cou
 
 **Deployed site:** [learnant.3o14.com](https://learnant.3o14.com)
 
+***
+
+# AI-Powered Course Creation Design
+
+```
+For example, a Tenant Admin provides:
+- Learner: Backend Developer
+- Current Level: Beginner
+- Goal: Learn Python
+- Available Time: 5 hours/week
+- Duration: 6 weeks
+```
+
+## Prompt Setup:
+
+Firstly I will craft a proper prompt that properly explains the AI on what is to be made. Which will be the default prompt that the AI receives each time a course creation request is made. This shall ensure the AI will not derail from the actual task of creating content.
+
+Then I will attach/cat the information that the Tenant admin provides to build the course. (The information here is the above example.)
+
+The AI will be instructed to output the course structure in a fixed schema structured output format in JSON.
+
+## Temporary Storage
+
+I will instruct the AI to write the output to a File in the container (not to the attached volume) it is running on. This file is the only file that AI could actually edit.
+
+## Deployment to DB
+
+It is never a good thing to allow AI to write directly to the DB. And in our usecase, we only care about writing into a particular table in DB. The only variables to a single database query will be:
+
+- Tenant Organization
+- Course Content
+
+This will be handled by a custom python script that will only have one job; parsing the JSON output from AI and pushing it to the correct tables in the DB accessible to the prompting organization/tenant. 
+
+After the DB is successfully updated the file is then removed. (Even if the file isn't removed, upon updates to the deployment; the temporary files automatically vanish, since it will be replaced by a new container image.)
+
+## Questions
+
+**What information would be sent to the AI?**
+- Prompt generated according to the choices of the tenant admin.
+- Tenant Admin ID (Not to AI but for use in DB Update Script)
+
+**How you would structure and validate the AI response?**
+- Fixed Output Schema for AI
+- A script to check if the schema is corrrectly designed and filled.
+
+**How you would personalize courses for different users?**
+- Personalization is dependent on the selections of the prompter. But, the general fixed structure is preferred for the course. As per the user feedback new teacher personas/tones (Default Prompt Falvors) can be added on the options.
+
+## Problems
+
+### Hallucinations
+- A default prompt guiding the AI on how exactly the answers should be structured and formatted. 
+- A structured input flow only allowing tenant's to select from a given list of options where applicable (like with level, goal, time, duration, etc.). 
+
+### Inconsistent Outputs
+- Define a fixed schema for output in json, which is validated with a script before executing the database queries script.
+
+### Token Cost Limits
+- A token quota system that limits usage as per their subscribed plan.
+
+### Privacy
+- Uses the same queries that a manual course imput would use, as per individual tenant hence it only makes it editable by the tenant admin and the superior roles (superadmin, admin).
+
+### Prompt Injection
+- Only allow for a limited number of character for titles.
+- AI runs on a seperate script that is configured with it's own user/group which do not have read write or execute permissions beyond what it explicitely has to run and write to. (i.e. execute[DB Entry Script] + read/write[JSON structured Output])
+
+***
+
 ## Deploy
 
 ### Railway with GHCR
