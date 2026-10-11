@@ -22,7 +22,7 @@ AI-powered course generation is **design/documentation only**. Do not implement 
 - Do not add dependencies without explaining why they are needed.
 - Keep secrets out of source control.
 - Make changes understandable enough for the developer to explain in an interview.
-- The developer must write the `docs/ai-course-design.md` content themselves because the take-home task explicitly prohibits using AI to write that design/documentation.
+- The developer must write the AI course-generation design themselves because the take-home explicitly prohibits AI-authored design documentation; in this repository that human-authored design is included in the `README.md` section titled “AI-Powered Course Creation Design.”
 
 ## 3. Intended Stack
 
@@ -251,7 +251,7 @@ Acceptance criteria:
 Tasks:
 - Complete README setup/run/test instructions.
 - Document architecture, role permissions, tenant isolation, trial lifecycle, and reactivation.
-- The developer writes `docs/ai-course-design.md` in their own words.
+- The developer writes the README course-generation design section in their own words; do not use AI to author or rewrite it.
 - Document AI coding workflow and include this project's instructions file.
 - Add safe demo setup/credentials guidance.
 - Record estimated and actual time taken.

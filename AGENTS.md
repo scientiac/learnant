@@ -94,7 +94,7 @@ Every user belongs to a specific tier and must have dedicated, role-appropriate 
 
 ### E. AI-Powered Course Creation (Design-Only Rule)
 - **Design-Only Feature:** The application can include an intuitive UI entry point / preview modal (e.g., "AI Course Assistant Preview") where Tenant Admins can input learner role, current level, goal, hours/week, and duration to see sample structured course output.
-- **Strict Human Author Constraint:** Do **NOT** connect to paid AI APIs. Do **NOT** generate or write the content in `docs/ai-course-design.md`. That document is strictly reserved for the human developer to write in their own words.
+- **Strict Human Author Constraint:** Do **NOT** connect to paid AI APIs or AI-author the course-creation design. The human-authored design is the “AI-Powered Course Creation Design” section in `README.md`; do not generate or rewrite that section.
 
 ### F. Lesson Ordering & Collision Prevention (First Priority Bug Fix)
 - **Automatic Order Indexing:** Automatically calculate `order = max(order) + 1` by default when creating a lesson. Do not expose a colliding default `1` that triggers `IntegrityError (UNIQUE constraint failed: core_lesson.course_id, core_lesson.order)`.

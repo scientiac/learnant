@@ -155,7 +155,7 @@ Tenant Admins can manage learner names, emails, and active status from **Members
 
 ## 5. Testing & Verification
 
-The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The `docs/ai-course-design.md` document remains for the developer to write.
+The Tenant Admin dashboard includes an **AI Course Assistant Preview**. It accepts learner planning inputs and renders a static sample outline only; it does not call an AI service or create/persist a course. The human-authored course-generation design is documented in the [README design section](../README.md#ai-powered-course-creation-design).
 
 Run the full automated test suite (208 tests):
 
@@ -180,7 +180,7 @@ Test suite coverage highlights:
 Detailed documentation is available in the `docs/` directory:
 - [Architecture & System Design](architecture.md): Multi-tenancy approach, data isolation rules, RBAC, trial lifecycle, and data models.
 - [Permissions Matrix](permissions.md): Complete policy breakdown for platform and tenant roles.
-- [AI Course Creation Design](ai-course-design.md): Dedicated technical design document placeholder for human author completion.
+- [AI Course Creation Design](../README.md#ai-powered-course-creation-design): Human-authored course-generation design, as required by the take-home restriction.
 
 ---
 
@@ -228,3 +228,11 @@ Detailed documentation is available in the `docs/` directory:
 Once a lesson has been created, use **Add image or video** in its editor to upload one file at a time. Each upload is stored immediately on the persistent volume and its Markdown reference is inserted into the content field; save the lesson to retain other unsaved edits. You can keep adding more files, including multiple videos.
 
 When publishing a new version, wait for the GHCR workflow and redeploy the app image. Do not delete or replace the PostgreSQL service/volume unless you intend to discard its data.
+
+---
+
+## 8. Time & Self-Deadline
+
+- **Estimated Time:** 3 days.
+- **Actual Time:** 3 days total: 1 day building and deploying the application, plus 2 days refining the UI and writing the AI course-creation design.
+- **Self-Deadline:** October 11, 2026.
