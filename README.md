@@ -29,7 +29,7 @@ For example, a Tenant Admin provides:
 
 Firstly I will craft a proper prompt that properly explains the AI on what is to be made. Which will be the default prompt that the AI receives each time a course creation request is made. This shall ensure the AI will not derail from the actual task of creating content.
 
-Then I will attach/cat the information that the Tenant admin provides to build the course. (The information here is the above example.) Except for the 
+Then I will attach/cat the information that the Tenant admin provides to build the course. (The information here is the above example.)
 
 The AI will be instructed to output the course structure in a fixed schema structured output format in JSON.
 
