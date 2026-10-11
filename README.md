@@ -51,8 +51,8 @@ I will instruct the AI to write the output to a File in the container (not to th
 
 It is never a good thing to allow AI to write directly to the DB. And in our use case, we only care about writing into a particular table in DB. The only variables to a single database query will be:
 
-- Tenant Organization
-- Course Content
+- Tenant Organization [With Authorized Token]
+- Course Content [Parsed from JSON]
 
 This will be handled by a custom python script that will only have one job; parsing the JSON output from AI and pushing it to the correct tables in the DB accessible to the prompting organization/tenant. 
 
