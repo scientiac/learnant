@@ -92,6 +92,13 @@ After the DB is successfully updated the file is then removed. (Even if the file
 
 > Course Creation is the only thing handled by AI, Deletion is upon the tenan't admin to execute as it is on manual entry of courses.
 
+### Failure Handling
+
+- If the JSON isn't correctly formatted the validation script/service checks and reprompts the AI  automatically with stored previous context and failure report.
+- A failure reporting service is set in place.
+- If AI failes more than 3 times (or a set limit) the user is notified about the failure and asked to reprompt.
+- Token Expiry mid session can also fail. This also will be notified to the user.
+
 ***
 ***
 ***
@@ -100,8 +107,8 @@ After the DB is successfully updated the file is then removed. (Even if the file
 ### OpenCode Stats
 
 ```
-77 prompts · 1.2k steps · 430.2m tokens
-96.0% tool success · 3 active days · best streak 3 days
+78 prompts · 1.2k steps · 438.2m tokens
+96.1% tool success · 3 active days · best streak 3 days
 ```
 [Prompts](prompts.txt)
 

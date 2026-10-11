@@ -253,3 +253,5 @@ the ant should have a white circular background
 make the background square since it is the whole desing language for that logo and also do the same which back with ant square for the favicon too
 
 When in dark mode, or even in light mode, while switching pages from one html to another there is a loading flash of white screen , it isn't noticed in light mode but in dark mode it is kind of a problem, so can you please fix it my maybe putting something on the header that paints the background the first thing it loads another page to hide the white flashing
+
+On the lesson viewer I cannot add inode or a ![](https://..../hello.mp4) or any video link while the image renders, also gfm warnings and notes and important and all syntax didnt work and finally add a dashboard on the learners homepage showing their progress.
