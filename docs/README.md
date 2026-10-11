@@ -228,11 +228,3 @@ Detailed documentation is available in the `docs/` directory:
 Once a lesson has been created, use **Add image or video** in its editor to upload one file at a time. Each upload is stored immediately on the persistent volume and its Markdown reference is inserted into the content field; save the lesson to retain other unsaved edits. You can keep adding more files, including multiple videos.
 
 When publishing a new version, wait for the GHCR workflow and redeploy the app image. Do not delete or replace the PostgreSQL service/volume unless you intend to discard its data.
-
----
-
-## 8. Time & Self-Deadline
-
-- **Estimated Time:** 16 hours
-- **Actual Time Taken:** ~12 hours (developer-recorded estimate)
-- **Self-Deadline:** The original date/time was not recorded in the repository and cannot be reconstructed retrospectively; submitter should add it if known.
