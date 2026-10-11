@@ -69,6 +69,9 @@ class LessonStudyViewTests(TestCase):
         self.assertContains(response, 'youtube-nocookie.com/embed/abcDEF123_-')
         self.assertContains(response, 'marked.parse')
         self.assertContains(response, 'DOMPurify.sanitize')
+        self.assertContains(response, 'isVideoSource')
+        self.assertContains(response, 'markdown-alert-title')
+        self.assertContains(response, 'video/mp4')
         self.assertContains(response, 'katex')
         self.assertContains(response, 'Mark complete')
 
@@ -196,7 +199,7 @@ class LessonStudyViewTests(TestCase):
         response = self.client.get(reverse('lesson-detail', args=[self.course.id, lesson.id]))
         self.assertContains(response, 'lesson-content')
         self.assertContains(response, f'/lesson-assets/{asset.public_id}/')
-        self.assertContains(response, '<video')
+        self.assertContains(response, 'videoPlayer(link.href, link.textContent.trim())')
 
     def test_edit_form_has_no_separate_video_url_input(self):
         self.client.login(username='manager-a', password='test')

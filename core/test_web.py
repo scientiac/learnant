@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.management import call_command
 from django.urls import reverse
 
-from .models import Course, CourseAssignment, Lesson, Tenant, User
+from .models import Course, CourseAssignment, Lesson, LessonProgress, Tenant, User
 
 
 class WebFlowTests(TestCase):
@@ -153,7 +153,11 @@ class WebFlowTests(TestCase):
         lesson = Lesson.objects.create(
             course=course, title='First Study Lesson', content='Welcome!', order=1
         )
-        CourseAssignment.objects.create(tenant=self.tenant, course=course, learner=self.learner)
+        Lesson.objects.create(
+            course=course, title='Second Study Lesson', content='Continue learning.', order=2
+        )
+        assignment = CourseAssignment.objects.create(tenant=self.tenant, course=course, learner=self.learner)
+        LessonProgress.objects.create(assignment=assignment, lesson=lesson, is_complete=True)
         self.client.login(username='learner', password='password123')
 
         response = self.client.get(reverse('dashboard'))
@@ -161,6 +165,9 @@ class WebFlowTests(TestCase):
         self.assertContains(response, 'Your learning path')
         self.assertContains(response, 'Start First Study Lesson')
         self.assertContains(response, reverse('lesson-detail', args=[course.id, lesson.id]))
+        self.assertContains(response, 'Your progress')
+        self.assertContains(response, '1 of 2 lessons complete')
+        self.assertContains(response, '50%')
 
     def test_super_viewer_dashboard_is_read_only(self):
         self.client.login(username='viewer', password='password123')

@@ -11,7 +11,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.db.models import Max, Prefetch, Q
+from django.db.models import Count, Max, Prefetch, Q
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
@@ -251,6 +251,10 @@ def dashboard(request):
         'assigned_course': None,
         'assigned_course_count': 0,
         'assigned_lesson': None,
+        'learner_course_progress': [],
+        'learner_total_lessons': 0,
+        'learner_completed_lessons': 0,
+        'learner_overall_percent': 0,
     }
 
     if user.role in {User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.SUPER_VIEWER}:
@@ -312,6 +316,34 @@ def dashboard(request):
             context['assigned_course'] = assigned_courses.order_by('title').first()
             if context['assigned_course']:
                 context['assigned_lesson'] = context['assigned_course'].lessons.order_by('order', 'id').first()
+            assignments = CourseAssignment.objects.filter(learner=user).select_related('course').annotate(
+                total_lessons=Count('course__lessons', distinct=True),
+                completed_lessons=Count(
+                    'lesson_progress',
+                    filter=Q(lesson_progress__is_complete=True),
+                    distinct=True,
+                ),
+            ).order_by('course__title')
+            learner_course_progress = []
+            total_lessons = 0
+            total_completed = 0
+            for assignment in assignments:
+                total = assignment.total_lessons
+                completed = assignment.completed_lessons
+                total_lessons += total
+                total_completed += completed
+                learner_course_progress.append({
+                    'course': assignment.course,
+                    'total_lessons': total,
+                    'completed_lessons': completed,
+                    'percent': round(completed * 100 / total) if total else 0,
+                })
+            context['learner_course_progress'] = learner_course_progress
+            context['learner_total_lessons'] = total_lessons
+            context['learner_completed_lessons'] = total_completed
+            context['learner_overall_percent'] = (
+                round(total_completed * 100 / total_lessons) if total_lessons else 0
+            )
 
     return render(request, 'core/dashboard.html', context)
 
@@ -904,7 +936,6 @@ def lesson_detail(request, course_id, lesson_id):
             'can_update_progress': bool(assignment and can_mutate_tenant_data(request.user)),
             'can_manage_lesson': can_manage_tenant(request.user, course.tenant),
             'video_player': lesson.video_player,
-            'uploaded_videos': lesson.assets.filter(kind=LessonAsset.Kind.VIDEO),
         },
     )
 

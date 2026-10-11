@@ -39,15 +39,6 @@
       </div>
     {% endif %}
 
-    {% for uploaded_video in uploaded_videos %}
-      <div class="mb-6">
-        <video class="w-full border" controls preload="metadata" style="border-color: hsl(var(--border));">
-          <source src="{% url 'lesson-asset' uploaded_video.public_id %}" type="{{ uploaded_video.mime_type }}">
-          Your browser does not support embedded video.
-        </video>
-      </div>
-    {% endfor %}
-
     <div id="lesson-content" class="lesson-markdown"><pre class="whitespace-pre-wrap">{{ lesson.content }}</pre></div>
     <div id="lesson-markdown-source" class="hidden">{{ lesson.content }}</div>
     <noscript><pre class="mt-5 whitespace-pre-wrap">{{ lesson.content }}</pre></noscript>
@@ -110,6 +101,9 @@
   .lesson-markdown th,.lesson-markdown td { border: 1px solid hsl(var(--border)); padding: .45rem .65rem; }
   .lesson-markdown img { max-width: 100%; height: auto; }
   .lesson-markdown a { text-decoration: underline; text-underline-offset: 3px; }
+  .lesson-markdown video { display: block; width: 100%; max-height: 70vh; margin: 1rem 0; border: 1px solid hsl(var(--border)); background: #000; }
+  .lesson-markdown blockquote.markdown-alert { margin: 1.25rem 0; border: 1px solid hsl(var(--border)); border-left: 3px solid hsl(var(--foreground)); padding: .65rem 1rem; background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+  .lesson-markdown .markdown-alert-title { margin: 0 0 .45rem; font-family: ui-monospace, monospace; font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
@@ -122,6 +116,71 @@
     if (!source || !target || !window.marked || !window.DOMPurify) return;
     const html = window.marked.parse(source.textContent, { gfm: true, breaks: false });
     target.innerHTML = window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+
+    function videoSourceType(url) {
+      const pathname = new URL(url, window.location.href).pathname.toLowerCase();
+      if (pathname.endsWith('.mp4')) return 'video/mp4';
+      if (pathname.endsWith('.webm')) return 'video/webm';
+      if (pathname.endsWith('.ogg')) return 'video/ogg';
+      return '';
+    }
+
+    function isVideoSource(url) {
+      try {
+        const parsed = new URL(url, window.location.href);
+        const protectedLessonAsset = parsed.origin === window.location.origin &&
+          /^\/lesson-assets\/[0-9a-f-]+\/?$/i.test(parsed.pathname);
+        return protectedLessonAsset ||
+          (parsed.protocol === 'https:' && Boolean(videoSourceType(parsed.pathname)));
+      } catch (_error) {
+        return false;
+      }
+    }
+
+    function videoPlayer(url, label) {
+      const player = document.createElement('video');
+      player.controls = true;
+      player.preload = 'metadata';
+      player.setAttribute('aria-label', label || 'Lesson video');
+      const sourceElement = document.createElement('source');
+      sourceElement.src = url;
+      const mimeType = videoSourceType(url);
+      if (mimeType) sourceElement.type = mimeType;
+      player.append(sourceElement);
+      return player;
+    }
+
+    // Markdown image syntax is commonly used for video URLs too; convert those
+    // URLs (and ordinary direct-video links) to native players after sanitizing.
+    target.querySelectorAll('img[src]').forEach((image) => {
+      if (isVideoSource(image.src)) {
+        image.replaceWith(videoPlayer(image.src, image.alt));
+      }
+    });
+    target.querySelectorAll('a[href]').forEach((link) => {
+      if (isVideoSource(link.href)) {
+        link.replaceWith(videoPlayer(link.href, link.textContent.trim()));
+      }
+    });
+
+    // Convert GitHub Flavored Markdown blockquote alerts such as > [!NOTE].
+    target.querySelectorAll('blockquote').forEach((quote) => {
+      const paragraph = quote.querySelector('p');
+      if (!paragraph) return;
+      const marker = paragraph.textContent.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i);
+      if (!marker) return;
+      const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+      const textNode = walker.nextNode();
+      if (textNode) textNode.textContent = textNode.textContent.replace(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+      const label = marker[1].toUpperCase();
+      quote.classList.add('markdown-alert', `markdown-alert-${label.toLowerCase()}`);
+      quote.setAttribute('role', 'note');
+      const heading = document.createElement('p');
+      heading.className = 'markdown-alert-title';
+      heading.textContent = label;
+      quote.insertBefore(heading, quote.firstChild);
+    });
+
     if (window.renderMathInElement) {
       window.renderMathInElement(target, {
         delimiters: [

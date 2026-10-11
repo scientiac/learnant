@@ -168,6 +168,43 @@
         <a class="btn btn-outline mt-4" href="{% url 'course-list' %}">View my courses</a>
       {% endif %}
     </section>
+
+    <section class="card mb-6 p-5" aria-labelledby="learner-progress-title">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="learner-progress-title" class="text-lg font-semibold">Your progress</h2>
+          {% if learner_total_lessons %}
+            <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">{{ learner_completed_lessons }} of {{ learner_total_lessons }} lesson{{ learner_total_lessons|pluralize }} complete across your courses.</p>
+          {% else %}
+            <p class="mt-1 text-sm" style="color: hsl(var(--muted-foreground));">Progress will appear here when lessons are added to your assigned courses.</p>
+          {% endif %}
+        </div>
+        <span class="badge badge-role font-mono">{{ learner_overall_percent }}%</span>
+      </div>
+      <div class="mt-3 h-2 w-full overflow-hidden" style="background: hsl(var(--muted));" role="progressbar" aria-label="Overall lesson completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ learner_overall_percent }}">
+        <div class="h-full" style="width: {{ learner_overall_percent }}%; background: hsl(var(--primary));"></div>
+      </div>
+      {% if learner_course_progress %}
+        <ul class="mt-4 divide-y" style="border-color: hsl(var(--border));">
+          {% for item in learner_course_progress %}
+            <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div class="min-w-0 flex-1">
+                <a class="font-medium underline underline-offset-4" href="{% url 'lesson-list' item.course.id %}">{{ item.course.title }}</a>
+                <p class="mt-1 text-xs" style="color: hsl(var(--muted-foreground));">
+                  {% if item.total_lessons %}{{ item.completed_lessons }} / {{ item.total_lessons }} lesson{{ item.total_lessons|pluralize }} complete{% else %}No lessons yet{% endif %}
+                </p>
+                <div class="mt-2 h-1.5 w-full max-w-md overflow-hidden" style="background: hsl(var(--muted));" role="progressbar" aria-label="{{ item.course.title }} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ item.percent }}">
+                  <div class="h-full" style="width: {{ item.percent }}%; background: hsl(var(--primary));"></div>
+                </div>
+              </div>
+              <span class="font-mono text-sm">{{ item.percent }}%</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="mt-4 border-t pt-4 text-sm" style="border-color: hsl(var(--border)); color: hsl(var(--muted-foreground));">No courses have been assigned to your account yet.</p>
+      {% endif %}
+    </section>
   {% endif %}
 
   <div class="flex flex-wrap gap-3">

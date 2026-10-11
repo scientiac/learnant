@@ -98,9 +98,11 @@
 ### Priority 3: Dedicated Lesson Study View & Rich Content (GFM + LaTeX + Video)
 - [x] Dedicated individual lesson study page (`/courses/<course_id>/lessons/<lesson_id>/`) with syllabus navigation.
 - [x] Rich document support: GitHub-Flavored Markdown (GFM) with images and LaTeX math equations (KaTeX).
+- [x] Render direct HTTPS MP4/WebM/Ogg Markdown image/link URLs as video players and format GFM NOTE/TIP/IMPORTANT/WARNING/CAUTION callouts.
 - [x] Lesson lists show title and description without content previews.
 - [x] Add images/videos one at a time; uploaded references insert into Markdown immediately and multiple videos per lesson are supported.
 - [x] Document persistent `/app/uploads` storage required to preserve files between container rebuilds.
+- [x] Show each learner's overall and per-course completed lesson progress on their dashboard.
 
 ### Priority 4: Student First-Login Password Reset
 - [x] Add `must_change_password` flag to User model (default `True` for new learners; existing/demo accounts preserved).
