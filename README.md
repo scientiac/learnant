@@ -33,11 +33,21 @@ Then I will attach/cat the information that the Tenant admin provides to build t
 
 The AI will be instructed to output the course structure in a fixed schema structured output format in JSON.
 
+The input categories may include:
+1. Level: Beginner, Intermediate, Expert, Master
+2. Goal: <Course Title> [Capped with max chars.]
+3. Duration: TIME Widget to select the number of hours.
+4. Prompt Style/ Course Style: Explain Like I am 5, I know the Basics, I have all the prerequired knowledge, etc. [As per user feedback.]
+5. Teaching Style: Visual/Graphic, Story, Textual, Factual, Mathematical, Logical, etc
+... and more as the user feedback arise
+
+This is a predefined list of categories leaving little room for ambiguous input prompts. But, flexible enough to provide what the creater/prompter want from the course. Reducing hallucination as well as prompt injection opportunities. 
+
 ## Temporary Storage
 
 I will instruct the AI to write the output to a File in the container (not to the attached volume) it is running on. This file is the only file that AI could actually edit.
 
-## Deployment to DB
+## Queries to Store Course Data on DB
 
 It is never a good thing to allow AI to write directly to the DB. And in our use case, we only care about writing into a particular table in DB. The only variables to a single database query will be:
 
